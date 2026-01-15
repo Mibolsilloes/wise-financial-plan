@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, Calendar as CalendarIcon, X } from "lucide-react";
+import { TrendingUp, TrendingDown, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -163,11 +163,23 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center">
-                    <TrendingUp className="h-4 w-4 text-success" />
+                  <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center",
+                    foiRecebida ? "bg-success/10" : "bg-destructive/10"
+                  )}>
+                    {foiRecebida ? (
+                      <TrendingUp className="h-4 w-4 text-success" />
+                    ) : (
+                      <TrendingDown className="h-4 w-4 text-destructive" />
+                    )}
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Foi Recebida</p>
+                    <p className={cn(
+                      "font-medium text-sm",
+                      foiRecebida ? "text-success" : "text-destructive"
+                    )}>
+                      {foiRecebida ? "Foi Recebida" : "Não Recebida"}
+                    </p>
                     <p className="text-xs text-muted-foreground">Status do pagamento/recebimento</p>
                   </div>
                 </div>
