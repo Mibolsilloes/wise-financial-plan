@@ -645,7 +645,7 @@ export default function Reports() {
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-border">
                     <div>
-                      <div className="flex items-center gap-2 text-success text-sm">
+                      <div className="flex items-center gap-2 text-primary text-sm">
                         <TrendingUp className="h-4 w-4" />
                         <span>Saldo Previsto</span>
                         <TooltipProvider>
@@ -659,7 +659,7 @@ export default function Reports() {
                           </UITooltip>
                         </TooltipProvider>
                       </div>
-                      <span className="text-xl font-bold text-success">R$ 0,00</span>
+                      <span className="text-xl font-bold text-primary">R$ 0,00</span>
                       <p className="text-xs text-muted-foreground">Receitas X Despesas</p>
                     </div>
                     <span className="text-[10px] text-muted-foreground">(Receita - Despesa + Saldo Bancário)</span>
