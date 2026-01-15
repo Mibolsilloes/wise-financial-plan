@@ -68,6 +68,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { FilterPopover } from "@/components/dashboard/FilterPopover";
 
 const expenseData = [
   { name: "Casa", value: 1800, color: "hsl(340, 82%, 52%)" },
@@ -287,9 +288,11 @@ export default function Reports() {
         <Button variant="outline" size="sm">
           <ArrowUpDown className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="sm">
-          <Filter className="h-4 w-4" />
-        </Button>
+        <FilterPopover>
+          <Button variant="outline" size="sm">
+            <Filter className="h-4 w-4" />
+          </Button>
+        </FilterPopover>
       </div>
 
       {/* Table */}
