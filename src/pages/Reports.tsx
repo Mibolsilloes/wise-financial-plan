@@ -133,20 +133,31 @@ const getCashFlowData = (period: string) => {
       ];
     case "7days":
       return [
-        { period: "Seg", receitas: 1200, despesas: 800, saldo: 400 },
-        { period: "Ter", receitas: 950, despesas: 600, saldo: 350 },
-        { period: "Qua", receitas: 1100, despesas: 750, saldo: 350 },
-        { period: "Qui", receitas: 1300, despesas: 900, saldo: 400 },
-        { period: "Sex", receitas: 1500, despesas: 1100, saldo: 400 },
-        { period: "Sáb", receitas: 800, despesas: 400, saldo: 400 },
-        { period: "Dom", receitas: 600, despesas: 300, saldo: 300 },
+        { period: "9 Jan", receitas: 1200, despesas: 800, saldo: 400 },
+        { period: "10 Jan", receitas: 950, despesas: 600, saldo: 350 },
+        { period: "11 Jan", receitas: 1100, despesas: 750, saldo: 350 },
+        { period: "12 Jan", receitas: 1300, despesas: 900, saldo: 400 },
+        { period: "13 Jan", receitas: 1500, despesas: 1100, saldo: 400 },
+        { period: "14 Jan", receitas: 800, despesas: 400, saldo: 400 },
+        { period: "15 Jan", receitas: 600, despesas: 300, saldo: 300 },
       ];
     case "month":
       return [
-        { period: "Sem 1", receitas: 2500, despesas: 1800, saldo: 700 },
-        { period: "Sem 2", receitas: 3200, despesas: 2100, saldo: 1100 },
-        { period: "Sem 3", receitas: 2800, despesas: 1900, saldo: 900 },
-        { period: "Sem 4", receitas: 3500, despesas: 2300, saldo: 1200 },
+        { period: "2 Jan", receitas: 2500, despesas: 1800, saldo: 700 },
+        { period: "4 Jan", receitas: 1800, despesas: 1200, saldo: 600 },
+        { period: "6 Jan", receitas: 2100, despesas: 1500, saldo: 600 },
+        { period: "8 Jan", receitas: 1900, despesas: 1100, saldo: 800 },
+        { period: "10 Jan", receitas: 2300, despesas: 1600, saldo: 700 },
+        { period: "12 Jan", receitas: 2000, despesas: 1300, saldo: 700 },
+        { period: "14 Jan", receitas: 2200, despesas: 1400, saldo: 800 },
+        { period: "16 Jan", receitas: 1700, despesas: 1000, saldo: 700 },
+        { period: "18 Jan", receitas: 2400, despesas: 1700, saldo: 700 },
+        { period: "20 Jan", receitas: 2100, despesas: 1500, saldo: 600 },
+        { period: "22 Jan", receitas: 1900, despesas: 1200, saldo: 700 },
+        { period: "24 Jan", receitas: 2600, despesas: 1800, saldo: 800 },
+        { period: "26 Jan", receitas: 2000, despesas: 1400, saldo: 600 },
+        { period: "28 Jan", receitas: 2300, despesas: 1600, saldo: 700 },
+        { period: "31 Jan", receitas: 2800, despesas: 1900, saldo: 900 },
       ];
     case "year":
     default:
