@@ -69,6 +69,8 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { FilterPopover } from "@/components/dashboard/FilterPopover";
+import { AddRevenueDialog } from "@/components/dashboard/AddRevenueDialog";
+import { AddExpenseDialog } from "@/components/dashboard/AddExpenseDialog";
 
 const expenseData = [
   { name: "Casa", value: 1800, color: "hsl(340, 82%, 52%)" },
@@ -163,6 +165,8 @@ export default function Reports() {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const [isRevenueDialogOpen, setIsRevenueDialogOpen] = useState(false);
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
 
   const totalExpenses = expenseData.reduce((acc, item) => acc + item.value, 0);
   const totalIncome = incomeData.reduce((acc, item) => acc + item.value, 0);
@@ -680,7 +684,11 @@ export default function Reports() {
                     <h3 className="text-lg font-semibold">Receitas pendentes</h3>
                     <p className="text-xs text-muted-foreground">Lançamentos a receber</p>
                   </div>
-                  <Button size="sm" className="bg-success hover:bg-success/90 text-white gap-1.5">
+                  <Button 
+                    size="sm" 
+                    className="bg-success hover:bg-success/90 text-white gap-1.5"
+                    onClick={() => setIsRevenueDialogOpen(true)}
+                  >
                     <TrendingUp className="h-4 w-4" />
                     Receita
                   </Button>
@@ -695,7 +703,11 @@ export default function Reports() {
                     <h3 className="text-lg font-semibold">Despesas pendentes</h3>
                     <p className="text-xs text-muted-foreground">Lançamentos a pagar</p>
                   </div>
-                  <Button size="sm" className="bg-destructive hover:bg-destructive/90 text-white gap-1.5">
+                  <Button 
+                    size="sm" 
+                    className="bg-destructive hover:bg-destructive/90 text-white gap-1.5"
+                    onClick={() => setIsExpenseDialogOpen(true)}
+                  >
                     <TrendingDown className="h-4 w-4" />
                     Despesa
                   </Button>
@@ -703,6 +715,10 @@ export default function Reports() {
                 {renderPendingTransactionsTable("despesas")}
               </div>
             </div>
+
+            {/* Dialogs */}
+            <AddRevenueDialog open={isRevenueDialogOpen} onOpenChange={setIsRevenueDialogOpen} />
+            <AddExpenseDialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen} />
           </TabsContent>
 
           {/* Fluxo de Caixa Tab */}
