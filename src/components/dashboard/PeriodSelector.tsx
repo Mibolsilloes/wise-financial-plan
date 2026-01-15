@@ -4,9 +4,19 @@ import {
   ChevronRight,
   RefreshCw, 
   Trash2,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { DateRange } from "react-day-picker";
 
 const periods = [
   { id: "today", label: "Hoje" },
@@ -24,6 +34,11 @@ export function PeriodSelector() {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [currentMonth, setCurrentMonth] = useState(0); // Janeiro
   const [currentYear, setCurrentYear] = useState(2026);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(2026, 0, 1),
+    to: new Date(2026, 0, 31),
+  });
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const handlePrevMonth = () => {
     if (currentMonth === 0) {
@@ -43,13 +58,23 @@ export function PeriodSelector() {
     }
   };
 
-  // Calculate date range based on current month
-  const getDaysInMonth = (month: number, year: number) => {
-    return new Date(year, month + 1, 0).getDate();
+  const handleDateRangeSelect = (range: DateRange | undefined) => {
+    setDateRange(range);
+    if (range?.from && range?.to) {
+      setSelectedPeriod("custom");
+    }
   };
 
-  const startDate = `01/${String(currentMonth + 1).padStart(2, '0')}/${currentYear}`;
-  const endDate = `${getDaysInMonth(currentMonth, currentYear)}/${String(currentMonth + 1).padStart(2, '0')}/${currentYear}`;
+  // Format date range for display
+  const formatDateRange = () => {
+    if (dateRange?.from && dateRange?.to) {
+      return `${format(dateRange.from, "dd/MM/yyyy")} - ${format(dateRange.to, "dd/MM/yyyy")}`;
+    }
+    if (dateRange?.from) {
+      return format(dateRange.from, "dd/MM/yyyy");
+    }
+    return "Selecionar período";
+  };
 
   return (
     <div className="glass rounded-xl p-4 animate-fade-in">
@@ -95,11 +120,34 @@ export function PeriodSelector() {
           ))}
         </div>
 
-        {/* Date Range Display */}
+        {/* Date Range Picker */}
         <div className="flex items-center gap-4 lg:ml-auto">
-          <div className="px-4 py-2 rounded-lg bg-muted border border-border text-sm">
-            {startDate} - {endDate}
-          </div>
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "justify-start text-left font-normal gap-2",
+                  !dateRange && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="h-4 w-4" />
+                {formatDateRange()}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                initialFocus
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={handleDateRangeSelect}
+                numberOfMonths={2}
+                locale={ptBR}
+                className="pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
 
           {/* Action Buttons */}
           <Button 
