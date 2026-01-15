@@ -1,68 +1,93 @@
 import { useState } from "react";
 import { 
-  Calendar, 
+  ChevronLeft,
+  ChevronRight,
   RefreshCw, 
-  X, 
-  ChevronDown,
-  Filter,
-  Clock,
-  CalendarCheck,
-  CalendarClock
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const periods = [
   { id: "today", label: "Hoje" },
-  { id: "7days", label: "Últimos 7 dias" },
-  { id: "month", label: "Este mês" },
-  { id: "year", label: "Este ano" },
-  { id: "custom", label: "Personalizado" },
+  { id: "7days", label: "7 dias atrás" },
+  { id: "month", label: "Esse mês" },
+  { id: "year", label: "Esse ano" },
 ];
 
-const dateViews = [
-  { id: "vencimento", label: "Data de vencimento", icon: CalendarCheck, description: "Recomendado para planejamento financeiro" },
-  { id: "pagamento", label: "Data de pagamento", icon: Clock, description: "Recomendado para fluxo de caixa real" },
-  { id: "competencia", label: "Data de competência", icon: CalendarClock, description: "Recomendado para relatórios contábeis" },
+const months = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ];
 
 export function PeriodSelector() {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
-  const [dateView, setDateView] = useState("vencimento");
-  const [activeFilters, setActiveFilters] = useState(0);
+  const [currentMonth, setCurrentMonth] = useState(0); // Janeiro
+  const [currentYear, setCurrentYear] = useState(2026);
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
+
+  // Calculate date range based on current month
+  const getDaysInMonth = (month: number, year: number) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+
+  const startDate = `01/${String(currentMonth + 1).padStart(2, '0')}/${currentYear}`;
+  const endDate = `${getDaysInMonth(currentMonth, currentYear)}/${String(currentMonth + 1).padStart(2, '0')}/${currentYear}`;
 
   return (
     <div className="glass rounded-xl p-4 animate-fade-in">
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* Period Selection */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+        {/* Month Navigation */}
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8"
+            onClick={handlePrevMonth}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <span className="text-lg font-semibold min-w-[100px] text-center">
+            {months[currentMonth]}
+          </span>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8"
+            onClick={handleNextMonth}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Period Buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground mr-2">Período:</span>
           {periods.map((period) => (
             <button
               key={period.id}
               onClick={() => setSelectedPeriod(period.id)}
               className={cn(
-                "px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200",
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border",
                 selectedPeriod === period.id
-                  ? "bg-primary text-primary-foreground shadow-glow-primary"
-                  : "bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  ? "bg-primary text-primary-foreground border-primary shadow-glow-primary"
+                  : "bg-card text-foreground border-border hover:bg-muted"
               )}
             >
               {period.label}
@@ -70,119 +95,20 @@ export function PeriodSelector() {
           ))}
         </div>
 
-        {/* Date View Selection */}
-        <div className="flex items-center gap-2 lg:ml-auto">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                {dateViews.find(d => d.id === dateView)?.icon && (
-                  <span className="w-4 h-4">
-                    {(() => {
-                      const Icon = dateViews.find(d => d.id === dateView)?.icon;
-                      return Icon ? <Icon className="w-4 h-4" /> : null;
-                    })()}
-                  </span>
-                )}
-                {dateViews.find(d => d.id === dateView)?.label}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-72 bg-popover border-border">
-              <DropdownMenuLabel>Visualização de data</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border" />
-              {dateViews.map((view) => (
-                <DropdownMenuItem
-                  key={view.id}
-                  onClick={() => setDateView(view.id)}
-                  className={cn(
-                    "flex flex-col items-start gap-1 cursor-pointer py-3",
-                    dateView === view.id && "bg-primary/10"
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <view.icon className="w-4 h-4 text-primary" />
-                    <span className="font-medium">{view.label}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground pl-6">
-                    {view.description}
-                  </span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+        {/* Date Range Display */}
+        <div className="flex items-center gap-4 lg:ml-auto">
+          <div className="px-4 py-2 rounded-lg bg-muted border border-border text-sm">
+            {startDate} - {endDate}
+          </div>
 
-      {/* Filters Row */}
-      <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-border/50">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Filter className="w-4 h-4" />
-              Filtros
-              {activeFilters > 0 && (
-                <Badge variant="secondary" className="ml-1 bg-primary/20 text-primary">
-                  {activeFilters}
-                </Badge>
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56 bg-popover border-border">
-            <DropdownMenuLabel>Filtros avançados</DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-border" />
-            <div className="p-2 space-y-3">
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Conta bancária</label>
-                <Select>
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue placeholder="Todas as contas" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as contas</SelectItem>
-                    <SelectItem value="nubank">Nubank</SelectItem>
-                    <SelectItem value="itau">Itaú</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Categoria</label>
-                <Select>
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue placeholder="Todas as categorias" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas as categorias</SelectItem>
-                    <SelectItem value="alimentacao">Alimentação</SelectItem>
-                    <SelectItem value="transporte">Transporte</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Status</label>
-                <Select>
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="pago">Pago</SelectItem>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <div className="flex items-center gap-2 ml-auto">
+          {/* Action Buttons */}
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="sm" 
-            className="gap-2 text-muted-foreground hover:text-foreground"
-            onClick={() => setActiveFilters(0)}
+            className="gap-2"
           >
-            <X className="w-4 h-4" />
-            Limpar filtros
+            <Trash2 className="w-4 h-4" />
+            Limpar filtro
           </Button>
           <Button variant="outline" size="sm" className="gap-2">
             <RefreshCw className="w-4 h-4" />
