@@ -120,8 +120,23 @@ const frequencyDataDaily = [
   { period: "30", receitas: 150, despesas: 200 },
 ];
 
+const monthAbbreviations = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+// Get days in month
+const getDaysInMonth = (month: number, year: number) => {
+  return new Date(year, month + 1, 0).getDate();
+};
+
 // Cash flow data generators based on period
-const getCashFlowData = (period: string) => {
+const getCashFlowData = (period: string, currentMonth: number, currentYear: number) => {
+  const monthAbbr = monthAbbreviations[currentMonth];
+  const daysInMonth = getDaysInMonth(currentMonth, currentYear);
+  
+  // Generate random but consistent values based on day
+  const generateValue = (day: number, base: number, variance: number) => {
+    return Math.round(base + (Math.sin(day * 1.5) * variance));
+  };
+
   switch (period) {
     case "today":
       return [
@@ -131,50 +146,60 @@ const getCashFlowData = (period: string) => {
         { period: "18:00", receitas: 180, despesas: 220, saldo: -40 },
         { period: "23:59", receitas: 100, despesas: 50, saldo: 50 },
       ];
-    case "7days":
-      return [
-        { period: "9 Jan", receitas: 1200, despesas: 800, saldo: 400 },
-        { period: "10 Jan", receitas: 950, despesas: 600, saldo: 350 },
-        { period: "11 Jan", receitas: 1100, despesas: 750, saldo: 350 },
-        { period: "12 Jan", receitas: 1300, despesas: 900, saldo: 400 },
-        { period: "13 Jan", receitas: 1500, despesas: 1100, saldo: 400 },
-        { period: "14 Jan", receitas: 800, despesas: 400, saldo: 400 },
-        { period: "15 Jan", receitas: 600, despesas: 300, saldo: 300 },
-      ];
-    case "month":
-      return [
-        { period: "2 Jan", receitas: 2500, despesas: 1800, saldo: 700 },
-        { period: "4 Jan", receitas: 1800, despesas: 1200, saldo: 600 },
-        { period: "6 Jan", receitas: 2100, despesas: 1500, saldo: 600 },
-        { period: "8 Jan", receitas: 1900, despesas: 1100, saldo: 800 },
-        { period: "10 Jan", receitas: 2300, despesas: 1600, saldo: 700 },
-        { period: "12 Jan", receitas: 2000, despesas: 1300, saldo: 700 },
-        { period: "14 Jan", receitas: 2200, despesas: 1400, saldo: 800 },
-        { period: "16 Jan", receitas: 1700, despesas: 1000, saldo: 700 },
-        { period: "18 Jan", receitas: 2400, despesas: 1700, saldo: 700 },
-        { period: "20 Jan", receitas: 2100, despesas: 1500, saldo: 600 },
-        { period: "22 Jan", receitas: 1900, despesas: 1200, saldo: 700 },
-        { period: "24 Jan", receitas: 2600, despesas: 1800, saldo: 800 },
-        { period: "26 Jan", receitas: 2000, despesas: 1400, saldo: 600 },
-        { period: "28 Jan", receitas: 2300, despesas: 1600, saldo: 700 },
-        { period: "31 Jan", receitas: 2800, despesas: 1900, saldo: 900 },
-      ];
+    case "7days": {
+      // Generate last 7 days ending on the 15th of current month (simulating current day)
+      const days = [];
+      for (let i = 6; i >= 0; i--) {
+        const day = Math.max(1, 15 - i); // Simulating days ending on 15th
+        const receitas = generateValue(day, 1100, 400);
+        const despesas = generateValue(day, 700, 300);
+        days.push({
+          period: `${day} ${monthAbbr}`,
+          receitas,
+          despesas,
+          saldo: receitas - despesas,
+        });
+      }
+      return days;
+    }
+    case "month": {
+      // Generate data points every 2 days for the month
+      const days = [];
+      for (let day = 2; day <= daysInMonth; day += 2) {
+        const receitas = generateValue(day, 2200, 600);
+        const despesas = generateValue(day, 1500, 400);
+        days.push({
+          period: `${day} ${monthAbbr}`,
+          receitas,
+          despesas,
+          saldo: receitas - despesas,
+        });
+      }
+      // Add last day if not already included
+      if (daysInMonth % 2 !== 0) {
+        const receitas = generateValue(daysInMonth, 2200, 600);
+        const despesas = generateValue(daysInMonth, 1500, 400);
+        days.push({
+          period: `${daysInMonth} ${monthAbbr}`,
+          receitas,
+          despesas,
+          saldo: receitas - despesas,
+        });
+      }
+      return days;
+    }
     case "year":
     default:
-      return [
-        { period: "Jan", receitas: 8500, despesas: 4200, saldo: 4300 },
-        { period: "Fev", receitas: 8200, despesas: 4100, saldo: 4100 },
-        { period: "Mar", receitas: 9000, despesas: 4800, saldo: 4200 },
-        { period: "Abr", receitas: 8500, despesas: 4300, saldo: 4200 },
-        { period: "Mai", receitas: 10200, despesas: 5100, saldo: 5100 },
-        { period: "Jun", receitas: 8800, despesas: 4000, saldo: 4800 },
-        { period: "Jul", receitas: 9100, despesas: 4500, saldo: 4600 },
-        { period: "Ago", receitas: 8600, despesas: 4200, saldo: 4400 },
-        { period: "Set", receitas: 9800, despesas: 5000, saldo: 4800 },
-        { period: "Out", receitas: 8400, despesas: 3900, saldo: 4500 },
-        { period: "Nov", receitas: 8700, despesas: 4700, saldo: 4000 },
-        { period: "Dez", receitas: 10000, despesas: 4500, saldo: 5500 },
-      ];
+      return monthAbbreviations.map((abbr, idx) => {
+        const receitas = generateValue(idx + 1, 8800, 1200);
+        const despesas = generateValue(idx + 1, 4400, 600);
+        return {
+          period: abbr,
+          receitas,
+          despesas,
+          saldo: receitas - despesas,
+        };
+      });
   }
 };
 
@@ -1026,7 +1051,7 @@ export default function Reports() {
                 <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
                     {(() => {
-                      const cashFlowData = getCashFlowData(selectedPeriod);
+                      const cashFlowData = getCashFlowData(selectedPeriod, currentMonth, currentYear);
                       
                       switch (cashFlowChartType) {
                         case "line":
