@@ -584,9 +584,11 @@ export default function Reports() {
                     <Eraser className="h-3.5 w-3.5" />
                     Limpar filtro
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4" />
-                  </Button>
+                  <FilterPopover>
+                    <Button variant="outline" size="sm">
+                      <Filter className="h-4 w-4" />
+                    </Button>
+                  </FilterPopover>
                   <Button variant="outline" size="sm" className="gap-1.5 text-xs">
                     <RefreshCw className="h-3.5 w-3.5" />
                     Atualizar
