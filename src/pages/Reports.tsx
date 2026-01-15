@@ -48,8 +48,8 @@ import {
   FileText,
   Settings,
   RefreshCw,
-  Calendar,
-  Eraser,
+  Calendar as CalendarIcon,
+  Trash2,
   Info
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -67,10 +67,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { FilterPopover } from "@/components/dashboard/FilterPopover";
 import { AddRevenueDialog } from "@/components/dashboard/AddRevenueDialog";
 import { AddExpenseDialog } from "@/components/dashboard/AddExpenseDialog";
+import { usePeriod, PeriodType } from "@/contexts/PeriodContext";
 
 const expenseData = [
   { name: "Casa", value: 1800, color: "hsl(340, 82%, 52%)" },
@@ -136,16 +145,16 @@ const months = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ];
 
-const periodButtons = [
+const tableColumns = [
+  "Responsável", "Descrição", "Valor", "Categoria", "Cartão", 
+  "Vencimento", "Competência", "Pagamento", "Fixo/Variável", "Ação"
+];
+
+const periodButtons: { id: PeriodType; label: string }[] = [
   { id: "today", label: "Hoje" },
   { id: "7days", label: "7 dias atrás" },
   { id: "month", label: "Esse mês" },
   { id: "year", label: "Esse ano" },
-];
-
-const tableColumns = [
-  "Responsável", "Descrição", "Valor", "Categoria", "Cartão", 
-  "Vencimento", "Competência", "Pagamento", "Fixo/Variável", "Ação"
 ];
 
 export default function Reports() {
@@ -161,38 +170,46 @@ export default function Reports() {
     incomeUnpaid: false,
   });
   
-  // Lançamentos pendentes state
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
+  // Use global period context
+  const {
+    selectedPeriod,
+    setSelectedPeriod,
+    monthName,
+    handlePrevMonth,
+    handleNextMonth,
+    dateRange,
+    setDateRange,
+    clearFilters,
+    refresh,
+    periodLabel,
+    currentMonth,
+    currentYear,
+  } = usePeriod();
+
   const [isRevenueDialogOpen, setIsRevenueDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const totalExpenses = expenseData.reduce((acc, item) => acc + item.value, 0);
   const totalIncome = incomeData.reduce((acc, item) => acc + item.value, 0);
 
-  const handlePrevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear(currentYear - 1);
-    } else {
-      setCurrentMonth(currentMonth - 1);
+  const handleDateRangeSelect = (range: typeof dateRange) => {
+    setDateRange(range);
+    if (range?.from && range?.to) {
+      setSelectedPeriod("custom");
+      setIsCalendarOpen(false);
     }
   };
 
-  const handleNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear(currentYear + 1);
-    } else {
-      setCurrentMonth(currentMonth + 1);
+  const formatDateRange = () => {
+    if (dateRange?.from && dateRange?.to) {
+      return `${format(dateRange.from, "dd/MM/yy")} - ${format(dateRange.to, "dd/MM/yy")}`;
     }
+    return periodLabel;
   };
 
   const getDateRange = () => {
-    const firstDay = 1;
-    const lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
-    return `${firstDay} De ${months[currentMonth]} - ${lastDay} De ${months[currentMonth]}`;
+    return periodLabel;
   };
 
   const renderFrequencyChart = () => {
@@ -560,7 +577,7 @@ export default function Reports() {
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <span className="text-base font-bold min-w-[90px] text-center px-2">
-                    {months[currentMonth]}
+                    {monthName}
                   </span>
                   <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={handleNextMonth}>
                     <ChevronRight className="h-4 w-4" />
@@ -589,13 +606,41 @@ export default function Reports() {
 
                 {/* Actions - Grouped */}
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="gap-1.5 text-xs rounded-full h-7 bg-background">
-                    <Calendar className="h-3 w-3" />
-                    {String(currentMonth + 1).padStart(2, '0')}/{currentYear}
-                  </Button>
+                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className={cn(
+                          "gap-1.5 text-xs rounded-full h-7 bg-background",
+                          selectedPeriod === "custom" && "border-primary"
+                        )}
+                      >
+                        <CalendarIcon className="h-3 w-3" />
+                        {formatDateRange()}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange?.from}
+                        selected={dateRange}
+                        onSelect={handleDateRangeSelect}
+                        numberOfMonths={2}
+                        locale={ptBR}
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <div className="flex items-center bg-background rounded-full p-0.5">
-                    <Button variant="ghost" size="sm" className="gap-1 text-xs rounded-full h-7 px-2">
-                      <Eraser className="h-3 w-3" />
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="gap-1 text-xs rounded-full h-7 px-2"
+                      onClick={clearFilters}
+                    >
+                      <Trash2 className="h-3 w-3" />
                       <span className="hidden sm:inline">Limpar</span>
                     </Button>
                     <FilterPopover>
@@ -603,7 +648,12 @@ export default function Reports() {
                         <Filter className="h-3.5 w-3.5" />
                       </Button>
                     </FilterPopover>
-                    <Button variant="ghost" size="sm" className="rounded-full h-7 w-7 p-0">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="rounded-full h-7 w-7 p-0"
+                      onClick={refresh}
+                    >
                       <RefreshCw className="h-3.5 w-3.5" />
                     </Button>
                   </div>
