@@ -120,6 +120,30 @@ const frequencyDataDaily = [
   { period: "30", receitas: 150, despesas: 200 },
 ];
 
+const cashFlowDataMonthly = [
+  { period: "Fev", receitas: 8200, despesas: 4100, saldo: 4100 },
+  { period: "Mar", receitas: 9000, despesas: 4800, saldo: 4200 },
+  { period: "Abr", receitas: 8500, despesas: 4300, saldo: 4200 },
+  { period: "Mai", receitas: 10200, despesas: 5100, saldo: 5100 },
+  { period: "Jun", receitas: 8800, despesas: 4000, saldo: 4800 },
+  { period: "Jul", receitas: 9100, despesas: 4500, saldo: 4600 },
+  { period: "Ago", receitas: 8600, despesas: 4200, saldo: 4400 },
+  { period: "Set", receitas: 9800, despesas: 5000, saldo: 4800 },
+  { period: "Out", receitas: 8400, despesas: 3900, saldo: 4500 },
+  { period: "Nov", receitas: 8700, despesas: 4700, saldo: 4000 },
+  { period: "Dez", receitas: 10000, despesas: 4500, saldo: 5500 },
+];
+
+const cashFlowDataDaily = [
+  { period: "01", receitas: 280, despesas: 150, saldo: 130 },
+  { period: "05", receitas: 350, despesas: 220, saldo: 130 },
+  { period: "10", receitas: 8500, despesas: 180, saldo: 8320 },
+  { period: "15", receitas: 120, despesas: 450, saldo: -330 },
+  { period: "20", receitas: 200, despesas: 280, saldo: -80 },
+  { period: "25", receitas: 180, despesas: 320, saldo: -140 },
+  { period: "30", receitas: 150, despesas: 200, saldo: -50 },
+];
+
 const chartTypes = [
   { id: "area", label: "Área" },
   { id: "line", label: "Linha" },
@@ -171,6 +195,9 @@ export default function Reports() {
   const [activeTab, setActiveTab] = useState("graficos");
   const [chartType, setChartType] = useState("area");
   const [frequencyPeriod, setFrequencyPeriod] = useState<"daily" | "monthly">("monthly");
+  const [cashFlowPeriod, setCashFlowPeriod] = useState<"daily" | "monthly">("monthly");
+  const [showSaldo, setShowSaldo] = useState(true);
+  const [cashFlowChartType, setCashFlowChartType] = useState("area");
   const [charts, setCharts] = useState({
     expenses: true,
     income: true,
@@ -833,14 +860,221 @@ export default function Reports() {
           </TabsContent>
 
           {/* Fluxo de Caixa Tab */}
-          <TabsContent value="fluxo" className="mt-6">
-            <div className="glass rounded-xl p-8 text-center">
-              <FileText className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-muted-foreground">Em breve</h3>
-              <p className="text-sm text-muted-foreground/70">
-                O fluxo de caixa estará disponível em uma próxima atualização.
-              </p>
+          <TabsContent value="fluxo" className="mt-6 space-y-5">
+            {/* Period Selector Bar */}
+            <div className="bg-gradient-to-r from-primary/5 via-background to-accent/5 rounded-2xl p-4 border border-border/40 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                {/* Month Navigation */}
+                <div className="flex items-center gap-2 bg-background/80 rounded-xl px-3 py-1.5 shadow-sm border border-border/30">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-muted" onClick={handlePrevMonth}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-lg font-bold min-w-[100px] text-center">
+                    {monthName}
+                  </span>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-muted" onClick={handleNextMonth}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Period Buttons */}
+                <div className="flex items-center gap-1.5 bg-muted/50 rounded-xl p-1">
+                  {periodButtons.map((btn) => (
+                    <Button
+                      key={btn.id}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedPeriod(btn.id)}
+                      className={cn(
+                        "text-xs rounded-lg h-8 px-4 transition-all font-medium",
+                        selectedPeriod === btn.id 
+                          ? "bg-primary text-primary-foreground shadow-md" 
+                          : "hover:bg-background/80"
+                      )}
+                    >
+                      {btn.label}
+                    </Button>
+                  ))}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2">
+                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 px-3 gap-2 text-xs rounded-lg border-border/50">
+                        <CalendarIcon className="h-3.5 w-3.5" />
+                        {formatDateRange()}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        mode="range"
+                        selected={dateRange}
+                        onSelect={handleDateRangeSelect}
+                        numberOfMonths={2}
+                        locale={ptBR}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  
+                  <Button variant="ghost" size="sm" className="h-8 px-3 gap-1.5 text-xs rounded-lg" onClick={clearFilters}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Limpar
+                  </Button>
+                  <FilterPopover>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">
+                      <Filter className="h-4 w-4" />
+                    </Button>
+                  </FilterPopover>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={refresh}>
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
+
+            {/* Cash Flow Chart */}
+            <div className="bg-background rounded-2xl border border-border/50 shadow-sm overflow-hidden">
+              {/* Chart Header */}
+              <div className="flex flex-wrap items-start justify-between gap-4 p-5 border-b border-border/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Gráfico de frequência Receitas X Despesas</h3>
+                    <p className="text-sm text-muted-foreground">Visualize a frequência de receitas e despesas ao longo do tempo</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {/* Toggle Saldo */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSaldo(!showSaldo)}
+                    className={cn(
+                      "h-8 px-3 gap-2 text-xs rounded-lg border-border/50 transition-all",
+                      showSaldo ? "bg-muted" : ""
+                    )}
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    {showSaldo ? "Ocultar Saldo" : "Mostrar Saldo"}
+                  </Button>
+                  
+                  {/* Chart Type */}
+                  <Select value={cashFlowChartType} onValueChange={setCashFlowChartType}>
+                    <SelectTrigger className="w-28 h-8 text-xs rounded-lg border-border/50">
+                      <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {chartTypes.map((type) => (
+                        <SelectItem key={type.id} value={type.id}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Period Toggle */}
+                  <Select value={cashFlowPeriod} onValueChange={(v) => setCashFlowPeriod(v as "daily" | "monthly")}>
+                    <SelectTrigger className="w-28 h-8 text-xs rounded-lg border-border/50">
+                      <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">Diário</SelectItem>
+                      <SelectItem value="monthly">Mensal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {/* Chart Area */}
+              <div className="p-5">
+                <div className="h-[350px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    {(() => {
+                      const cashFlowData = cashFlowPeriod === "daily" ? cashFlowDataDaily : cashFlowDataMonthly;
+                      
+                      switch (cashFlowChartType) {
+                        case "line":
+                          return (
+                            <LineChart data={cashFlowData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                              <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
+                              <Tooltip content={<CustomTooltip />} />
+                              <Legend />
+                              <Line type="monotone" dataKey="receitas" name="Receitas" stroke="hsl(160, 84%, 39%)" strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={false} />
+                              {showSaldo && <Line type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(217, 91%, 60%)" strokeWidth={2} dot={false} />}
+                            </LineChart>
+                          );
+                        case "bar":
+                          return (
+                            <BarChart data={cashFlowData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                              <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
+                              <Tooltip content={<CustomTooltip />} />
+                              <Legend />
+                              <Bar dataKey="receitas" name="Receitas" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
+                              <Bar dataKey="despesas" name="Despesas" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+                              {showSaldo && <Bar dataKey="saldo" name="Saldo" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />}
+                            </BarChart>
+                          );
+                        case "stacked":
+                          return (
+                            <BarChart data={cashFlowData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                              <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
+                              <Tooltip content={<CustomTooltip />} />
+                              <Legend />
+                              <Bar dataKey="receitas" name="Receitas" stackId="a" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
+                              <Bar dataKey="despesas" name="Despesas" stackId="a" fill="hsl(0, 84%, 60%)" />
+                              {showSaldo && <Bar dataKey="saldo" name="Saldo" fill="hsl(217, 91%, 60%)" />}
+                            </BarChart>
+                          );
+                        default:
+                          return (
+                            <AreaChart data={cashFlowData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                              <defs>
+                                <linearGradient id="colorReceitasCF" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0.3}/>
+                                  <stop offset="95%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0}/>
+                                </linearGradient>
+                                <linearGradient id="colorDespesasCF" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.3}/>
+                                  <stop offset="95%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0}/>
+                                </linearGradient>
+                                <linearGradient id="colorSaldoCF" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.3}/>
+                                  <stop offset="95%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0}/>
+                                </linearGradient>
+                              </defs>
+                              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                              <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
+                              <Tooltip content={<CustomTooltip />} />
+                              <Legend />
+                              <Area type="monotone" dataKey="receitas" name="Receitas" stroke="hsl(160, 84%, 39%)" fillOpacity={1} fill="url(#colorReceitasCF)" />
+                              <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(0, 84%, 60%)" fillOpacity={1} fill="url(#colorDespesasCF)" />
+                              {showSaldo && <Area type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(217, 91%, 60%)" fillOpacity={1} fill="url(#colorSaldoCF)" />}
+                            </AreaChart>
+                          );
+                      }
+                    })()}
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Dialogs */}
+            <AddRevenueDialog open={isRevenueDialogOpen} onOpenChange={setIsRevenueDialogOpen} />
+            <AddExpenseDialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen} />
           </TabsContent>
         </Tabs>
       </div>
