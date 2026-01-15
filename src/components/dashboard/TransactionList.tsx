@@ -31,11 +31,7 @@ import { cn } from "@/lib/utils";
 import { AddRevenueDialog } from "./AddRevenueDialog";
 import { AddExpenseDialog } from "./AddExpenseDialog";
 import { FilterPopover } from "./FilterPopover";
-
-const months = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-];
+import { usePeriod } from "@/contexts/PeriodContext";
 
 const tableColumns = [
   "Responsável",
@@ -54,30 +50,12 @@ const tableColumns = [
 
 export function TransactionList() {
   const [filter, setFilter] = useState<"all" | "receitas" | "despesas">("all");
-  const [currentMonth, setCurrentMonth] = useState(0);
-  const [currentYear, setCurrentYear] = useState(2026);
   const [searchQuery, setSearchQuery] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState("30");
   const [isRevenueDialogOpen, setIsRevenueDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
 
-  const handlePrevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear(currentYear - 1);
-    } else {
-      setCurrentMonth(currentMonth - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear(currentYear + 1);
-    } else {
-      setCurrentMonth(currentMonth + 1);
-    }
-  };
+  const { monthName, handlePrevMonth, handleNextMonth, periodLabel } = usePeriod();
 
   return (
     <div className="glass rounded-xl p-5 animate-slide-up">
@@ -94,7 +72,7 @@ export function TransactionList() {
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <span className="text-lg font-semibold min-w-[100px] text-center">
-            {months[currentMonth]}
+            {monthName}
           </span>
           <Button 
             variant="ghost" 
