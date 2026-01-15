@@ -95,19 +95,29 @@ const incomeData = [
   { name: "Investimentos", value: 350, color: "hsl(160, 84%, 60%)" },
 ];
 
-const frequencyData = [
-  { month: "Jan", receitas: 8500, despesas: 4200 },
-  { month: "Fev", receitas: 8500, despesas: 3800 },
-  { month: "Mar", receitas: 9200, despesas: 4500 },
-  { month: "Abr", receitas: 8500, despesas: 4100 },
-  { month: "Mai", receitas: 10000, despesas: 5200 },
-  { month: "Jun", receitas: 8500, despesas: 3900 },
-  { month: "Jul", receitas: 8800, despesas: 4300 },
-  { month: "Ago", receitas: 8500, despesas: 4000 },
-  { month: "Set", receitas: 9500, despesas: 4800 },
-  { month: "Out", receitas: 8500, despesas: 3700 },
-  { month: "Nov", receitas: 8500, despesas: 4600 },
-  { month: "Dez", receitas: 9700, despesas: 4230 },
+const frequencyDataMonthly = [
+  { period: "Jan", receitas: 8500, despesas: 4200 },
+  { period: "Fev", receitas: 8500, despesas: 3800 },
+  { period: "Mar", receitas: 9200, despesas: 4500 },
+  { period: "Abr", receitas: 8500, despesas: 4100 },
+  { period: "Mai", receitas: 10000, despesas: 5200 },
+  { period: "Jun", receitas: 8500, despesas: 3900 },
+  { period: "Jul", receitas: 8800, despesas: 4300 },
+  { period: "Ago", receitas: 8500, despesas: 4000 },
+  { period: "Set", receitas: 9500, despesas: 4800 },
+  { period: "Out", receitas: 8500, despesas: 3700 },
+  { period: "Nov", receitas: 8500, despesas: 4600 },
+  { period: "Dez", receitas: 9700, despesas: 4230 },
+];
+
+const frequencyDataDaily = [
+  { period: "01", receitas: 280, despesas: 150 },
+  { period: "05", receitas: 350, despesas: 220 },
+  { period: "10", receitas: 8500, despesas: 180 },
+  { period: "15", receitas: 120, despesas: 450 },
+  { period: "20", receitas: 200, despesas: 280 },
+  { period: "25", receitas: 180, despesas: 320 },
+  { period: "30", receitas: 150, despesas: 200 },
 ];
 
 const chartTypes = [
@@ -160,6 +170,7 @@ const periodButtons: { id: PeriodType; label: string }[] = [
 export default function Reports() {
   const [activeTab, setActiveTab] = useState("graficos");
   const [chartType, setChartType] = useState("area");
+  const [frequencyPeriod, setFrequencyPeriod] = useState<"daily" | "monthly">("monthly");
   const [charts, setCharts] = useState({
     expenses: true,
     income: true,
@@ -213,6 +224,7 @@ export default function Reports() {
   };
 
   const renderFrequencyChart = () => {
+    const frequencyData = frequencyPeriod === "daily" ? frequencyDataDaily : frequencyDataMonthly;
     const commonProps = {
       data: frequencyData,
       margin: { top: 10, right: 10, left: 0, bottom: 0 },
@@ -223,7 +235,7 @@ export default function Reports() {
         return (
           <LineChart {...commonProps}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+            <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" fontSize={12} />
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
@@ -235,7 +247,7 @@ export default function Reports() {
         return (
           <BarChart {...commonProps}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+            <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" fontSize={12} />
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
@@ -247,7 +259,7 @@ export default function Reports() {
         return (
           <BarChart {...commonProps}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+            <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" fontSize={12} />
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
@@ -269,7 +281,7 @@ export default function Reports() {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+            <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" fontSize={12} />
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
@@ -543,18 +555,49 @@ export default function Reports() {
                       <h3 className="text-lg font-semibold">Frequência</h3>
                       <p className="text-xs text-muted-foreground">Receitas x Despesas</p>
                     </div>
-                    <Select value={chartType} onValueChange={setChartType}>
-                      <SelectTrigger className="w-32 h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {chartTypes.map((type) => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                      {/* Period Toggle - Diário / Mensal */}
+                      <div className="flex items-center bg-muted rounded-lg p-0.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFrequencyPeriod("daily")}
+                          className={cn(
+                            "h-7 px-3 text-xs rounded-md transition-all",
+                            frequencyPeriod === "daily"
+                              ? "bg-background text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Diário
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFrequencyPeriod("monthly")}
+                          className={cn(
+                            "h-7 px-3 text-xs rounded-md transition-all",
+                            frequencyPeriod === "monthly"
+                              ? "bg-background text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          Mensal
+                        </Button>
+                      </div>
+                      <Select value={chartType} onValueChange={setChartType}>
+                        <SelectTrigger className="w-32 h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {chartTypes.map((type) => (
+                            <SelectItem key={type.id} value={type.id}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
