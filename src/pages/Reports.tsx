@@ -264,63 +264,67 @@ export default function Reports() {
   };
 
   const renderPendingTransactionsTable = (type: "receitas" | "despesas") => (
-    <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" className="gap-1.5">
-          <Settings className="h-3.5 w-3.5" />
-        </Button>
-        <Button variant="outline" size="sm" className="gap-1.5">
-          <SlidersHorizontal className="h-3.5 w-3.5" />
-          <span className="text-xs">Sem agrupamento</span>
-          <ChevronDown className="h-3 w-3" />
-        </Button>
-      </div>
+    <div className="space-y-3">
+      {/* Toolbar - Compact */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-md">
+            <Settings className="h-3.5 w-3.5" />
+          </Button>
+          <Button variant="ghost" size="sm" className="gap-1 h-7 px-2 rounded-md text-xs">
+            <SlidersHorizontal className="h-3 w-3" />
+            Agrupar
+            <ChevronDown className="h-3 w-3" />
+          </Button>
+        </div>
 
-      {/* Search and filters */}
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative flex-1 min-w-[180px]">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input 
-            placeholder={type === "receitas" ? "Pesquisar receitas..." : "Pesquisar despesas..."}
-            className="pl-9 h-9 text-sm"
+            placeholder={type === "receitas" ? "Buscar receitas..." : "Buscar despesas..."}
+            className="pl-8 h-8 text-xs rounded-lg bg-muted/30 border-0 focus-visible:ring-1"
           />
         </div>
-        <Button variant="outline" size="sm" className="gap-1.5">
-          <span className="text-xs">Valor</span>
-        </Button>
-        <Button variant="outline" size="sm">
-          <ArrowUpDown className="h-4 w-4" />
-        </Button>
-        <FilterPopover>
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4" />
+
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs rounded-md">
+            Valor
           </Button>
-        </FilterPopover>
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-md">
+            <ArrowUpDown className="h-3.5 w-3.5" />
+          </Button>
+          <FilterPopover>
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-md">
+              <Filter className="h-3.5 w-3.5" />
+            </Button>
+          </FilterPopover>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="border rounded-lg overflow-hidden">
+      {/* Table - Cleaner design */}
+      <div className="rounded-xl border border-border/50 overflow-hidden bg-muted/20">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50">
+            <TableRow className="bg-muted/50 hover:bg-muted/50">
               {tableColumns.map((col) => (
-                <TableHead key={col} className="text-xs font-medium whitespace-nowrap">
+                <TableHead key={col} className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">
                   {col}
                 </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell colSpan={tableColumns.length} className="h-32">
-                <div className="flex flex-col items-center justify-center text-center gap-2">
-                  <FileText className="h-10 w-10 text-muted-foreground/50" />
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={tableColumns.length} className="h-28">
+                <div className="flex flex-col items-center justify-center text-center gap-1.5">
+                  <div className="w-12 h-12 rounded-full bg-muted/80 flex items-center justify-center">
+                    <FileText className="h-6 w-6 text-muted-foreground/40" />
+                  </div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Nenhuma transação encontrada
+                    Nenhum lançamento
                   </p>
-                  <p className="text-xs text-muted-foreground/70">
-                    Não há {type} para exibir no período selecionado.
+                  <p className="text-xs text-muted-foreground/60">
+                    {type === "receitas" ? "Adicione uma receita para começar" : "Adicione uma despesa para começar"}
                   </p>
                 </div>
               </TableCell>
@@ -329,24 +333,30 @@ export default function Reports() {
         </Table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      {/* Pagination - Minimal */}
+      <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Select defaultValue="30">
-            <SelectTrigger className="h-8 w-24 text-xs">
-              <SelectValue placeholder="Mostrar" />
+            <SelectTrigger className="h-7 w-20 text-xs border-0 bg-muted/50">
+              <SelectValue placeholder="30" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="10">Mostrar 10</SelectItem>
-              <SelectItem value="30">Mostrar 30</SelectItem>
-              <SelectItem value="50">Mostrar 50</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="30">30</SelectItem>
+              <SelectItem value="50">50</SelectItem>
             </SelectContent>
           </Select>
-          <span className="text-xs text-muted-foreground">Total: 0</span>
+          <span>Total: 0</span>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" disabled>Voltar</Button>
-          <Button variant="outline" size="sm" disabled>Próximo</Button>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled>
+            <ChevronLeft className="h-3 w-3 mr-1" />
+            Anterior
+          </Button>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled>
+            Próximo
+            <ChevronRight className="h-3 w-3 ml-1" />
+          </Button>
         </div>
       </div>
     </div>
@@ -540,181 +550,187 @@ export default function Reports() {
           </TabsContent>
 
           {/* Lançamentos Pendentes Tab */}
-          <TabsContent value="lancamentos" className="mt-6 space-y-6">
-            {/* Period Selector */}
-            <div className="glass rounded-xl p-4">
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                {/* Month Navigation */}
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevMonth}>
+          <TabsContent value="lancamentos" className="mt-6 space-y-5">
+            {/* Period Selector - Compact horizontal bar */}
+            <div className="bg-gradient-to-r from-muted/80 to-muted/40 rounded-2xl p-3 border border-border/50">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                {/* Month Navigation - More prominent */}
+                <div className="flex items-center gap-1 bg-background rounded-xl px-2 py-1 shadow-sm">
+                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={handlePrevMonth}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="text-lg font-semibold min-w-[100px] text-center">
+                  <span className="text-base font-bold min-w-[90px] text-center px-2">
                     {months[currentMonth]}
                   </span>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextMonth}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={handleNextMonth}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
 
-                {/* Period Buttons */}
-                <div className="flex items-center gap-1">
+                {/* Period Buttons - Pill style */}
+                <div className="flex items-center gap-1 bg-background/60 rounded-full p-1">
                   {periodButtons.map((btn) => (
                     <Button
                       key={btn.id}
-                      variant={selectedPeriod === btn.id ? "default" : "outline"}
+                      variant="ghost"
                       size="sm"
                       onClick={() => setSelectedPeriod(btn.id)}
-                      className="text-xs"
+                      className={cn(
+                        "text-xs rounded-full h-7 px-3 transition-all",
+                        selectedPeriod === btn.id 
+                          ? "bg-primary text-primary-foreground shadow-md" 
+                          : "hover:bg-muted"
+                      )}
                     >
                       {btn.label}
                     </Button>
                   ))}
                 </div>
 
-                {/* Date Range */}
-                <Button variant="outline" size="sm" className="gap-2 text-xs">
-                  <Calendar className="h-3.5 w-3.5" />
-                  01/01/{currentYear} - 31/01/{currentYear}
-                </Button>
-
-                {/* Actions */}
-                <div className="flex items-center gap-1">
-                  <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                    <Eraser className="h-3.5 w-3.5" />
-                    Limpar filtro
+                {/* Actions - Grouped */}
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="gap-1.5 text-xs rounded-full h-7 bg-background">
+                    <Calendar className="h-3 w-3" />
+                    {String(currentMonth + 1).padStart(2, '0')}/{currentYear}
                   </Button>
-                  <FilterPopover>
-                    <Button variant="outline" size="sm">
-                      <Filter className="h-4 w-4" />
+                  <div className="flex items-center bg-background rounded-full p-0.5">
+                    <Button variant="ghost" size="sm" className="gap-1 text-xs rounded-full h-7 px-2">
+                      <Eraser className="h-3 w-3" />
+                      <span className="hidden sm:inline">Limpar</span>
                     </Button>
-                  </FilterPopover>
-                  <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                    <RefreshCw className="h-3.5 w-3.5" />
-                    Atualizar
-                  </Button>
+                    <FilterPopover>
+                      <Button variant="ghost" size="sm" className="rounded-full h-7 w-7 p-0">
+                        <Filter className="h-3.5 w-3.5" />
+                      </Button>
+                    </FilterPopover>
+                    <Button variant="ghost" size="sm" className="rounded-full h-7 w-7 p-0">
+                      <RefreshCw className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Summary Cards */}
+            {/* Summary Cards - New design with gradients and icons */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Total a receber */}
-              <div className="glass rounded-xl p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 text-success text-sm">
-                      <TrendingUp className="h-4 w-4" />
-                      <span>Total a receber</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <TrendingUp className="h-5 w-5 text-success" />
-                      <span className="text-2xl font-bold text-success">R$ 0,00</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{getDateRange()}</p>
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/20 p-5 border border-emerald-200/50 dark:border-emerald-800/30">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8" />
+                <div className="relative">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">A Receber</span>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600/50 hover:text-emerald-600">
+                      <Eye className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  </Button>
+                  <div className="mt-2">
+                    <span className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">R$ 0,00</span>
+                  </div>
+                  <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-1">{getDateRange()}</p>
                 </div>
               </div>
 
               {/* Total a pagar */}
-              <div className="glass rounded-xl p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 text-destructive text-sm">
-                      <TrendingDown className="h-4 w-4" />
-                      <span>Total a pagar</span>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-2xl font-bold text-destructive">R$ 0,00</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{getDateRange()}</p>
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/20 p-5 border border-rose-200/50 dark:border-rose-800/30">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full -translate-y-8 translate-x-8" />
+                <div className="relative">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-rose-600 dark:text-rose-400 uppercase tracking-wide">A Pagar</span>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-rose-600/50 hover:text-rose-600">
+                      <Eye className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  </Button>
+                  <div className="mt-2">
+                    <span className="text-3xl font-bold text-rose-700 dark:text-rose-300">R$ 0,00</span>
+                  </div>
+                  <p className="text-xs text-rose-600/70 dark:text-rose-400/70 mt-1">{getDateRange()}</p>
                 </div>
               </div>
 
-              {/* Saldo */}
-              <div className="glass rounded-xl p-5">
+              {/* Saldo - Combined card */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-950/50 dark:to-gray-950/30 p-5 border border-slate-200/50 dark:border-slate-800/30">
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 text-success text-sm">
-                        <TrendingUp className="h-4 w-4" />
-                        <span>Saldo Disponível</span>
-                      </div>
-                      <span className="text-xl font-bold text-success">R$ 0,00</span>
-                      <p className="text-xs text-muted-foreground">Receitas X Despesas</p>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span className="text-xs font-medium text-muted-foreground">Saldo Disponível</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground">(Receita - Despesa + Saldo Bancário)</span>
+                    <span className="text-xl font-bold text-foreground">R$ 0,00</span>
                   </div>
-                  <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <div>
-                      <div className="flex items-center gap-2 text-primary text-sm">
-                        <TrendingUp className="h-4 w-4" />
-                        <span>Saldo Previsto</span>
-                        <TooltipProvider>
-                          <UITooltip>
-                            <TooltipTrigger>
-                              <Info className="h-3.5 w-3.5 text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs">Saldo previsto considerando lançamentos futuros</p>
-                            </TooltipContent>
-                          </UITooltip>
-                        </TooltipProvider>
-                      </div>
-                      <span className="text-xl font-bold text-primary">R$ 0,00</span>
-                      <p className="text-xs text-muted-foreground">Receitas X Despesas</p>
+                  <div className="h-px bg-border" />
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-primary" />
+                      <span className="text-xs font-medium text-muted-foreground">Saldo Previsto</span>
+                      <TooltipProvider>
+                        <UITooltip>
+                          <TooltipTrigger>
+                            <Info className="h-3 w-3 text-muted-foreground/50" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">Considerando lançamentos futuros</p>
+                          </TooltipContent>
+                        </UITooltip>
+                      </TooltipProvider>
                     </div>
-                    <span className="text-[10px] text-muted-foreground">(Receita - Despesa + Saldo Bancário)</span>
+                    <span className="text-xl font-bold text-primary">R$ 0,00</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Pending Transactions Tables */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
               {/* Receitas Pendentes */}
-              <div className="glass rounded-xl p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">Receitas pendentes</h3>
-                    <p className="text-xs text-muted-foreground">Lançamentos a receber</p>
+              <div className="bg-background rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-500/5 to-transparent border-b border-border/40">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                      <TrendingUp className="h-5 w-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Receitas pendentes</h3>
+                      <p className="text-xs text-muted-foreground">Lançamentos a receber</p>
+                    </div>
                   </div>
                   <Button 
                     size="sm" 
-                    className="bg-success hover:bg-success/90 text-white gap-1.5"
+                    className="rounded-full bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-md"
                     onClick={() => setIsRevenueDialogOpen(true)}
                   >
-                    <TrendingUp className="h-4 w-4" />
-                    Receita
+                    <TrendingUp className="h-3.5 w-3.5" />
+                    Nova Receita
                   </Button>
                 </div>
-                {renderPendingTransactionsTable("receitas")}
+                <div className="p-4">
+                  {renderPendingTransactionsTable("receitas")}
+                </div>
               </div>
 
               {/* Despesas Pendentes */}
-              <div className="glass rounded-xl p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold">Despesas pendentes</h3>
-                    <p className="text-xs text-muted-foreground">Lançamentos a pagar</p>
+              <div className="bg-background rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-rose-500/5 to-transparent border-b border-border/40">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center">
+                      <TrendingDown className="h-5 w-5 text-rose-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Despesas pendentes</h3>
+                      <p className="text-xs text-muted-foreground">Lançamentos a pagar</p>
+                    </div>
                   </div>
                   <Button 
                     size="sm" 
-                    className="bg-destructive hover:bg-destructive/90 text-white gap-1.5"
+                    className="rounded-full bg-rose-600 hover:bg-rose-700 text-white gap-1.5 shadow-md"
                     onClick={() => setIsExpenseDialogOpen(true)}
                   >
-                    <TrendingDown className="h-4 w-4" />
-                    Despesa
+                    <TrendingDown className="h-3.5 w-3.5" />
+                    Nova Despesa
                   </Button>
                 </div>
-                {renderPendingTransactionsTable("despesas")}
+                <div className="p-4">
+                  {renderPendingTransactionsTable("despesas")}
+                </div>
               </div>
             </div>
 
