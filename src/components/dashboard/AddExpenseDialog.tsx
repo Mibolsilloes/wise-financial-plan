@@ -34,12 +34,22 @@ interface AddExpenseDialogProps {
 
 const categories = [
   { id: "alimentacao", label: "Alimentação" },
-  { id: "transporte", label: "Transporte" },
-  { id: "moradia", label: "Moradia" },
-  { id: "saude", label: "Saúde" },
-  { id: "lazer", label: "Lazer" },
+  { id: "assinatura", label: "Assinatura" },
+  { id: "casa", label: "Casa" },
+  { id: "cuidados-pessoais", label: "Cuidados pessoais" },
+  { id: "doacoes", label: "Doações" },
   { id: "educacao", label: "Educação" },
+  { id: "impostos", label: "Impostos" },
+  { id: "lazer", label: "Lazer e Entretenimento" },
+  { id: "mercado", label: "Mercado" },
   { id: "outros", label: "Outros" },
+  { id: "pets", label: "Pets" },
+  { id: "salario", label: "Salário" },
+  { id: "saude", label: "Saúde" },
+  { id: "transporte", label: "Transporte" },
+  { id: "utilidades", label: "Utilidades" },
+  { id: "vestuario", label: "Vestuário" },
+  { id: "viagem", label: "Viagem" },
 ];
 
 const accounts = [
