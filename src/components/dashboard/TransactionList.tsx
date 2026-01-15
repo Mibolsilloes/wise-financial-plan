@@ -30,6 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import { AddRevenueDialog } from "./AddRevenueDialog";
 import { AddExpenseDialog } from "./AddExpenseDialog";
+import { FilterPopover } from "./FilterPopover";
 
 const months = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -193,9 +194,11 @@ export function TransactionList() {
             <ArrowUpDown className="w-4 h-4" />
           </Button>
 
-          <Button variant="outline" size="sm" className="h-9 gap-2">
-            <Filter className="w-4 h-4" />
-          </Button>
+          <FilterPopover>
+            <Button variant="outline" size="sm" className="h-9 gap-2">
+              <Filter className="w-4 h-4" />
+            </Button>
+          </FilterPopover>
         </div>
       </div>
 
