@@ -27,6 +27,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const expenseData = [
@@ -182,32 +188,43 @@ export default function Reports() {
           </p>
         </div>
 
-        {/* Chart Management */}
-        <div className="glass rounded-xl p-5">
-          <h2 className="text-lg font-semibold mb-4">Gerenciamento de gráficos</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { key: "expenses", label: "Pizza - despesas" },
-              { key: "income", label: "Pizza - receitas" },
-              { key: "frequency", label: "Frequência receitas x despesas" },
-              { key: "expensesPaid", label: "Pizza - despesas pagas" },
-              { key: "expensesUnpaid", label: "Pizza - despesas não pagas" },
-              { key: "incomePaid", label: "Pizza - receitas pagas" },
-              { key: "incomeUnpaid", label: "Pizza - receitas não pagas" },
-            ].map((chart) => (
-              <div key={chart.key} className="flex items-center space-x-2">
-                <Switch
-                  id={chart.key}
-                  checked={charts[chart.key as keyof typeof charts]}
-                  onCheckedChange={(checked) => setCharts({ ...charts, [chart.key]: checked })}
-                />
-                <Label htmlFor={chart.key} className="text-sm cursor-pointer">
-                  {chart.label}
-                </Label>
+        {/* Chart Management - Collapsible */}
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+              <Settings2 className="h-4 w-4" />
+              <span className="text-sm">Gerenciar gráficos</span>
+              <ChevronDown className="h-4 w-4 transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-3">
+            <div className="glass rounded-xl p-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { key: "expenses", label: "Pizza - despesas" },
+                  { key: "income", label: "Pizza - receitas" },
+                  { key: "frequency", label: "Frequência receitas x despesas" },
+                  { key: "expensesPaid", label: "Pizza - despesas pagas" },
+                  { key: "expensesUnpaid", label: "Pizza - despesas não pagas" },
+                  { key: "incomePaid", label: "Pizza - receitas pagas" },
+                  { key: "incomeUnpaid", label: "Pizza - receitas não pagas" },
+                ].map((chart) => (
+                  <div key={chart.key} className="flex items-center space-x-2">
+                    <Switch
+                      id={chart.key}
+                      checked={charts[chart.key as keyof typeof charts]}
+                      onCheckedChange={(checked) => setCharts({ ...charts, [chart.key]: checked })}
+                      className="scale-90"
+                    />
+                    <Label htmlFor={chart.key} className="text-xs cursor-pointer text-muted-foreground">
+                      {chart.label}
+                    </Label>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
