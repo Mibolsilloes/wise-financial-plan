@@ -28,6 +28,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { AddRevenueDialog } from "./AddRevenueDialog";
+import { AddExpenseDialog } from "./AddExpenseDialog";
 
 const months = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
@@ -55,6 +57,8 @@ export function TransactionList() {
   const [currentYear, setCurrentYear] = useState(2026);
   const [searchQuery, setSearchQuery] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState("30");
+  const [isRevenueDialogOpen, setIsRevenueDialogOpen] = useState(false);
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
 
   const handlePrevMonth = () => {
     if (currentMonth === 0) {
@@ -103,16 +107,26 @@ export function TransactionList() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
-          <Button className="gap-2 bg-success hover:bg-success/90 text-success-foreground">
+          <Button 
+            className="gap-2 bg-success hover:bg-success/90 text-success-foreground"
+            onClick={() => setIsRevenueDialogOpen(true)}
+          >
             <Plus className="w-4 h-4" />
             Receita
           </Button>
-          <Button className="gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+          <Button 
+            className="gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            onClick={() => setIsExpenseDialogOpen(true)}
+          >
             <Plus className="w-4 h-4" />
             Despesa
           </Button>
         </div>
       </div>
+
+      {/* Dialogs */}
+      <AddRevenueDialog open={isRevenueDialogOpen} onOpenChange={setIsRevenueDialogOpen} />
+      <AddExpenseDialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen} />
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-1 mb-4 border-b border-border">
