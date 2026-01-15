@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { 
   PieChart, 
@@ -230,6 +230,17 @@ export default function Reports() {
 
   const totalExpenses = expenseData.reduce((acc, item) => acc + item.value, 0);
   const totalIncome = incomeData.reduce((acc, item) => acc + item.value, 0);
+
+  // Sync chart period with selected period
+  useEffect(() => {
+    if (selectedPeriod === "today" || selectedPeriod === "7days") {
+      setCashFlowPeriod("daily");
+      setFrequencyPeriod("daily");
+    } else if (selectedPeriod === "month" || selectedPeriod === "year") {
+      setCashFlowPeriod("monthly");
+      setFrequencyPeriod("monthly");
+    }
+  }, [selectedPeriod]);
 
   const handleDateRangeSelect = (range: typeof dateRange) => {
     setDateRange(range);
