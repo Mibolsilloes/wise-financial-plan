@@ -10,6 +10,9 @@ import {
   ChevronUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePeriod } from "@/contexts/PeriodContext";
+import { format, subMonths } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface DetailBadge {
   label: string;
@@ -137,15 +140,40 @@ function FinancialCard({
 }
 
 export function FinancialCards() {
-  const currentMonth = "Janeiro";
-  const previousMonth = "Dezembro";
+  const { effectiveDateRange, monthName, selectedPeriod } = usePeriod();
+  
+  // Get previous month name for the "Saldo Do Período Anterior" card
+  const previousMonthDate = subMonths(effectiveDateRange.from, 1);
+  const previousMonthName = format(previousMonthDate, "MMMM", { locale: ptBR });
+  const previousMonthFormatted = previousMonthName.charAt(0).toUpperCase() + previousMonthName.slice(1);
+  
+  // Format the end date of the previous month
+  const previousMonthEndDate = format(subMonths(effectiveDateRange.from, 1), "dd 'de' MMMM", { locale: ptBR });
+  
+  // Determine the period label for the cards
+  const getPeriodLabel = () => {
+    switch (selectedPeriod) {
+      case "today":
+        return "Hoje";
+      case "7days":
+        return "Últimos 7 dias";
+      case "year":
+        return `${effectiveDateRange.from.getFullYear()}`;
+      case "custom":
+        return `${format(effectiveDateRange.from, "dd/MM")} - ${format(effectiveDateRange.to, "dd/MM")}`;
+      default:
+        return monthName;
+    }
+  };
+
+  const periodLabel = getPeriodLabel();
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       <FinancialCard
         title="Saldo Do Período Anterior"
         mainValue={0}
-        subtitle={`Até 31 De ${previousMonth}`}
+        subtitle={`Até ${previousMonthEndDate}`}
         formula="Receita - Despesa + Saldo Bancário"
         details={[
           { label: "Pendências", value: 0, variant: "danger" },
@@ -157,7 +185,7 @@ export function FinancialCards() {
       <FinancialCard
         title="Receitas"
         mainValue={0}
-        subtitle={`Total em ${currentMonth}`}
+        subtitle={`Total em ${periodLabel}`}
         details={[
           { label: "Recebido", value: 0, variant: "success" },
           { label: "A receber", value: 0, variant: "warning" },
@@ -168,7 +196,7 @@ export function FinancialCards() {
       <FinancialCard
         title="Despesas"
         mainValue={0}
-        subtitle={`Total em ${currentMonth}`}
+        subtitle={`Total em ${periodLabel}`}
         details={[
           { label: "Pago", value: 0, variant: "danger" },
           { label: "A pagar", value: 0, variant: "warning" },
@@ -179,7 +207,7 @@ export function FinancialCards() {
       <FinancialCard
         title="Saldo Previsto"
         mainValue={0}
-        subtitle={`Previsão para ${currentMonth}`}
+        subtitle={`Previsão para ${periodLabel}`}
         formula="Receita - Despesa + Saldo Bancário"
         details={[
           { label: "Disponível", value: 0, variant: "success" },

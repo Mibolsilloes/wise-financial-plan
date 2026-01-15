@@ -2,6 +2,7 @@ import { useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePeriod } from "@/contexts/PeriodContext";
 
 const chartTabs = [
   { id: "all", label: "Todas" },
@@ -39,9 +40,9 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export function ChartPanel() {
   const [selectedTab, setSelectedTab] = useState("receitas-pagas");
+  const { periodLabel } = usePeriod();
   
   const hasData = false; // Set to true when there's actual data
-  const currentDate = "01/01/2026 - 31/01/2026";
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -80,7 +81,7 @@ export function ChartPanel() {
       {/* Chart Title with Date */}
       <div className="text-center mb-4">
         <h3 className="font-medium text-foreground">{getTabLabel()}</h3>
-        <p className="text-xs text-muted-foreground">{currentDate}</p>
+        <p className="text-xs text-muted-foreground">{periodLabel}</p>
       </div>
 
       {/* Chart or Empty State */}

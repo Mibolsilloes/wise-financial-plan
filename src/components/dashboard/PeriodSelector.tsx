@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { 
   ChevronLeft,
   ChevronRight,
@@ -16,49 +15,37 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { DateRange } from "react-day-picker";
+import { usePeriod, PeriodType } from "@/contexts/PeriodContext";
+import { useState } from "react";
 
-const periods = [
+const periods: { id: PeriodType; label: string }[] = [
   { id: "today", label: "Hoje" },
   { id: "7days", label: "7 dias atrás" },
   { id: "month", label: "Esse mês" },
   { id: "year", label: "Esse ano" },
 ];
 
-const months = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-];
-
 export function PeriodSelector() {
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
-  const [currentMonth, setCurrentMonth] = useState(0); // Janeiro
-  const [currentYear, setCurrentYear] = useState(2026);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(2026, 0, 1),
-    to: new Date(2026, 0, 31),
-  });
+  const {
+    selectedPeriod,
+    setSelectedPeriod,
+    monthName,
+    handlePrevMonth,
+    handleNextMonth,
+    dateRange,
+    setDateRange,
+    clearFilters,
+    refresh,
+    periodLabel,
+  } = usePeriod();
+
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-  const handlePrevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear(currentYear - 1);
-    } else {
-      setCurrentMonth(currentMonth - 1);
-    }
+  const handlePeriodClick = (periodId: PeriodType) => {
+    setSelectedPeriod(periodId);
   };
 
-  const handleNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear(currentYear + 1);
-    } else {
-      setCurrentMonth(currentMonth + 1);
-    }
-  };
-
-  const handleDateRangeSelect = (range: DateRange | undefined) => {
+  const handleDateRangeSelect = (range: typeof dateRange) => {
     setDateRange(range);
     if (range?.from && range?.to) {
       setSelectedPeriod("custom");
@@ -73,7 +60,7 @@ export function PeriodSelector() {
     if (dateRange?.from) {
       return format(dateRange.from, "dd/MM/yyyy");
     }
-    return "Selecionar período";
+    return periodLabel;
   };
 
   return (
@@ -90,7 +77,7 @@ export function PeriodSelector() {
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <span className="text-lg font-semibold min-w-[100px] text-center">
-            {months[currentMonth]}
+            {monthName}
           </span>
           <Button 
             variant="ghost" 
@@ -107,7 +94,7 @@ export function PeriodSelector() {
           {periods.map((period) => (
             <button
               key={period.id}
-              onClick={() => setSelectedPeriod(period.id)}
+              onClick={() => handlePeriodClick(period.id)}
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border",
                 selectedPeriod === period.id
@@ -128,7 +115,7 @@ export function PeriodSelector() {
                 variant="outline"
                 className={cn(
                   "justify-start text-left font-normal gap-2",
-                  !dateRange && "text-muted-foreground"
+                  selectedPeriod === "custom" && "border-primary"
                 )}
               >
                 <CalendarIcon className="h-4 w-4" />
@@ -154,11 +141,17 @@ export function PeriodSelector() {
             variant="outline" 
             size="sm" 
             className="gap-2"
+            onClick={clearFilters}
           >
             <Trash2 className="w-4 h-4" />
             Limpar filtro
           </Button>
-          <Button variant="outline" size="sm" className="gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-2"
+            onClick={refresh}
+          >
             <RefreshCw className="w-4 h-4" />
             Atualizar
           </Button>
