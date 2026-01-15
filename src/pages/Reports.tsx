@@ -120,29 +120,52 @@ const frequencyDataDaily = [
   { period: "30", receitas: 150, despesas: 200 },
 ];
 
-const cashFlowDataMonthly = [
-  { period: "Fev", receitas: 8200, despesas: 4100, saldo: 4100 },
-  { period: "Mar", receitas: 9000, despesas: 4800, saldo: 4200 },
-  { period: "Abr", receitas: 8500, despesas: 4300, saldo: 4200 },
-  { period: "Mai", receitas: 10200, despesas: 5100, saldo: 5100 },
-  { period: "Jun", receitas: 8800, despesas: 4000, saldo: 4800 },
-  { period: "Jul", receitas: 9100, despesas: 4500, saldo: 4600 },
-  { period: "Ago", receitas: 8600, despesas: 4200, saldo: 4400 },
-  { period: "Set", receitas: 9800, despesas: 5000, saldo: 4800 },
-  { period: "Out", receitas: 8400, despesas: 3900, saldo: 4500 },
-  { period: "Nov", receitas: 8700, despesas: 4700, saldo: 4000 },
-  { period: "Dez", receitas: 10000, despesas: 4500, saldo: 5500 },
-];
-
-const cashFlowDataDaily = [
-  { period: "01", receitas: 280, despesas: 150, saldo: 130 },
-  { period: "05", receitas: 350, despesas: 220, saldo: 130 },
-  { period: "10", receitas: 8500, despesas: 180, saldo: 8320 },
-  { period: "15", receitas: 120, despesas: 450, saldo: -330 },
-  { period: "20", receitas: 200, despesas: 280, saldo: -80 },
-  { period: "25", receitas: 180, despesas: 320, saldo: -140 },
-  { period: "30", receitas: 150, despesas: 200, saldo: -50 },
-];
+// Cash flow data generators based on period
+const getCashFlowData = (period: string) => {
+  switch (period) {
+    case "today":
+      return [
+        { period: "00:00", receitas: 0, despesas: 0, saldo: 0 },
+        { period: "06:00", receitas: 150, despesas: 80, saldo: 70 },
+        { period: "12:00", receitas: 320, despesas: 150, saldo: 170 },
+        { period: "18:00", receitas: 180, despesas: 220, saldo: -40 },
+        { period: "23:59", receitas: 100, despesas: 50, saldo: 50 },
+      ];
+    case "7days":
+      return [
+        { period: "Seg", receitas: 1200, despesas: 800, saldo: 400 },
+        { period: "Ter", receitas: 950, despesas: 600, saldo: 350 },
+        { period: "Qua", receitas: 1100, despesas: 750, saldo: 350 },
+        { period: "Qui", receitas: 1300, despesas: 900, saldo: 400 },
+        { period: "Sex", receitas: 1500, despesas: 1100, saldo: 400 },
+        { period: "Sáb", receitas: 800, despesas: 400, saldo: 400 },
+        { period: "Dom", receitas: 600, despesas: 300, saldo: 300 },
+      ];
+    case "month":
+      return [
+        { period: "Sem 1", receitas: 2500, despesas: 1800, saldo: 700 },
+        { period: "Sem 2", receitas: 3200, despesas: 2100, saldo: 1100 },
+        { period: "Sem 3", receitas: 2800, despesas: 1900, saldo: 900 },
+        { period: "Sem 4", receitas: 3500, despesas: 2300, saldo: 1200 },
+      ];
+    case "year":
+    default:
+      return [
+        { period: "Jan", receitas: 8500, despesas: 4200, saldo: 4300 },
+        { period: "Fev", receitas: 8200, despesas: 4100, saldo: 4100 },
+        { period: "Mar", receitas: 9000, despesas: 4800, saldo: 4200 },
+        { period: "Abr", receitas: 8500, despesas: 4300, saldo: 4200 },
+        { period: "Mai", receitas: 10200, despesas: 5100, saldo: 5100 },
+        { period: "Jun", receitas: 8800, despesas: 4000, saldo: 4800 },
+        { period: "Jul", receitas: 9100, despesas: 4500, saldo: 4600 },
+        { period: "Ago", receitas: 8600, despesas: 4200, saldo: 4400 },
+        { period: "Set", receitas: 9800, despesas: 5000, saldo: 4800 },
+        { period: "Out", receitas: 8400, despesas: 3900, saldo: 4500 },
+        { period: "Nov", receitas: 8700, despesas: 4700, saldo: 4000 },
+        { period: "Dez", receitas: 10000, despesas: 4500, saldo: 5500 },
+      ];
+  }
+};
 
 const chartTypes = [
   { id: "area", label: "Área" },
@@ -195,7 +218,6 @@ export default function Reports() {
   const [activeTab, setActiveTab] = useState("graficos");
   const [chartType, setChartType] = useState("area");
   const [frequencyPeriod, setFrequencyPeriod] = useState<"daily" | "monthly">("monthly");
-  const [cashFlowPeriod, setCashFlowPeriod] = useState<"daily" | "monthly">("monthly");
   const [showSaldo, setShowSaldo] = useState(true);
   const [cashFlowChartType, setCashFlowChartType] = useState("area");
   const [charts, setCharts] = useState({
@@ -231,13 +253,11 @@ export default function Reports() {
   const totalExpenses = expenseData.reduce((acc, item) => acc + item.value, 0);
   const totalIncome = incomeData.reduce((acc, item) => acc + item.value, 0);
 
-  // Sync chart period with selected period
+  // Sync frequency chart period with selected period
   useEffect(() => {
     if (selectedPeriod === "today" || selectedPeriod === "7days") {
-      setCashFlowPeriod("daily");
       setFrequencyPeriod("daily");
     } else if (selectedPeriod === "month" || selectedPeriod === "year") {
-      setCashFlowPeriod("monthly");
       setFrequencyPeriod("monthly");
     }
   }, [selectedPeriod]);
@@ -987,18 +1007,6 @@ export default function Reports() {
                       ))}
                     </SelectContent>
                   </Select>
-                  
-                  {/* Period Toggle */}
-                  <Select value={cashFlowPeriod} onValueChange={(v) => setCashFlowPeriod(v as "daily" | "monthly")}>
-                    <SelectTrigger className="w-28 h-8 text-xs rounded-lg border-border/50">
-                      <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">Diário</SelectItem>
-                      <SelectItem value="monthly">Mensal</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
               </div>
               
@@ -1007,7 +1015,7 @@ export default function Reports() {
                 <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
                     {(() => {
-                      const cashFlowData = cashFlowPeriod === "daily" ? cashFlowDataDaily : cashFlowDataMonthly;
+                      const cashFlowData = getCashFlowData(selectedPeriod);
                       
                       switch (cashFlowChartType) {
                         case "line":
