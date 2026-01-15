@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingDown, Calendar as CalendarIcon } from "lucide-react";
+import { TrendingDown, TrendingUp, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -182,11 +182,23 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center">
-                    <TrendingDown className="h-4 w-4 text-destructive" />
+                  <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center",
+                    foiPaga ? "bg-success/10" : "bg-destructive/10"
+                  )}>
+                    {foiPaga ? (
+                      <TrendingUp className="h-4 w-4 text-success" />
+                    ) : (
+                      <TrendingDown className="h-4 w-4 text-destructive" />
+                    )}
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Foi Paga</p>
+                    <p className={cn(
+                      "font-medium text-sm",
+                      foiPaga ? "text-success" : "text-destructive"
+                    )}>
+                      {foiPaga ? "Foi Paga" : "Não Foi Paga"}
+                    </p>
                     <p className="text-xs text-muted-foreground">Status do pagamento</p>
                   </div>
                 </div>
