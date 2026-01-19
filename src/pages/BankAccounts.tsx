@@ -18,7 +18,10 @@ import {
   MoreVertical,
   CalendarIcon,
   ArrowRight,
-  SendHorizontal
+  SendHorizontal,
+  TrendingUp,
+  TrendingDown,
+  Equal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -287,16 +290,251 @@ function TransferDialog({ sourceAccount, open, onOpenChange }: TransferDialogPro
   );
 }
 
+interface AdjustBalanceDialogProps {
+  account: typeof accounts[0];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialogProps) {
+  const [adjustmentDate, setAdjustmentDate] = useState<Date>(new Date());
+  const [amount, setAmount] = useState("");
+  const [adjustmentType, setAdjustmentType] = useState<"add" | "subtract" | "set">("add");
+  const [reason, setReason] = useState("");
+
+  const AccountIcon = bankIcons[account.name] || Building2;
+  const accountColor = bankColors[account.name] || "hsl(217, 91%, 60%)";
+
+  const calculateNewBalance = () => {
+    const numAmount = parseFloat(amount.replace(",", ".")) || 0;
+    switch (adjustmentType) {
+      case "add":
+        return account.balance + numAmount;
+      case "subtract":
+        return account.balance - numAmount;
+      case "set":
+        return numAmount;
+      default:
+        return account.balance;
+    }
+  };
+
+  const handleAdjust = () => {
+    // Would handle adjustment logic here
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-card border-border">
+        <DialogHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div 
+              className="p-2.5 rounded-xl"
+              style={{ backgroundColor: `${accountColor}20` }}
+            >
+              <AccountIcon className="w-5 h-5" style={{ color: accountColor }} />
+            </div>
+            <div>
+              <DialogTitle className="text-lg">Ajustar saldo</DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Conta: <span className="font-medium text-foreground">{account.name}</span>
+              </p>
+            </div>
+          </div>
+        </DialogHeader>
+        
+        <div className="space-y-5">
+          {/* Current Balance Display */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border">
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Saldo atual</p>
+              <p className={cn(
+                "text-xl font-bold",
+                account.balance >= 0 ? "text-success" : "text-destructive"
+              )}>
+                {formatCurrency(account.balance)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Novo saldo</p>
+              <p className={cn(
+                "text-xl font-bold",
+                calculateNewBalance() >= 0 ? "text-success" : "text-destructive"
+              )}>
+                {formatCurrency(calculateNewBalance())}
+              </p>
+            </div>
+          </div>
+
+          {/* Adjustment Type Tabs */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Tipo de ajuste</Label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={() => setAdjustmentType("add")}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
+                  adjustmentType === "add"
+                    ? "border-success bg-success/10"
+                    : "border-border hover:border-success/50"
+                )}
+              >
+                <TrendingUp className={cn(
+                  "w-5 h-5",
+                  adjustmentType === "add" ? "text-success" : "text-muted-foreground"
+                )} />
+                <span className={cn(
+                  "text-xs font-medium",
+                  adjustmentType === "add" ? "text-success" : "text-muted-foreground"
+                )}>
+                  Adicionar
+                </span>
+              </button>
+              <button
+                onClick={() => setAdjustmentType("subtract")}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
+                  adjustmentType === "subtract"
+                    ? "border-destructive bg-destructive/10"
+                    : "border-border hover:border-destructive/50"
+                )}
+              >
+                <TrendingDown className={cn(
+                  "w-5 h-5",
+                  adjustmentType === "subtract" ? "text-destructive" : "text-muted-foreground"
+                )} />
+                <span className={cn(
+                  "text-xs font-medium",
+                  adjustmentType === "subtract" ? "text-destructive" : "text-muted-foreground"
+                )}>
+                  Subtrair
+                </span>
+              </button>
+              <button
+                onClick={() => setAdjustmentType("set")}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
+                  adjustmentType === "set"
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover:border-primary/50"
+                )}
+              >
+                <Equal className={cn(
+                  "w-5 h-5",
+                  adjustmentType === "set" ? "text-primary" : "text-muted-foreground"
+                )} />
+                <span className={cn(
+                  "text-xs font-medium",
+                  adjustmentType === "set" ? "text-primary" : "text-muted-foreground"
+                )}>
+                  Definir
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Amount and Date */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">
+                {adjustmentType === "set" ? "Novo saldo" : "Valor"}
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                <Input
+                  type="text"
+                  placeholder="0,00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="pl-10 h-11 text-lg font-semibold"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Data de competência</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full h-11 justify-start text-left font-normal",
+                      !adjustmentDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {adjustmentDate ? format(adjustmentDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-popover border-border" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={adjustmentDate}
+                    onSelect={(date) => date && setAdjustmentDate(date)}
+                    initialFocus
+                    className="pointer-events-auto"
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          {/* Reason */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Motivo do ajuste (opcional)</Label>
+            <Input
+              placeholder="Ex: Correção de lançamento duplicado..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="flex gap-3 pt-4 mt-2">
+          <Button 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)}
+            className="flex-1"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleAdjust}
+            disabled={!amount}
+            className={cn(
+              "flex-1 gap-2",
+              adjustmentType === "add" && "bg-success hover:bg-success/90",
+              adjustmentType === "subtract" && "bg-destructive hover:bg-destructive/90"
+            )}
+          >
+            <Settings2 className="w-4 h-4" />
+            {adjustmentType === "add" ? "Adicionar" : adjustmentType === "subtract" ? "Subtrair" : "Definir"} Saldo
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function BankAccounts() {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [adjustBalanceDialogOpen, setAdjustBalanceDialogOpen] = useState(false);
   const [selectedAccountForTransfer, setSelectedAccountForTransfer] = useState<typeof accounts[0] | null>(null);
+  const [selectedAccountForAdjust, setSelectedAccountForAdjust] = useState<typeof accounts[0] | null>(null);
   const totalBalance = accounts.reduce((acc, account) => acc + account.balance, 0);
 
   const openTransferDialog = (account: typeof accounts[0]) => {
     setSelectedAccountForTransfer(account);
     setTransferDialogOpen(true);
+  };
+
+  const openAdjustBalanceDialog = (account: typeof accounts[0]) => {
+    setSelectedAccountForAdjust(account);
+    setAdjustBalanceDialogOpen(true);
   };
 
   return (
@@ -399,7 +637,10 @@ export default function BankAccounts() {
                           <ArrowLeftRight className="w-4 h-4" />
                           Transferir
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2 cursor-pointer">
+                        <DropdownMenuItem 
+                          className="gap-2 cursor-pointer"
+                          onClick={() => openAdjustBalanceDialog(account)}
+                        >
                           <Settings2 className="w-4 h-4" />
                           Ajustar saldo
                         </DropdownMenuItem>
@@ -478,6 +719,15 @@ export default function BankAccounts() {
             sourceAccount={selectedAccountForTransfer}
             open={transferDialogOpen}
             onOpenChange={setTransferDialogOpen}
+          />
+        )}
+
+        {/* Adjust Balance Dialog */}
+        {selectedAccountForAdjust && (
+          <AdjustBalanceDialog
+            account={selectedAccountForAdjust}
+            open={adjustBalanceDialogOpen}
+            onOpenChange={setAdjustBalanceDialogOpen}
           />
         )}
       </div>
