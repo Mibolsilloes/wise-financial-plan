@@ -24,7 +24,8 @@ import {
   Check,
   BarChart3,
   PieChart as PieChartIcon,
-  Plus
+  Plus,
+  TrendingDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,9 +52,37 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { FilterPopover } from "@/components/dashboard/FilterPopover";
 import { cn } from "@/lib/utils";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { 
+  PieChart, 
+  Pie, 
+  Cell, 
+  ResponsiveContainer, 
+  Tooltip, 
+  Legend,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  BarChart,
+  Bar,
+  LineChart,
+  Line
+} from "recharts";
 
 type GroupingOption = "none" | "categoria" | "vencimento" | "responsavel";
 
@@ -227,6 +256,225 @@ function ExpensesPieChart({ transactions }: ExpensesPieChartProps) {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+const monthAbbreviations = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+// Generate monthly expense data based on transactions
+const generateMonthlyExpenseData = (transactions: any[]) => {
+  // Create base data for all months
+  const monthlyData = monthAbbreviations.map((abbr, idx) => ({
+    period: abbr,
+    despesas: 0,
+  }));
+  
+  // Aggregate transactions by month
+  transactions.forEach((t) => {
+    const date = parseISO(t.dataCompra);
+    const monthIdx = date.getMonth();
+    monthlyData[monthIdx].despesas += Math.abs(t.valor);
+  });
+  
+  return monthlyData;
+};
+
+interface CreditCardExpenseChartsProps {
+  transactions: any[];
+  currentMonth: number;
+  currentYear: number;
+}
+
+function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: CreditCardExpenseChartsProps) {
+  const [chart1Type, setChart1Type] = useState<"bar" | "area" | "line">("bar");
+  const [chart1Period, setChart1Period] = useState<"monthly" | "daily">("monthly");
+  const [chart2Type, setChart2Type] = useState<"bar" | "area" | "line">("area");
+  const [chart2Period, setChart2Period] = useState<"monthly" | "daily">("monthly");
+  const [chart1Open, setChart1Open] = useState(true);
+  const [chart2Open, setChart2Open] = useState(true);
+
+  const chartData = useMemo(() => generateMonthlyExpenseData(transactions), [transactions]);
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="glass rounded-lg p-3 border border-border/50 shadow-lg">
+          <p className="font-medium text-foreground mb-1">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} className="text-xs" style={{ color: entry.color }}>
+              Despesas: {formatCurrency(entry.value)}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const renderChart = (type: "bar" | "area" | "line", data: any[]) => {
+    const commonProps = {
+      data,
+      margin: { top: 10, right: 10, left: -20, bottom: 0 },
+    };
+
+    switch (type) {
+      case "line":
+        return (
+          <LineChart {...commonProps}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+            <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
+            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={(v) => v > 0 ? `${(v/1000).toFixed(0)}k` : '0'} tickLine={false} axisLine={false} />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend 
+              verticalAlign="bottom" 
+              height={36}
+              iconType="square"
+              formatter={() => <span className="text-xs text-muted-foreground">Despesas</span>}
+            />
+            <Line type="monotone" dataKey="despesas" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={false} />
+          </LineChart>
+        );
+      case "bar":
+        return (
+          <BarChart {...commonProps}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+            <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
+            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={(v) => v > 0 ? `${(v/1000).toFixed(0)}k` : '0'} tickLine={false} axisLine={false} />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend 
+              verticalAlign="bottom" 
+              height={36}
+              iconType="square"
+              formatter={() => <span className="text-xs text-muted-foreground">Despesas</span>}
+            />
+            <Bar dataKey="despesas" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        );
+      default:
+        return (
+          <AreaChart {...commonProps}>
+            <defs>
+              <linearGradient id="colorDespesasCard" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+            <XAxis dataKey="period" stroke="hsl(var(--muted-foreground))" fontSize={11} tickLine={false} axisLine={false} />
+            <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={(v) => v > 0 ? `${(v/1000).toFixed(0)}k` : '0'} tickLine={false} axisLine={false} />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend 
+              verticalAlign="bottom" 
+              height={36}
+              iconType="square"
+              formatter={() => <span className="text-xs text-muted-foreground">Despesas</span>}
+            />
+            <Area type="monotone" dataKey="despesas" stroke="hsl(0, 84%, 60%)" fillOpacity={1} fill="url(#colorDespesasCard)" />
+          </AreaChart>
+        );
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Chart 1 - Expenses over time */}
+      <Collapsible open={chart1Open} onOpenChange={setChart1Open}>
+        <div className="glass rounded-xl border border-border/50 overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-border/30">
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <ChevronDown className={cn("w-4 h-4 transition-transform", !chart1Open && "-rotate-90")} />
+                <div className="text-left">
+                  <h3 className="font-semibold text-sm">Despesas do Cartão</h3>
+                  <p className="text-xs text-muted-foreground">Visualize as despesas ao longo do tempo</p>
+                </div>
+              </button>
+            </CollapsibleTrigger>
+            <div className="flex items-center gap-2">
+              <Select value={chart1Type} onValueChange={(v) => setChart1Type(v as any)}>
+                <SelectTrigger className="h-8 w-[100px] text-xs border-border/50">
+                  <BarChart3 className="w-3.5 h-3.5 mr-1" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bar">Coluna</SelectItem>
+                  <SelectItem value="area">Área</SelectItem>
+                  <SelectItem value="line">Linha</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={chart1Period} onValueChange={(v) => setChart1Period(v as any)}>
+                <SelectTrigger className="h-8 w-[100px] text-xs border-border/50">
+                  <Calendar className="w-3.5 h-3.5 mr-1" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Mensal</SelectItem>
+                  <SelectItem value="daily">Diário</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <CollapsibleContent>
+            <div className="p-4">
+              <div className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  {renderChart(chart1Type, chartData)}
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </div>
+      </Collapsible>
+
+      {/* Chart 2 - Alternative view */}
+      <Collapsible open={chart2Open} onOpenChange={setChart2Open}>
+        <div className="glass rounded-xl border border-border/50 overflow-hidden">
+          <div className="flex items-center justify-between p-4 border-b border-border/30">
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <ChevronDown className={cn("w-4 h-4 transition-transform", !chart2Open && "-rotate-90")} />
+                <div className="text-left">
+                  <h3 className="font-semibold text-sm">Evolução de Gastos</h3>
+                  <p className="text-xs text-muted-foreground">Acompanhe a tendência de despesas</p>
+                </div>
+              </button>
+            </CollapsibleTrigger>
+            <div className="flex items-center gap-2">
+              <Select value={chart2Type} onValueChange={(v) => setChart2Type(v as any)}>
+                <SelectTrigger className="h-8 w-[100px] text-xs border-border/50">
+                  <TrendingDown className="w-3.5 h-3.5 mr-1" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="area">Área</SelectItem>
+                  <SelectItem value="bar">Coluna</SelectItem>
+                  <SelectItem value="line">Linha</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={chart2Period} onValueChange={(v) => setChart2Period(v as any)}>
+                <SelectTrigger className="h-8 w-[100px] text-xs border-border/50">
+                  <Calendar className="w-3.5 h-3.5 mr-1" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Mensal</SelectItem>
+                  <SelectItem value="daily">Diário</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <CollapsibleContent>
+            <div className="p-4">
+              <div className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  {renderChart(chart2Type, chartData)}
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </div>
+      </Collapsible>
     </div>
   );
 }
@@ -722,14 +970,70 @@ export default function CreditCardInvoice() {
           </TabsContent>
 
           <TabsContent value="relatorios" className="space-y-6 mt-0">
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-16 h-16 rounded-xl bg-muted/50 flex items-center justify-center mb-4">
-                <BarChart3 className="w-8 h-8 text-muted-foreground" />
+            {/* Filter bar */}
+            <div className="flex items-center gap-2">
+              <FilterPopover>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+                  <Filter className="w-3.5 h-3.5" />
+                  Filtros
+                </Button>
+              </FilterPopover>
+            </div>
+
+            {/* Main content grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left - Charts */}
+              <div className="lg:col-span-2 space-y-6">
+                <CreditCardExpenseCharts transactions={transactions} currentMonth={currentMonth} currentYear={currentYear} />
               </div>
-              <p className="font-medium">Relatórios do cartão</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Em breve você poderá ver gráficos e análises detalhadas aqui.
-              </p>
+
+              {/* Right - Summary Panel */}
+              <div className="space-y-6">
+                {/* Expense summary card */}
+                <div className="glass rounded-xl p-5 border border-border/50">
+                  <h3 className="font-semibold mb-4">Gráfico todas as despesas</h3>
+                  <Tabs defaultValue="despesas" className="w-full">
+                    <TabsList className="w-full bg-muted/50 p-1">
+                      <TabsTrigger value="despesas" className="flex-1 text-xs">Despesas</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="despesas" className="mt-4">
+                      <div className="text-center space-y-4">
+                        <div>
+                          <p className="text-sm font-medium">Todas as Despesas</p>
+                          <p className="text-xs text-primary mt-0.5">
+                            1 de Janeiro - 31 de Dezembro
+                          </p>
+                        </div>
+                        
+                        <ExpensesPieChart transactions={transactions} />
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+
+                {/* Details card */}
+                <div className="glass rounded-xl p-5 border border-border/50">
+                  <h3 className="font-semibold mb-4">Detalhes</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Cartão</span>
+                      <span className="font-medium">{card.name}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Bandeira</span>
+                      <span className="font-medium">{card.brand}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Conta</span>
+                      <span className="font-medium">{card.account}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Limite</span>
+                      <span className="font-medium">{formatCurrency(card.limit)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
