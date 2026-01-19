@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { 
   Plus, 
@@ -8,7 +9,8 @@ import {
   CreditCard,
   MoreVertical,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,9 +28,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -96,8 +100,15 @@ const formatCurrency = (value: number) => {
 };
 
 export default function CreditCards() {
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedCardForEdit, setSelectedCardForEdit] = useState<typeof cards[0] | null>(null);
 
+  const openEditDialog = (card: typeof cards[0]) => {
+    setSelectedCardForEdit(card);
+    setEditDialogOpen(true);
+  };
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 space-y-6">
@@ -241,12 +252,18 @@ export default function CreditCards() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-popover border-border">
-                        <DropdownMenuItem className="gap-2 cursor-pointer">
+                        <DropdownMenuItem 
+                          className="gap-2 cursor-pointer"
+                          onClick={() => navigate(`/cartoes/${card.id}/fatura`)}
+                        >
                           <FileText className="w-4 h-4" />
                           Detalhes da fatura
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-border" />
-                        <DropdownMenuItem className="gap-2 cursor-pointer">
+                        <DropdownMenuItem 
+                          className="gap-2 cursor-pointer"
+                          onClick={() => openEditDialog(card)}
+                        >
                           <Edit2 className="w-4 h-4" />
                           Editar
                         </DropdownMenuItem>
@@ -291,7 +308,190 @@ export default function CreditCards() {
             );
           })}
         </div>
+
+        {/* Edit Card Dialog */}
+        {selectedCardForEdit && (
+          <EditCardDialog
+            card={selectedCardForEdit}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+          />
+        )}
       </div>
     </Layout>
+  );
+}
+
+interface EditCardDialogProps {
+  card: typeof cards[0];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
+  const [cardName, setCardName] = useState(card.name);
+  const [limit, setLimit] = useState(card.limit.toString());
+  const [brand, setBrand] = useState(card.brand.toLowerCase());
+  const [closingDay, setClosingDay] = useState(card.closingDay.toString());
+  const [dueDay, setDueDay] = useState(card.dueDay.toString());
+  const [account, setAccount] = useState(card.account.toLowerCase());
+  const [isActive, setIsActive] = useState(true);
+
+  useEffect(() => {
+    setCardName(card.name);
+    setLimit(card.limit.toString());
+    setBrand(card.brand.toLowerCase());
+    setClosingDay(card.closingDay.toString());
+    setDueDay(card.dueDay.toString());
+    setAccount(card.account.toLowerCase());
+  }, [card]);
+
+  const cardColor = brandColors[card.brand] || "hsl(217, 91%, 60%)";
+
+  const handleSave = () => {
+    // Would handle save logic here
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-card border-border">
+        <DialogHeader className="pb-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div 
+              className="p-2.5 rounded-xl"
+              style={{ backgroundColor: `${cardColor}20` }}
+            >
+              <CreditCard className="w-5 h-5" style={{ color: cardColor }} />
+            </div>
+            <div>
+              <DialogTitle className="text-lg">Editar cartão</DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Altere as configurações do cartão
+              </p>
+            </div>
+          </div>
+        </DialogHeader>
+        
+        <div className="space-y-5 py-4">
+          {/* Card Name */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Descrição</Label>
+            <Input
+              value={cardName}
+              onChange={(e) => setCardName(e.target.value)}
+              placeholder="Ex: Nubank Ultravioleta"
+            />
+          </div>
+
+          {/* Limit and Brand */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Limite total</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                <Input
+                  type="text"
+                  value={limit}
+                  onChange={(e) => setLimit(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Bandeira</Label>
+              <Select value={brand} onValueChange={setBrand}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="visa">Visa</SelectItem>
+                  <SelectItem value="mastercard">Mastercard</SelectItem>
+                  <SelectItem value="elo">Elo</SelectItem>
+                  <SelectItem value="american express">American Express</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Closing and Due Days */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Dia fechamento</Label>
+              <Input
+                type="number"
+                min="1"
+                max="31"
+                value={closingDay}
+                onChange={(e) => setClosingDay(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Dia vencimento</Label>
+              <Input
+                type="number"
+                min="1"
+                max="31"
+                value={dueDay}
+                onChange={(e) => setDueDay(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Account */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Conta associada</Label>
+            <Select value={account} onValueChange={setAccount}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border">
+                <SelectItem value="nubank">Nubank</SelectItem>
+                <SelectItem value="itaú">Itaú</SelectItem>
+                <SelectItem value="bradesco">Bradesco</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Active Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Star className={cn(
+                  "w-4 h-4",
+                  isActive ? "text-success fill-success" : "text-muted-foreground"
+                )} />
+                <Label className="text-sm font-medium cursor-pointer">Cartão ativo</Label>
+              </div>
+              <p className="text-[10px] text-muted-foreground max-w-[220px]">
+                Cartões inativos não aparecem nas opções de lançamento
+              </p>
+            </div>
+            <Switch
+              checked={isActive}
+              onCheckedChange={setIsActive}
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="flex gap-3 pt-4 border-t border-border">
+          <Button 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)}
+            className="flex-1"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleSave}
+            disabled={!cardName.trim()}
+            className="flex-1 gap-2"
+          >
+            <Edit2 className="w-4 h-4" />
+            Salvar alterações
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
