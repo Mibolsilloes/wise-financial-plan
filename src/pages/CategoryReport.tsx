@@ -199,6 +199,7 @@ export default function CategoryReport() {
   const [viewMode, setViewMode] = useState<"cards" | "table">("table");
   const [grouping, setGrouping] = useState<GroupingOption>("none");
   const [sortBy, setSortBy] = useState<SortOption>("valor");
+  const [itemsPerPage, setItemsPerPage] = useState<30 | 50 | 100>(30);
   
   // Column visibility settings
   const [visibleColumns, setVisibleColumns] = useState({
@@ -612,7 +613,29 @@ export default function CategoryReport() {
           {/* Pagination Footer */}
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <div className="flex items-center gap-2">
-              <span>Mostrar 30</span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="hover:text-foreground transition-colors flex items-center gap-1">
+                    Mostrar {itemsPerPage}
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-background border shadow-lg z-50 min-w-[120px]">
+                  {([30, 50, 100] as const).map((option) => (
+                    <DropdownMenuItem
+                      key={option}
+                      onClick={() => setItemsPerPage(option)}
+                      className={cn(
+                        "flex items-center justify-between cursor-pointer",
+                        itemsPerPage === option && "font-medium"
+                      )}
+                    >
+                      Mostrar {option}
+                      {itemsPerPage === option && <Check className="w-4 h-4 ml-2" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <span>|</span>
               <span>Total: 0</span>
             </div>
