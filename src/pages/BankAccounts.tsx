@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Layout } from "@/components/layout/Layout";
-import {
+import { 
   Plus, 
   Edit2, 
   Archive, 
@@ -13,7 +15,10 @@ import {
   CreditCard as CreditCardIcon,
   Wallet,
   Star,
-  MoreVertical
+  MoreVertical,
+  CalendarIcon,
+  ArrowRight,
+  SendHorizontal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,10 +35,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 const bankIcons: Record<string, React.ElementType> = {
@@ -90,10 +110,194 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+interface TransferDialogProps {
+  sourceAccount: typeof accounts[0];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function TransferDialog({ sourceAccount, open, onOpenChange }: TransferDialogProps) {
+  const [destinationAccountId, setDestinationAccountId] = useState<string>("");
+  const [transferDate, setTransferDate] = useState<Date>(new Date());
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+
+  const destinationAccount = accounts.find(a => a.id.toString() === destinationAccountId);
+  const SourceIcon = bankIcons[sourceAccount.name] || Building2;
+  const sourceColor = bankColors[sourceAccount.name] || "hsl(217, 91%, 60%)";
+
+  const handleTransfer = () => {
+    // Would handle transfer logic here
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg bg-card border-border">
+        <DialogHeader className="pb-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-primary/10">
+              <SendHorizontal className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg">Transferir entre contas</DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">Mova dinheiro entre suas contas</p>
+            </div>
+          </div>
+        </DialogHeader>
+        
+        <div className="space-y-5 py-4">
+          {/* Source and Destination Cards */}
+          <div className="flex items-center gap-3">
+            {/* Source Account */}
+            <div className="flex-1 p-4 rounded-xl border border-border bg-muted/30">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">De</p>
+              <div className="flex items-center gap-3">
+                <div 
+                  className="p-2 rounded-lg"
+                  style={{ backgroundColor: `${sourceColor}20` }}
+                >
+                  <SourceIcon className="w-4 h-4" style={{ color: sourceColor }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{sourceAccount.name}</p>
+                  <p className="text-xs text-success">{formatCurrency(sourceAccount.balance)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Arrow */}
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <ArrowRight className="w-4 h-4 text-primary" />
+            </div>
+
+            {/* Destination Account */}
+            <div className="flex-1 p-4 rounded-xl border border-border bg-muted/30">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">Para</p>
+              <Select value={destinationAccountId} onValueChange={setDestinationAccountId}>
+                <SelectTrigger className="border-0 bg-transparent p-0 h-auto shadow-none focus:ring-0">
+                  <SelectValue placeholder="Selecionar conta" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  {accounts
+                    .filter(a => a.id !== sourceAccount.id)
+                    .map(account => {
+                      const Icon = bankIcons[account.name] || Building2;
+                      const color = bankColors[account.name] || "hsl(217, 91%, 60%)";
+                      return (
+                        <SelectItem key={account.id} value={account.id.toString()}>
+                          <div className="flex items-center gap-2">
+                            <Icon className="w-4 h-4" style={{ color }} />
+                            <span>{account.name}</span>
+                            <span className="text-xs text-muted-foreground ml-auto">
+                              {formatCurrency(account.balance)}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                </SelectContent>
+              </Select>
+              {destinationAccount && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Saldo: {formatCurrency(destinationAccount.balance)}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Amount and Date Row */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Amount */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Valor da transferência</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                <Input
+                  type="text"
+                  placeholder="0,00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="pl-10 h-11 text-lg font-semibold"
+                />
+              </div>
+            </div>
+
+            {/* Date */}
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Data da transferência</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full h-11 justify-start text-left font-normal",
+                      !transferDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {transferDate ? format(transferDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-popover border-border" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={transferDate}
+                    onSelect={(date) => date && setTransferDate(date)}
+                    initialFocus
+                    className="pointer-events-auto"
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Descrição (opcional)</Label>
+            <Textarea
+              placeholder="Ex: Transferência para poupança, reserva de emergência..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="resize-none h-20"
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="flex gap-3 pt-4 border-t border-border">
+          <Button 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)}
+            className="flex-1"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleTransfer}
+            disabled={!destinationAccountId || !amount}
+            className="flex-1 gap-2"
+          >
+            <ArrowLeftRight className="w-4 h-4" />
+            Transferir
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function BankAccounts() {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [selectedAccountForTransfer, setSelectedAccountForTransfer] = useState<typeof accounts[0] | null>(null);
   const totalBalance = accounts.reduce((acc, account) => acc + account.balance, 0);
+
+  const openTransferDialog = (account: typeof accounts[0]) => {
+    setSelectedAccountForTransfer(account);
+    setTransferDialogOpen(true);
+  };
 
   return (
     <Layout>
@@ -188,7 +392,10 @@ export default function BankAccounts() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-popover border-border">
-                        <DropdownMenuItem className="gap-2 cursor-pointer">
+                        <DropdownMenuItem 
+                          className="gap-2 cursor-pointer"
+                          onClick={() => openTransferDialog(account)}
+                        >
                           <ArrowLeftRight className="w-4 h-4" />
                           Transferir
                         </DropdownMenuItem>
@@ -241,7 +448,12 @@ export default function BankAccounts() {
 
                 {/* Quick Actions */}
                 <div className="flex gap-2 mt-4">
-                  <Button variant="outline" size="sm" className="flex-1 text-xs">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 text-xs"
+                    onClick={() => openTransferDialog(account)}
+                  >
                     <ArrowLeftRight className="w-3 h-3 mr-1" />
                     Transferir
                   </Button>
@@ -259,6 +471,15 @@ export default function BankAccounts() {
             );
           })}
         </div>
+
+        {/* Transfer Dialog */}
+        {selectedAccountForTransfer && (
+          <TransferDialog
+            sourceAccount={selectedAccountForTransfer}
+            open={transferDialogOpen}
+            onOpenChange={setTransferDialogOpen}
+          />
+        )}
       </div>
     </Layout>
   );
