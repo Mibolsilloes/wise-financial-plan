@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
 import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { 
@@ -193,7 +194,7 @@ const FinancialCard = ({
 export default function CategoryReport() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currentMonth, currentYear } = usePeriod();
+  const { currentMonth, currentYear, effectiveDateRange } = usePeriod();
   const [activeTab, setActiveTab] = useState("todas");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -239,19 +240,70 @@ export default function CategoryReport() {
     "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
   ];
 
-  // Mock financial data for this category
-  const financialData = {
-    previousBalance: -50.00,
-    income: 0.00,
-    expenses: 0.00,
-    availableBalance: -50.00,
-    expectedBalance: -50.00,
-    incomeDetails: { received: 0, toReceive: 0 },
-    expenseDetails: { paid: 0, toPay: 0 },
-  };
+  // Mock transactions with dates - would come from API
+  const allTransactions = useMemo(() => [
+    { id: 1, descricao: "Restaurante", responsavel: "João", valor: -85.50, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "Nubank Platinum", dataVencimento: "2026-01-15", dataCompetencia: "2026-01-15", dataPagamento: "2026-01-15", fixoVariavel: "Variável" },
+    { id: 2, descricao: "Supermercado", responsavel: "Maria", valor: -320.00, tipo: "despesa", status: "Pendente", conta: "Itaú", cartao: "", dataVencimento: "2026-01-20", dataCompetencia: "2026-01-20", dataPagamento: "", fixoVariavel: "Variável" },
+    { id: 3, descricao: "Delivery iFood", responsavel: "João", valor: -45.90, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "Nubank Platinum", dataVencimento: "2026-01-18", dataCompetencia: "2026-01-18", dataPagamento: "2026-01-18", fixoVariavel: "Variável" },
+    { id: 4, descricao: "Padaria", responsavel: "Maria", valor: -28.00, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "", dataVencimento: "2026-01-19", dataCompetencia: "2026-01-19", dataPagamento: "2026-01-19", fixoVariavel: "Variável" },
+    { id: 5, descricao: "Almoço trabalho", responsavel: "João", valor: -55.00, tipo: "despesa", status: "Pendente", conta: "Itaú", cartao: "", dataVencimento: "2026-01-22", dataCompetencia: "2026-01-22", dataPagamento: "", fixoVariavel: "Variável" },
+    { id: 6, descricao: "Mercado mensal", responsavel: "Maria", valor: -850.00, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "", dataVencimento: "2026-01-05", dataCompetencia: "2026-01-05", dataPagamento: "2026-01-05", fixoVariavel: "Fixo" },
+    { id: 7, descricao: "Lanche", responsavel: "João", valor: -22.50, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "Nubank Platinum", dataVencimento: "2026-01-12", dataCompetencia: "2026-01-12", dataPagamento: "2026-01-12", fixoVariavel: "Variável" },
+    { id: 8, descricao: "Feira orgânica", responsavel: "Maria", valor: -180.00, tipo: "despesa", status: "Pendente", conta: "Itaú", cartao: "", dataVencimento: "2026-01-25", dataCompetencia: "2026-01-25", dataPagamento: "", fixoVariavel: "Variável" },
+    // Transactions from December 2025
+    { id: 9, descricao: "Ceia de Natal", responsavel: "Maria", valor: -450.00, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "", dataVencimento: "2025-12-24", dataCompetencia: "2025-12-24", dataPagamento: "2025-12-24", fixoVariavel: "Variável" },
+    { id: 10, descricao: "Mercado dezembro", responsavel: "João", valor: -720.00, tipo: "despesa", status: "Pago", conta: "Itaú", cartao: "", dataVencimento: "2025-12-10", dataCompetencia: "2025-12-10", dataPagamento: "2025-12-10", fixoVariavel: "Fixo" },
+    // Transactions from February 2026
+    { id: 11, descricao: "Mercado fevereiro", responsavel: "Maria", valor: -380.00, tipo: "despesa", status: "Pendente", conta: "Nubank", cartao: "", dataVencimento: "2026-02-05", dataCompetencia: "2026-02-05", dataPagamento: "", fixoVariavel: "Fixo" },
+  ], []);
 
-  // Mock transactions - empty for demo
-  const transactions: any[] = [];
+  // Filter transactions based on effectiveDateRange
+  const transactions = useMemo(() => {
+    return allTransactions.filter(transaction => {
+      const transactionDate = parseISO(transaction.dataVencimento);
+      return isWithinInterval(transactionDate, {
+        start: startOfDay(effectiveDateRange.from),
+        end: endOfDay(effectiveDateRange.to),
+      });
+    });
+  }, [allTransactions, effectiveDateRange]);
+
+  // Calculate financial data based on filtered transactions
+  const financialData = useMemo(() => {
+    const income = transactions
+      .filter(t => t.tipo === "receita")
+      .reduce((sum, t) => sum + t.valor, 0);
+    
+    const expenses = transactions
+      .filter(t => t.tipo === "despesa")
+      .reduce((sum, t) => sum + Math.abs(t.valor), 0);
+    
+    const incomeReceived = transactions
+      .filter(t => t.tipo === "receita" && t.status === "Pago")
+      .reduce((sum, t) => sum + t.valor, 0);
+    
+    const incomeToReceive = transactions
+      .filter(t => t.tipo === "receita" && t.status === "Pendente")
+      .reduce((sum, t) => sum + t.valor, 0);
+    
+    const expensesPaid = transactions
+      .filter(t => t.tipo === "despesa" && t.status === "Pago")
+      .reduce((sum, t) => sum + Math.abs(t.valor), 0);
+    
+    const expensesToPay = transactions
+      .filter(t => t.tipo === "despesa" && t.status === "Pendente")
+      .reduce((sum, t) => sum + Math.abs(t.valor), 0);
+
+    return {
+      previousBalance: -50.00,
+      income: income,
+      expenses: -expenses,
+      availableBalance: income - expenses - 50.00,
+      expectedBalance: income - expenses - 50.00,
+      incomeDetails: { received: incomeReceived, toReceive: incomeToReceive },
+      expenseDetails: { paid: expensesPaid, toPay: expensesToPay },
+    };
+  }, [transactions]);
   
   return (
     <Layout>
