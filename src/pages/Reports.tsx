@@ -387,66 +387,82 @@ export default function Reports() {
   };
 
   const renderPendingTransactionsTable = (type: "receitas" | "despesas") => (
-    <div className="space-y-3">
-      {/* Toolbar - Compact */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-0.5">
-          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-md">
-            <Settings className="h-3.5 w-3.5" />
+    <div className="space-y-4">
+      {/* Controls Row - Dashboard style */}
+      <div className="flex flex-col lg:flex-row gap-3">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-9 w-9">
+            <Settings className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="gap-1 h-7 px-2 rounded-md text-xs">
-            <SlidersHorizontal className="h-3 w-3" />
-            Agrupar
-            <ChevronDown className="h-3 w-3" />
-          </Button>
+          
+          <Select defaultValue="none">
+            <SelectTrigger className="w-[160px] h-9">
+              <SelectValue placeholder="Sem agrupamento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Sem agrupamento</SelectItem>
+              <SelectItem value="category">Categoria</SelectItem>
+              <SelectItem value="date">Data de vencimento</SelectItem>
+              <SelectItem value="responsible">Responsável</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
             placeholder={type === "receitas" ? "Buscar receitas..." : "Buscar despesas..."}
-            className="pl-8 h-8 text-xs rounded-lg bg-muted/30 border-0 focus-visible:ring-1"
+            className="pl-10 h-9"
           />
         </div>
 
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs rounded-md">
-            Valor
+        <div className="flex items-center gap-2 lg:ml-auto">
+          <Select defaultValue="vencimento">
+            <SelectTrigger className="w-[160px] h-9">
+              <SelectValue placeholder="Data de Vencimento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="vencimento">Data de Vencimento</SelectItem>
+              <SelectItem value="competencia">Data de Competência</SelectItem>
+              <SelectItem value="pagamento">Data de Pagamento</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button variant="outline" size="sm" className="h-9">
+            <ArrowUpDown className="w-4 h-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-md">
-            <ArrowUpDown className="h-3.5 w-3.5" />
-          </Button>
+
           <FilterPopover>
-            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-md">
-              <Filter className="h-3.5 w-3.5" />
+            <Button variant="outline" size="sm" className="h-9">
+              <Filter className="w-4 h-4" />
             </Button>
           </FilterPopover>
         </div>
       </div>
 
-      {/* Table - Cleaner design */}
-      <div className="rounded-xl border border-border/50 overflow-hidden bg-muted/20">
+      {/* Table - Dashboard style */}
+      <div className="border border-border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50 hover:bg-muted/50">
+            <TableRow className="bg-muted/50">
               {tableColumns.map((col) => (
-                <TableHead key={col} className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">
+                <TableHead key={col} className="text-xs font-medium whitespace-nowrap">
                   {col}
                 </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={tableColumns.length} className="h-28">
-                <div className="flex flex-col items-center justify-center text-center gap-1.5">
-                  <div className="w-12 h-12 rounded-full bg-muted/80 flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-muted-foreground/40" />
+            <TableRow>
+              <TableCell colSpan={tableColumns.length} className="h-[200px]">
+                <div className="flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                    <FileText className="w-8 h-8 text-muted-foreground" />
                   </div>
-                  <p className="text-sm font-medium text-muted-foreground">
-                    Nenhum lançamento
+                  <p className="text-muted-foreground font-medium">
+                    Nenhum lançamento encontrado
                   </p>
-                  <p className="text-xs text-muted-foreground/60">
+                  <p className="text-sm text-muted-foreground/70 mt-1">
                     {type === "receitas" ? "Adicione uma receita para começar" : "Adicione uma despesa para começar"}
                   </p>
                 </div>
@@ -456,29 +472,31 @@ export default function Reports() {
         </Table>
       </div>
 
-      {/* Pagination - Minimal */}
-      <div className="flex items-center justify-between text-xs">
-        <div className="flex items-center gap-2 text-muted-foreground">
+      {/* Pagination - Dashboard style */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Mostrar</span>
           <Select defaultValue="30">
-            <SelectTrigger className="h-7 w-20 text-xs border-0 bg-muted/50">
-              <SelectValue placeholder="30" />
+            <SelectTrigger className="w-[80px] h-8">
+              <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="10">10</SelectItem>
               <SelectItem value="30">30</SelectItem>
               <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
             </SelectContent>
           </Select>
-          <span>Total: 0</span>
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled>
-            <ChevronLeft className="h-3 w-3 mr-1" />
-            Anterior
+
+        <span className="text-sm text-muted-foreground">Total: 0</span>
+
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled>
+            Voltar
           </Button>
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled>
+          <Button variant="outline" size="sm" disabled>
             Próximo
-            <ChevronRight className="h-3 w-3 ml-1" />
           </Button>
         </div>
       </div>
@@ -705,219 +723,164 @@ export default function Reports() {
 
           {/* Lançamentos Pendentes Tab */}
           <TabsContent value="lancamentos" className="mt-6 space-y-5">
-            {/* Period Selector - Compact horizontal bar */}
-            <div className="bg-gradient-to-r from-muted/80 to-muted/40 rounded-2xl p-3 border border-border/50">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {/* Month Navigation - More prominent */}
-                <div className="flex items-center gap-1 bg-background rounded-xl px-2 py-1 shadow-sm">
-                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={handlePrevMonth}>
-                    <ChevronLeft className="h-4 w-4" />
+            {/* Header with Month Navigation and Summary Cards - Dashboard style */}
+            <div className="glass rounded-xl p-5 animate-slide-up">
+              {/* Header with Month Navigation and Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                {/* Month Navigation */}
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8"
+                    onClick={handlePrevMonth}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
                   </Button>
-                  <span className="text-base font-bold min-w-[90px] text-center px-2">
+                  <span className="text-lg font-semibold min-w-[100px] text-center">
                     {monthName}
                   </span>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg" onClick={handleNextMonth}>
-                    <ChevronRight className="h-4 w-4" />
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8"
+                    onClick={handleNextMonth}
+                  >
+                    <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
 
-                {/* Period Buttons - Pill style */}
-                <div className="flex items-center gap-1 bg-background/60 rounded-full p-1">
-                  {periodButtons.map((btn) => (
-                    <Button
-                      key={btn.id}
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedPeriod(btn.id)}
-                      className={cn(
-                        "text-xs rounded-full h-7 px-3 transition-all",
-                        selectedPeriod === btn.id 
-                          ? "bg-primary text-primary-foreground shadow-md" 
-                          : "hover:bg-muted"
-                      )}
-                    >
-                      {btn.label}
-                    </Button>
-                  ))}
-                </div>
-
-                {/* Actions - Grouped */}
+                {/* Action Buttons */}
                 <div className="flex items-center gap-2">
-                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className={cn(
-                          "gap-1.5 text-xs rounded-full h-7 bg-background",
-                          selectedPeriod === "custom" && "border-primary"
-                        )}
-                      >
-                        <CalendarIcon className="h-3 w-3" />
-                        {formatDateRange()}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={dateRange?.from}
-                        selected={dateRange}
-                        onSelect={handleDateRangeSelect}
-                        numberOfMonths={2}
-                        locale={ptBR}
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <div className="flex items-center bg-background rounded-full p-0.5">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="gap-1 text-xs rounded-full h-7 px-2"
-                      onClick={clearFilters}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                      <span className="hidden sm:inline">Limpar</span>
-                    </Button>
-                    <FilterPopover>
-                      <Button variant="ghost" size="sm" className="rounded-full h-7 w-7 p-0">
-                        <Filter className="h-3.5 w-3.5" />
-                      </Button>
-                    </FilterPopover>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="rounded-full h-7 w-7 p-0"
-                      onClick={refresh}
-                    >
-                      <RefreshCw className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
+                  <Button 
+                    className="gap-2 bg-success hover:bg-success/90 text-success-foreground"
+                    onClick={() => setIsRevenueDialogOpen(true)}
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    Receita
+                  </Button>
+                  <Button 
+                    className="gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                    onClick={() => setIsExpenseDialogOpen(true)}
+                  >
+                    <TrendingDown className="w-4 h-4" />
+                    Despesa
+                  </Button>
                 </div>
+              </div>
+
+              {/* Summary Cards - Standard dashboard style */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {/* A Receber */}
+                <div className="glass rounded-xl p-4 border border-success/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">A Receber</span>
+                    <TrendingUp className="h-4 w-4 text-success" />
+                  </div>
+                  <span className="text-2xl font-bold text-success">R$ 0,00</span>
+                  <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
+                </div>
+
+                {/* A Pagar */}
+                <div className="glass rounded-xl p-4 border border-destructive/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">A Pagar</span>
+                    <TrendingDown className="h-4 w-4 text-destructive" />
+                  </div>
+                  <span className="text-2xl font-bold text-destructive">R$ 0,00</span>
+                  <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
+                </div>
+
+                {/* Saldo */}
+                <div className="glass rounded-xl p-4 border border-primary/20">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Saldo Previsto</span>
+                    <Eye className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-2xl font-bold text-primary">R$ 0,00</span>
+                  <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
+                </div>
+              </div>
+
+              {/* Period Buttons */}
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                {periodButtons.map((btn) => (
+                  <Button
+                    key={btn.id}
+                    variant={selectedPeriod === btn.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedPeriod(btn.id)}
+                    className="h-8"
+                  >
+                    {btn.label}
+                  </Button>
+                ))}
+                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant={selectedPeriod === "custom" ? "default" : "outline"}
+                      size="sm"
+                      className="gap-2 h-8"
+                    >
+                      <CalendarIcon className="h-4 w-4" />
+                      {formatDateRange()}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={dateRange?.from}
+                      selected={dateRange}
+                      onSelect={handleDateRangeSelect}
+                      numberOfMonths={2}
+                      locale={ptBR}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+                <Button variant="ghost" size="sm" className="h-8 gap-2" onClick={clearFilters}>
+                  <Trash2 className="h-4 w-4" />
+                  Limpar
+                </Button>
+                <Button variant="ghost" size="sm" className="h-8" onClick={refresh}>
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
               </div>
             </div>
 
-            {/* Summary Cards - New design with gradients and icons */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Total a receber */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/20 p-5 border border-emerald-200/50 dark:border-emerald-800/30">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8" />
-                <div className="relative">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">A Receber</span>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-emerald-600/50 hover:text-emerald-600">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="mt-2">
-                    <span className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">R$ 0,00</span>
-                  </div>
-                  <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-1">{getDateRange()}</p>
-                </div>
-              </div>
-
-              {/* Total a pagar */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/20 p-5 border border-rose-200/50 dark:border-rose-800/30">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full -translate-y-8 translate-x-8" />
-                <div className="relative">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-rose-600 dark:text-rose-400 uppercase tracking-wide">A Pagar</span>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-rose-600/50 hover:text-rose-600">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="mt-2">
-                    <span className="text-3xl font-bold text-rose-700 dark:text-rose-300">R$ 0,00</span>
-                  </div>
-                  <p className="text-xs text-rose-600/70 dark:text-rose-400/70 mt-1">{getDateRange()}</p>
-                </div>
-              </div>
-
-              {/* Saldo - Combined card */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-950/50 dark:to-gray-950/30 p-5 border border-slate-200/50 dark:border-slate-800/30">
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span className="text-xs font-medium text-muted-foreground">Saldo Disponível</span>
-                    </div>
-                    <span className="text-xl font-bold text-foreground">R$ 0,00</span>
-                  </div>
-                  <div className="h-px bg-border" />
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                      <span className="text-xs font-medium text-muted-foreground">Saldo Previsto</span>
-                      <TooltipProvider>
-                        <UITooltip>
-                          <TooltipTrigger>
-                            <Info className="h-3 w-3 text-muted-foreground/50" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="text-xs">Considerando lançamentos futuros</p>
-                          </TooltipContent>
-                        </UITooltip>
-                      </TooltipProvider>
-                    </div>
-                    <span className="text-xl font-bold text-primary">R$ 0,00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Pending Transactions Tables */}
+            {/* Transactions Tables - Two columns */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
               {/* Receitas Pendentes */}
-              <div className="bg-background rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-500/5 to-transparent border-b border-border/40">
+              <div className="glass rounded-xl p-5 animate-slide-up">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                      <TrendingUp className="h-5 w-5 text-emerald-600" />
+                    <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                      <TrendingUp className="h-5 w-5 text-success" />
                     </div>
                     <div>
                       <h3 className="font-semibold">Receitas pendentes</h3>
                       <p className="text-xs text-muted-foreground">Lançamentos a receber</p>
                     </div>
                   </div>
-                  <Button 
-                    size="sm" 
-                    className="rounded-full bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-md"
-                    onClick={() => setIsRevenueDialogOpen(true)}
-                  >
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    Nova Receita
-                  </Button>
                 </div>
-                <div className="p-4">
-                  {renderPendingTransactionsTable("receitas")}
-                </div>
+                {renderPendingTransactionsTable("receitas")}
               </div>
 
               {/* Despesas Pendentes */}
-              <div className="bg-background rounded-2xl border border-border/60 shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-rose-500/5 to-transparent border-b border-border/40">
+              <div className="glass rounded-xl p-5 animate-slide-up">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center">
-                      <TrendingDown className="h-5 w-5 text-rose-600" />
+                    <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+                      <TrendingDown className="h-5 w-5 text-destructive" />
                     </div>
                     <div>
                       <h3 className="font-semibold">Despesas pendentes</h3>
                       <p className="text-xs text-muted-foreground">Lançamentos a pagar</p>
                     </div>
                   </div>
-                  <Button 
-                    size="sm" 
-                    className="rounded-full bg-rose-600 hover:bg-rose-700 text-white gap-1.5 shadow-md"
-                    onClick={() => setIsExpenseDialogOpen(true)}
-                  >
-                    <TrendingDown className="h-3.5 w-3.5" />
-                    Nova Despesa
-                  </Button>
                 </div>
-                <div className="p-4">
-                  {renderPendingTransactionsTable("despesas")}
-                </div>
+                {renderPendingTransactionsTable("despesas")}
               </div>
             </div>
 
