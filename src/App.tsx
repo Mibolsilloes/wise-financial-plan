@@ -9,6 +9,7 @@ import Reports from "./pages/Reports";
 import Categories from "./pages/Categories";
 import CategoryReport from "./pages/CategoryReport";
 import BankAccounts from "./pages/BankAccounts";
+import AccountReport from "./pages/AccountReport";
 import CreditCards from "./pages/CreditCards";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/categorias" element={<Categories />} />
             <Route path="/categorias/:id/relatorio" element={<CategoryReport />} />
             <Route path="/contas" element={<BankAccounts />} />
+            <Route path="/contas/:id/extrato" element={<AccountReport />} />
             <Route path="/cartoes" element={<CreditCards />} />
             <Route path="/configuracoes" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
