@@ -309,6 +309,18 @@ export default function CreditCardInvoice() {
     { id: 5, descricao: "Restaurante Outback", responsavel: "João", valor: -189.00, categoria: "Alimentação", parcela: "1/1", dataCompra: "2026-01-12", fixoVariavel: "Variável" },
   ], []);
 
+  // Filtered transactions based on search - used by both table and chart
+  const filteredTransactions = useMemo(() => {
+    if (!searchQuery.trim()) return transactions;
+    
+    const query = searchQuery.toLowerCase();
+    return transactions.filter((t) =>
+      t.descricao.toLowerCase().includes(query) ||
+      t.responsavel.toLowerCase().includes(query) ||
+      t.categoria.toLowerCase().includes(query)
+    );
+  }, [transactions, searchQuery]);
+
   const getStatusBadge = () => {
     switch (invoiceData.status) {
       case "Fechada":
@@ -566,7 +578,7 @@ export default function CreditCardInvoice() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {transactions.length === 0 ? (
+                      {filteredTransactions.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1} className="h-40">
                             <div className="flex flex-col items-center justify-center text-center">
@@ -581,7 +593,7 @@ export default function CreditCardInvoice() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        transactions.map((transaction) => (
+                        filteredTransactions.map((transaction) => (
                           <TableRow key={transaction.id} className="border-border/50">
                             {visibleColumns.responsavel && <TableCell className="text-xs">{transaction.responsavel}</TableCell>}
                             {visibleColumns.descricao && <TableCell className="text-xs font-medium">{transaction.descricao}</TableCell>}
@@ -649,7 +661,7 @@ export default function CreditCardInvoice() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                     <span>|</span>
-                    <span>Total: {transactions.length}</span>
+                    <span>Total: {filteredTransactions.length}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm" className="h-7 text-xs" disabled>
@@ -677,7 +689,7 @@ export default function CreditCardInvoice() {
                         <p className="text-xs text-muted-foreground mb-4">
                           {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: ptBR })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: ptBR })}
                         </p>
-                        <ExpensesPieChart transactions={transactions} />
+                        <ExpensesPieChart transactions={filteredTransactions} />
                       </div>
                     </TabsContent>
                   </Tabs>
