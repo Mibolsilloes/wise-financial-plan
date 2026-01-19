@@ -39,9 +39,25 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { PeriodSelector } from "@/components/dashboard/PeriodSelector";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { cn } from "@/lib/utils";
+
+type GroupingOption = "none" | "categoria" | "vencimento" | "criacao" | "responsavel";
+
+const groupingLabels: Record<GroupingOption, string> = {
+  none: "Sem agrupamento",
+  categoria: "Categoria",
+  vencimento: "Data de Vencimento",
+  criacao: "Data de Criação",
+  responsavel: "Responsável",
+};
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("pt-BR", {
@@ -171,6 +187,7 @@ export default function CategoryReport() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("table");
+  const [grouping, setGrouping] = useState<GroupingOption>("none");
   
   // Column visibility settings
   const [visibleColumns, setVisibleColumns] = useState({
@@ -345,10 +362,35 @@ export default function CategoryReport() {
             >
               <Settings className="w-3.5 h-3.5" />
             </Button>
-            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-              <FileText className="w-3.5 h-3.5" />
-              Sem agrupamento
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+                  <FileText className="w-3.5 h-3.5" />
+                  {groupingLabels[grouping]}
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="bg-background border shadow-lg z-50">
+                {(Object.keys(groupingLabels) as GroupingOption[]).map((option) => (
+                  <DropdownMenuItem
+                    key={option}
+                    onClick={() => setGrouping(option)}
+                    className={cn(
+                      "flex items-center gap-2 cursor-pointer",
+                      grouping === option && "font-medium"
+                    )}
+                  >
+                    {option === "none" && <FileText className="w-4 h-4" />}
+                    {option === "categoria" && <LayoutGrid className="w-4 h-4" />}
+                    {option === "vencimento" && <FileText className="w-4 h-4" />}
+                    {option === "criacao" && <FileText className="w-4 h-4" />}
+                    {option === "responsavel" && <FileText className="w-4 h-4" />}
+                    {groupingLabels[option]}
+                    {grouping === option && <Check className="w-4 h-4 ml-auto" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           
           {/* Settings Dialog */}
