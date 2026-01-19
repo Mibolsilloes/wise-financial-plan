@@ -20,7 +20,8 @@ import {
   Tv,
   Wrench,
   Wallet,
-  Search
+  Search,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,19 +55,34 @@ const categoryIcons: Record<string, React.ElementType> = {
   "Outros": Wallet,
 };
 
+const colorPalette = [
+  "hsl(0, 84%, 60%)",
+  "hsl(25, 95%, 53%)",
+  "hsl(45, 93%, 47%)",
+  "hsl(120, 60%, 50%)",
+  "hsl(160, 84%, 39%)",
+  "hsl(172, 66%, 50%)",
+  "hsl(199, 89%, 48%)",
+  "hsl(217, 91%, 60%)",
+  "hsl(250, 70%, 60%)",
+  "hsl(280, 65%, 60%)",
+  "hsl(310, 70%, 55%)",
+  "hsl(340, 82%, 52%)",
+];
+
 const defaultCategories = [
-  { id: 1, name: "Alimentação", color: "hsl(25, 95%, 53%)", subcategories: 3, total: 1250.00, type: "despesa" },
-  { id: 2, name: "Transporte", color: "hsl(217, 91%, 60%)", subcategories: 2, total: 450.00, type: "despesa" },
-  { id: 3, name: "Casa", color: "hsl(340, 82%, 52%)", subcategories: 4, total: 2100.00, type: "despesa" },
-  { id: 4, name: "Mercado", color: "hsl(45, 93%, 47%)", subcategories: 0, total: 680.00, type: "despesa" },
-  { id: 5, name: "Salário", color: "hsl(160, 84%, 39%)", subcategories: 2, total: 9700.00, type: "receita" },
-  { id: 6, name: "Saúde", color: "hsl(280, 65%, 60%)", subcategories: 3, total: 520.00, type: "despesa" },
-  { id: 7, name: "Lazer", color: "hsl(199, 89%, 48%)", subcategories: 5, total: 380.00, type: "despesa" },
-  { id: 8, name: "Educação", color: "hsl(142, 76%, 36%)", subcategories: 2, total: 850.00, type: "despesa" },
-  { id: 9, name: "Vestuário", color: "hsl(330, 81%, 60%)", subcategories: 0, total: 320.00, type: "despesa" },
-  { id: 10, name: "Viagem", color: "hsl(199, 89%, 48%)", subcategories: 1, total: 0.00, type: "despesa" },
-  { id: 11, name: "Pets", color: "hsl(35, 91%, 58%)", subcategories: 2, total: 180.00, type: "despesa" },
-  { id: 12, name: "Doações", color: "hsl(172, 66%, 50%)", subcategories: 0, total: 100.00, type: "despesa" },
+  { id: 1, name: "Alimentação", color: "hsl(25, 95%, 53%)", subcategories: 3, total: 1250.00, type: "despesa", keywords: ["restaurante", "lanche"] },
+  { id: 2, name: "Transporte", color: "hsl(217, 91%, 60%)", subcategories: 2, total: 450.00, type: "despesa", keywords: ["uber", "gasolina"] },
+  { id: 3, name: "Casa", color: "hsl(340, 82%, 52%)", subcategories: 4, total: 2100.00, type: "despesa", keywords: ["aluguel", "luz"] },
+  { id: 4, name: "Mercado", color: "hsl(45, 93%, 47%)", subcategories: 0, total: 680.00, type: "despesa", keywords: [] },
+  { id: 5, name: "Salário", color: "hsl(160, 84%, 39%)", subcategories: 2, total: 9700.00, type: "receita", keywords: ["pagamento"] },
+  { id: 6, name: "Saúde", color: "hsl(280, 65%, 60%)", subcategories: 3, total: 520.00, type: "despesa", keywords: ["farmácia", "consulta"] },
+  { id: 7, name: "Lazer", color: "hsl(199, 89%, 48%)", subcategories: 5, total: 380.00, type: "despesa", keywords: ["cinema", "jogos"] },
+  { id: 8, name: "Educação", color: "hsl(142, 76%, 36%)", subcategories: 2, total: 850.00, type: "despesa", keywords: ["curso", "livros"] },
+  { id: 9, name: "Vestuário", color: "hsl(330, 81%, 60%)", subcategories: 0, total: 320.00, type: "despesa", keywords: [] },
+  { id: 10, name: "Viagem", color: "hsl(199, 89%, 48%)", subcategories: 1, total: 0.00, type: "despesa", keywords: [] },
+  { id: 11, name: "Pets", color: "hsl(35, 91%, 58%)", subcategories: 2, total: 180.00, type: "despesa", keywords: ["ração", "veterinário"] },
+  { id: 12, name: "Doações", color: "hsl(172, 66%, 50%)", subcategories: 0, total: 100.00, type: "despesa", keywords: [] },
 ];
 
 const formatCurrency = (value: number) => {
@@ -77,13 +93,53 @@ const formatCurrency = (value: number) => {
 };
 
 export default function Categories() {
-  const [categories] = useState(defaultCategories);
+  const [categories, setCategories] = useState(defaultCategories);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Edit dialog state
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<typeof defaultCategories[0] | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editColor, setEditColor] = useState("");
+  const [editKeywords, setEditKeywords] = useState<string[]>([]);
+  const [newKeyword, setNewKeyword] = useState("");
 
   const filteredCategories = categories.filter(category =>
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleEditClick = (category: typeof defaultCategories[0]) => {
+    setEditingCategory(category);
+    setEditName(category.name);
+    setEditColor(category.color);
+    setEditKeywords(category.keywords || []);
+    setNewKeyword("");
+    setIsEditDialogOpen(true);
+  };
+
+  const handleAddKeyword = () => {
+    if (newKeyword.trim() && !editKeywords.includes(newKeyword.trim())) {
+      setEditKeywords([...editKeywords, newKeyword.trim()]);
+      setNewKeyword("");
+    }
+  };
+
+  const handleRemoveKeyword = (keyword: string) => {
+    setEditKeywords(editKeywords.filter(k => k !== keyword));
+  };
+
+  const handleSaveEdit = () => {
+    if (editingCategory) {
+      setCategories(categories.map(cat => 
+        cat.id === editingCategory.id 
+          ? { ...cat, name: editName, color: editColor, keywords: editKeywords }
+          : cat
+      ));
+      setIsEditDialogOpen(false);
+      setEditingCategory(null);
+    }
+  };
 
   return (
     <Layout>
@@ -216,6 +272,7 @@ export default function Categories() {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                          onClick={() => handleEditClick(category)}
                         >
                           <Edit2 className="w-4 h-4" />
                         </Button>
@@ -240,6 +297,116 @@ export default function Categories() {
             <p>Nenhuma categoria encontrada</p>
           </div>
         )}
+
+        {/* Edit Category Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="bg-card border-border max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold">Editar Categoria</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-5 pt-2">
+              {/* Category Name */}
+              <div className="space-y-2">
+                <Label className="text-sm text-muted-foreground">Nome da Categoria</Label>
+                <Input 
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="bg-primary/20 border-primary/30 focus:border-primary"
+                  style={{ 
+                    backgroundColor: editColor ? `${editColor}20` : undefined,
+                    borderColor: editColor ? `${editColor}50` : undefined
+                  }}
+                />
+              </div>
+
+              {/* Color Picker */}
+              <div className="space-y-3">
+                <Label className="text-sm text-muted-foreground">Cor da Categoria</Label>
+                <div className="flex flex-wrap gap-2">
+                  {colorPalette.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setEditColor(color)}
+                      className={cn(
+                        "w-7 h-7 rounded-full transition-all duration-200 hover:scale-110",
+                        editColor === color 
+                          ? "ring-2 ring-offset-2 ring-offset-card ring-foreground scale-110" 
+                          : "hover:ring-1 hover:ring-foreground/30"
+                      )}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+                
+                {/* Color Preview with Hex */}
+                <div className="flex items-center gap-3 mt-3">
+                  <div 
+                    className="w-10 h-10 rounded-lg border border-border"
+                    style={{ backgroundColor: editColor }}
+                  />
+                  <Input 
+                    value={editColor}
+                    onChange={(e) => setEditColor(e.target.value)}
+                    className="flex-1 font-mono text-sm"
+                    placeholder="hsl(25, 95%, 53%)"
+                  />
+                </div>
+              </div>
+
+              {/* Keywords */}
+              <div className="space-y-3">
+                <Label className="text-sm text-muted-foreground">Palavras para identificar a categoria</Label>
+                
+                {/* Keywords Tags */}
+                {editKeywords.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {editKeywords.map((keyword) => (
+                      <Badge 
+                        key={keyword} 
+                        variant="secondary"
+                        className="pl-2.5 pr-1 py-1 gap-1 bg-muted/50"
+                      >
+                        {keyword}
+                        <button
+                          onClick={() => handleRemoveKeyword(keyword)}
+                          className="ml-1 hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Add Keyword Input */}
+                <div className="flex gap-2">
+                  <Input 
+                    value={newKeyword}
+                    onChange={(e) => setNewKeyword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddKeyword())}
+                    placeholder="Adicionar palavra-chave"
+                    className="flex-1"
+                  />
+                  <Button 
+                    type="button"
+                    onClick={handleAddKeyword}
+                    className="bg-success hover:bg-success/90 text-success-foreground px-4"
+                  >
+                    Adicionar
+                  </Button>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <Button 
+                onClick={handleSaveEdit}
+                className="w-full bg-success hover:bg-success/90 text-success-foreground font-medium py-5"
+              >
+                Salvar Alterações
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
