@@ -23,7 +23,7 @@ import {
   TableIcon,
   Check,
   BarChart3,
-  PieChart,
+  PieChart as PieChartIcon,
   Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { FilterPopover } from "@/components/dashboard/FilterPopover";
 import { cn } from "@/lib/utils";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 type GroupingOption = "none" | "categoria" | "vencimento" | "responsavel";
 
@@ -103,6 +104,132 @@ const months = [
   "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
 ];
+
+const categoryColors: Record<string, string> = {
+  "Streaming": "hsl(280, 70%, 50%)",
+  "Mercado": "hsl(140, 70%, 45%)",
+  "Eletrônicos": "hsl(200, 80%, 50%)",
+  "Alimentação": "hsl(25, 90%, 55%)",
+  "Transporte": "hsl(45, 90%, 50%)",
+  "Saúde": "hsl(340, 70%, 50%)",
+  "Lazer": "hsl(170, 60%, 45%)",
+  "Outros": "hsl(220, 15%, 55%)",
+};
+
+interface ExpensesPieChartProps {
+  transactions: Array<{
+    id: number;
+    descricao: string;
+    valor: number;
+    categoria: string;
+  }>;
+}
+
+function ExpensesPieChart({ transactions }: ExpensesPieChartProps) {
+  const chartData = useMemo(() => {
+    const categoryTotals: Record<string, number> = {};
+    
+    transactions.forEach((t) => {
+      const value = Math.abs(t.valor);
+      if (categoryTotals[t.categoria]) {
+        categoryTotals[t.categoria] += value;
+      } else {
+        categoryTotals[t.categoria] = value;
+      }
+    });
+
+    return Object.entries(categoryTotals).map(([name, value]) => ({
+      name,
+      value,
+      color: categoryColors[name] || `hsl(${Math.random() * 360}, 60%, 50%)`,
+    }));
+  }, [transactions]);
+
+  const total = chartData.reduce((sum, item) => sum + item.value, 0);
+
+  if (chartData.length === 0) {
+    return (
+      <div className="py-8 flex flex-col items-center">
+        <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
+          <PieChartIcon className="w-6 h-6 text-muted-foreground" />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Não há dados suficientes para mostrar este gráfico.
+        </p>
+      </div>
+    );
+  }
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      const percentage = ((data.value / total) * 100).toFixed(1);
+      return (
+        <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg">
+          <p className="text-sm font-medium">{data.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {formatCurrency(data.value)} ({percentage}%)
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="h-[180px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              innerRadius={45}
+              outerRadius={70}
+              paddingAngle={3}
+              dataKey="value"
+              stroke="none"
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      
+      {/* Total in center label */}
+      <div className="text-center -mt-2">
+        <p className="text-lg font-bold text-destructive">{formatCurrency(total)}</p>
+        <p className="text-[10px] text-muted-foreground">Total da fatura</p>
+      </div>
+
+      {/* Legend */}
+      <div className="space-y-2 pt-2 border-t border-border/50">
+        {chartData.map((item, index) => {
+          const percentage = ((item.value / total) * 100).toFixed(1);
+          return (
+            <div key={index} className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <div 
+                  className="w-2.5 h-2.5 rounded-full" 
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-muted-foreground">{item.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">{formatCurrency(item.value)}</span>
+                <span className="text-muted-foreground text-[10px]">({percentage}%)</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function CreditCardInvoice() {
   const { id } = useParams();
@@ -545,19 +672,12 @@ export default function CreditCardInvoice() {
                       <TabsTrigger value="despesas" className="flex-1 text-xs">Despesas</TabsTrigger>
                     </TabsList>
                     <TabsContent value="despesas" className="mt-4">
-                      <div className="text-center py-8">
-                        <p className="text-sm font-medium mb-1">Todas as Despesas</p>
-                        <p className="text-xs text-muted-foreground mb-6">
+                      <div className="text-center">
+                        <p className="text-sm font-medium mb-1">Despesas por Categoria</p>
+                        <p className="text-xs text-muted-foreground mb-4">
                           {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: ptBR })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: ptBR })}
                         </p>
-                        <div className="flex justify-center mb-4">
-                          <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center">
-                            <PieChart className="w-6 h-6 text-muted-foreground" />
-                          </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Não há dados suficientes para mostrar este gráfico.
-                        </p>
+                        <ExpensesPieChart transactions={transactions} />
                       </div>
                     </TabsContent>
                   </Tabs>
