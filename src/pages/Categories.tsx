@@ -3,7 +3,7 @@ import { Layout } from "@/components/layout/Layout";
 import { 
   Plus, 
   Edit2, 
-  Archive, 
+  Trash2,
   BarChart3,
   Utensils,
   Car,
@@ -20,16 +20,10 @@ import {
   Tv,
   Wrench,
   Wallet,
-  MoreVertical
+  Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -72,7 +66,7 @@ const defaultCategories = [
   { id: 9, name: "Vestuário", color: "hsl(330, 81%, 60%)", subcategories: 0, total: 320.00, type: "despesa" },
   { id: 10, name: "Viagem", color: "hsl(199, 89%, 48%)", subcategories: 1, total: 0.00, type: "despesa" },
   { id: 11, name: "Pets", color: "hsl(35, 91%, 58%)", subcategories: 2, total: 180.00, type: "despesa" },
-  { id: 12, name: "Doações", color: "hsl(340, 82%, 52%)", subcategories: 0, total: 100.00, type: "despesa" },
+  { id: 12, name: "Doações", color: "hsl(172, 66%, 50%)", subcategories: 0, total: 100.00, type: "despesa" },
 ];
 
 const formatCurrency = (value: number) => {
@@ -85,6 +79,11 @@ const formatCurrency = (value: number) => {
 export default function Categories() {
   const [categories] = useState(defaultCategories);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredCategories = categories.filter(category =>
+    category.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <Layout>
@@ -135,88 +134,112 @@ export default function Categories() {
           </Dialog>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {categories.map((category, index) => {
+        {/* Search Bar */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar categorias..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Categories List */}
+        <div className="space-y-3">
+          {filteredCategories.map((category, index) => {
             const Icon = categoryIcons[category.name] || Wallet;
             const isIncome = category.type === "receita";
             
             return (
               <div
                 key={category.id}
-                className="glass rounded-xl p-5 border border-border/50 hover:border-border transition-all duration-200 group animate-scale-in"
+                className="glass rounded-xl overflow-hidden border border-border/50 hover:border-border transition-all duration-200 animate-scale-in"
                 style={{ animationDelay: `${index * 30}ms` }}
               >
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-stretch">
+                  {/* Color Bar */}
                   <div 
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: `${category.color}20` }}
-                  >
-                    <Icon className="w-5 h-5" style={{ color: category.color }} />
+                    className="w-1.5 shrink-0"
+                    style={{ backgroundColor: category.color }}
+                  />
+                  
+                  {/* Content */}
+                  <div className="flex-1 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      {/* Left: Icon, Name, Badge */}
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div 
+                          className="p-2.5 rounded-xl shrink-0"
+                          style={{ backgroundColor: `${category.color}15` }}
+                        >
+                          <Icon className="w-5 h-5" style={{ color: category.color }} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-semibold truncate">{category.name}</h3>
+                            <Badge 
+                              variant="secondary" 
+                              className={cn(
+                                "text-[10px] shrink-0",
+                                isIncome 
+                                  ? "bg-success/10 text-success border-success/20" 
+                                  : "bg-destructive/10 text-destructive border-destructive/20"
+                              )}
+                            >
+                              {isIncome ? "Receita" : "Despesa"}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-3 mt-1">
+                            {category.subcategories > 0 && (
+                              <span className="text-xs text-muted-foreground">
+                                {category.subcategories} subcategorias
+                              </span>
+                            )}
+                            <span className={cn(
+                              "text-sm font-medium",
+                              isIncome ? "text-success" : "text-foreground"
+                            )}>
+                              {formatCurrency(category.total)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Right: Actions */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <div 
+                          className="w-4 h-4 rounded-full shrink-0"
+                          style={{ backgroundColor: category.color }}
+                        />
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-popover border-border">
-                      <DropdownMenuItem className="gap-2 cursor-pointer">
-                        <Edit2 className="w-4 h-4" />
-                        Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-2 cursor-pointer">
-                        <BarChart3 className="w-4 h-4" />
-                        Relatório
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="gap-2 cursor-pointer text-warning">
-                        <Archive className="w-4 h-4" />
-                        Arquivar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Name & Badge */}
-                <h3 className="font-semibold mb-1">{category.name}</h3>
-                <div className="flex items-center gap-2 mb-4">
-                  <Badge 
-                    variant="secondary" 
-                    className={cn(
-                      "text-[10px]",
-                      isIncome 
-                        ? "bg-success/10 text-success border-success/20" 
-                        : "bg-destructive/10 text-destructive border-destructive/20"
-                    )}
-                  >
-                    {isIncome ? "Receita" : "Despesa"}
-                  </Badge>
-                  {category.subcategories > 0 && (
-                    <span className="text-xs text-muted-foreground">
-                      {category.subcategories} subcategorias
-                    </span>
-                  )}
-                </div>
-
-                {/* Total */}
-                <div className="pt-4 border-t border-border/50">
-                  <p className="text-xs text-muted-foreground mb-1">Total este mês</p>
-                  <p className={cn(
-                    "text-lg font-bold",
-                    isIncome ? "text-success" : "text-foreground"
-                  )}>
-                    {formatCurrency(category.total)}
-                  </p>
                 </div>
               </div>
             );
           })}
         </div>
+
+        {filteredCategories.length === 0 && (
+          <div className="text-center py-12 text-muted-foreground">
+            <p>Nenhuma categoria encontrada</p>
+          </div>
+        )}
       </div>
     </Layout>
   );
