@@ -15,7 +15,10 @@ import {
   Search,
   ArrowUpDown,
   Filter,
-  FileText
+  FileText,
+  LayoutGrid,
+  TableIcon,
+  Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +32,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { PeriodSelector } from "@/components/dashboard/PeriodSelector";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { cn } from "@/lib/utils";
@@ -159,6 +169,28 @@ export default function CategoryReport() {
   const { currentMonth, currentYear } = usePeriod();
   const [activeTab, setActiveTab] = useState("todas");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"cards" | "table">("table");
+  
+  // Column visibility settings
+  const [visibleColumns, setVisibleColumns] = useState({
+    descricao: true,
+    responsavel: true,
+    valor: true,
+    categoria: true,
+    tipo: true,
+    status: true,
+    conta: true,
+    cartao: true,
+    dataVencimento: true,
+    dataCompetencia: false,
+    dataPagamento: false,
+    fixoVariavel: true,
+  });
+  
+  const toggleColumn = (column: keyof typeof visibleColumns) => {
+    setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
+  };
   
   const category = id ? categoryData[id] : null;
   
@@ -305,7 +337,12 @@ export default function CategoryReport() {
           
           {/* Toolbar */}
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 gap-1.5 text-xs"
+              onClick={() => setIsSettingsOpen(true)}
+            >
               <Settings className="w-3.5 h-3.5" />
             </Button>
             <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
@@ -313,6 +350,123 @@ export default function CategoryReport() {
               Sem agrupamento
             </Button>
           </div>
+          
+          {/* Settings Dialog */}
+          <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-lg font-semibold">Personalize sua visualização</DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Configure como você quer ver suas transações de forma mais clara e organizada
+                </p>
+              </DialogHeader>
+              
+              <div className="space-y-6 py-4">
+                {/* View Mode Selection */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium">Como você quer ver suas transações?</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setViewMode("cards")}
+                      className={cn(
+                        "flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all",
+                        viewMode === "cards" 
+                          ? "border-primary bg-primary/5" 
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <LayoutGrid className="w-5 h-5 text-muted-foreground" />
+                      <div className="text-center">
+                        <p className="text-sm font-medium">Cards</p>
+                        <p className="text-[10px] text-muted-foreground">Visual e organizado</p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setViewMode("table")}
+                      className={cn(
+                        "flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all",
+                        viewMode === "table" 
+                          ? "border-primary bg-primary/5" 
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <TableIcon className="w-5 h-5 text-muted-foreground" />
+                      <div className="text-center">
+                        <p className="text-sm font-medium">Tabela</p>
+                        <p className="text-[10px] text-muted-foreground">Compacto e detalhado</p>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Column Visibility */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium">Quais informações mostrar?</h4>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                    {[
+                      { key: "descricao", label: "Descrição" },
+                      { key: "responsavel", label: "Responsável" },
+                      { key: "valor", label: "Valor" },
+                      { key: "categoria", label: "Categoria" },
+                      { key: "tipo", label: "Tipo" },
+                      { key: "status", label: "Status" },
+                      { key: "conta", label: "Conta" },
+                      { key: "cartao", label: "Cartão" },
+                      { key: "dataVencimento", label: "Data de Vencimento" },
+                      { key: "dataCompetencia", label: "Data de Competência" },
+                      { key: "dataPagamento", label: "Data de Pagamento" },
+                      { key: "fixoVariavel", label: "Fixo/Variável" },
+                    ].map(({ key, label }) => (
+                      <button
+                        key={key}
+                        onClick={() => toggleColumn(key as keyof typeof visibleColumns)}
+                        className="flex items-center gap-2 py-1.5 text-sm hover:text-foreground transition-colors group"
+                      >
+                        <div className={cn(
+                          "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                          visibleColumns[key as keyof typeof visibleColumns]
+                            ? "border-primary bg-primary"
+                            : "border-muted-foreground/40 group-hover:border-primary/60"
+                        )}>
+                          {visibleColumns[key as keyof typeof visibleColumns] && (
+                            <Check className="w-3 h-3 text-primary-foreground" />
+                          )}
+                        </div>
+                        <span className={cn(
+                          visibleColumns[key as keyof typeof visibleColumns]
+                            ? "text-foreground"
+                            : "text-muted-foreground"
+                        )}>
+                          {label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <span className="text-amber-500">⚡</span>
+                  Escolha apenas o que você usa mais
+                </p>
+              </div>
+              
+              <DialogFooter className="flex gap-3 sm:gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="flex-1"
+                >
+                  Salvar Preferências
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           
           {/* Search & Filters */}
           <div className="flex flex-wrap items-center gap-3">
@@ -346,23 +500,25 @@ export default function CategoryReport() {
             <Table>
               <TableHeader>
                 <TableRow className="border-border/50 hover:bg-transparent">
-                  <TableHead className="text-xs font-medium">Responsável</TableHead>
-                  <TableHead className="text-xs font-medium">Descrição</TableHead>
-                  <TableHead className="text-xs font-medium">Valor</TableHead>
-                  <TableHead className="text-xs font-medium">Categoria</TableHead>
-                  <TableHead className="text-xs font-medium">Tipo</TableHead>
-                  <TableHead className="text-xs font-medium">Status</TableHead>
-                  <TableHead className="text-xs font-medium">Conta</TableHead>
-                  <TableHead className="text-xs font-medium">Cartão</TableHead>
-                  <TableHead className="text-xs font-medium">Vencimento</TableHead>
-                  <TableHead className="text-xs font-medium">Fixo/Variável</TableHead>
+                  {visibleColumns.responsavel && <TableHead className="text-xs font-medium">Responsável</TableHead>}
+                  {visibleColumns.descricao && <TableHead className="text-xs font-medium">Descrição</TableHead>}
+                  {visibleColumns.valor && <TableHead className="text-xs font-medium">Valor</TableHead>}
+                  {visibleColumns.categoria && <TableHead className="text-xs font-medium">Categoria</TableHead>}
+                  {visibleColumns.tipo && <TableHead className="text-xs font-medium">Tipo</TableHead>}
+                  {visibleColumns.status && <TableHead className="text-xs font-medium">Status</TableHead>}
+                  {visibleColumns.conta && <TableHead className="text-xs font-medium">Conta</TableHead>}
+                  {visibleColumns.cartao && <TableHead className="text-xs font-medium">Cartão</TableHead>}
+                  {visibleColumns.dataVencimento && <TableHead className="text-xs font-medium">Vencimento</TableHead>}
+                  {visibleColumns.dataCompetencia && <TableHead className="text-xs font-medium">Competência</TableHead>}
+                  {visibleColumns.dataPagamento && <TableHead className="text-xs font-medium">Pagamento</TableHead>}
+                  {visibleColumns.fixoVariavel && <TableHead className="text-xs font-medium">Fixo/Variável</TableHead>}
                   <TableHead className="text-xs font-medium">Ação</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {transactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={11} className="h-40">
+                    <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1} className="h-40">
                       <div className="flex flex-col items-center justify-center text-center">
                         <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
                           <FileText className="w-6 h-6 text-muted-foreground" />
