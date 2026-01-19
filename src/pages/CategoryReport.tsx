@@ -45,6 +45,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { FilterPopover } from "@/components/dashboard/FilterPopover";
 import { PeriodSelector } from "@/components/dashboard/PeriodSelector";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { cn } from "@/lib/utils";
@@ -561,12 +562,14 @@ export default function CategoryReport() {
               <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
                 <ArrowUpDown className="w-3.5 h-3.5" />
               </Button>
-              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs relative">
-                <Filter className="w-3.5 h-3.5" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center">
-                  1
-                </span>
-              </Button>
+              <FilterPopover>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs relative">
+                  <Filter className="w-3.5 h-3.5" />
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center">
+                    1
+                  </span>
+                </Button>
+              </FilterPopover>
             </div>
           </div>
           
