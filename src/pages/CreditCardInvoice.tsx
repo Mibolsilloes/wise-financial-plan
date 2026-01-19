@@ -1,11 +1,10 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { isWithinInterval, parseISO, startOfDay, endOfDay, format, subDays } from "date-fns";
+import { parseISO, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Layout } from "@/components/layout/Layout";
 import { 
   ArrowLeft,
-  ArrowRight,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -585,458 +584,370 @@ export default function CreditCardInvoice() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* Tabs Navigation */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-muted/50 p-1 mb-6">
-            <TabsTrigger value="visao-geral" className="text-xs gap-1.5">
-              <LayoutGrid className="w-3.5 h-3.5" />
-              Visão geral
-            </TabsTrigger>
-            <TabsTrigger value="relatorios" className="text-xs gap-1.5">
-              <BarChart3 className="w-3.5 h-3.5" />
-              Relatórios
-            </TabsTrigger>
-          </TabsList>
+        {/* Header with Month Navigation */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <button 
+            onClick={() => navigate("/cartoes")}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors self-start"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar
+          </button>
 
-          <TabsContent value="visao-geral" className="space-y-6 mt-0">
-            {/* Header with Month Navigation */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <button 
-                onClick={() => navigate("/cartoes")}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors self-start"
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={handlePrevMonth}>
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-xl font-bold">
+              Fatura {months[currentMonth]} {currentYear}
+            </h1>
+            <Button variant="ghost" size="icon" onClick={handleNextMonth}>
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <Trash2 className="w-3.5 h-3.5" />
+              Limpar filtro
+            </Button>
+            <FilterPopover>
+              <Button variant="outline" size="icon" className="h-8 w-8">
+                <Filter className="w-3.5 h-3.5" />
+              </Button>
+            </FilterPopover>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              <RefreshCw className="w-3.5 h-3.5" />
+              Atualizar
+            </Button>
+          </div>
+        </div>
+
+        {/* Card Info Badge */}
+        <div className="flex items-center gap-3">
+          <Badge
+            className="px-3 py-1.5 text-sm font-medium gap-2 rounded-full"
+            style={{ 
+              backgroundColor: cardColor, 
+              color: "white",
+              borderColor: cardColor 
+            }}
+          >
+            <CreditCard className="w-4 h-4" />
+            {card.name}
+          </Badge>
+          <span className="text-sm text-muted-foreground">• {card.brand}</span>
+        </div>
+
+        {/* Status Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Invoice Status */}
+          <div className="glass rounded-xl p-5 border border-border/50">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Status da Fatura</p>
+                <p className="text-2xl font-bold text-warning">{invoiceData.status}</p>
+                <p className="text-xs text-muted-foreground mt-1">Fatura {invoiceData.status.toLowerCase()}</p>
+              </div>
+              <div className="p-2.5 rounded-xl bg-warning/10">
+                <FileText className="w-5 h-5 text-warning" />
+              </div>
+            </div>
+            <div className="mt-4 h-1 rounded-full bg-warning/20">
+              <div className="h-full w-1/2 rounded-full bg-warning" />
+            </div>
+          </div>
+
+          {/* Invoice Amount */}
+          <div className="glass rounded-xl p-5 border border-border/50">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Valor da fatura</p>
+                <p className="text-2xl font-bold text-destructive">{formatCurrency(invoiceData.total)}</p>
+                <p className="text-xs text-muted-foreground mt-1">Valor total da fatura</p>
+              </div>
+              <div className="p-2.5 rounded-xl bg-destructive/10">
+                <DollarSign className="w-5 h-5 text-destructive" />
+              </div>
+            </div>
+          </div>
+
+          {/* Invoice Dates */}
+          <div className="glass rounded-xl p-5 border border-border/50">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Datas da fatura</p>
+                <div className="flex items-center gap-6">
+                  <div>
+                    <p className="text-2xl font-bold">Dia {invoiceData.closingDate}</p>
+                    <p className="text-xs text-muted-foreground">Fechamento</p>
+                  </div>
+                  <div className="h-10 w-px bg-border" />
+                  <div>
+                    <p className="text-2xl font-bold">Dia {invoiceData.dueDate}</p>
+                    <p className="text-xs text-muted-foreground">Vencimento</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-2.5 rounded-xl bg-primary/10">
+                <Calendar className="w-5 h-5 text-primary" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Transactions Section */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Fatura {months[currentMonth]}</h2>
+                <p className="text-xs text-muted-foreground">
+                  {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: ptBR })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: ptBR })}
+                </p>
+              </div>
+              <Button className="gap-2 bg-destructive hover:bg-destructive/90">
+                <Plus className="w-4 h-4" />
+                Despesa Cartão
+              </Button>
+            </div>
+
+            {/* Toolbar */}
+            <div className="flex flex-wrap items-center gap-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => setIsSettingsOpen(true)}
               >
-                <ArrowLeft className="w-4 h-4" />
-                Voltar
-              </button>
-
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={handlePrevMonth}>
-                  <ChevronLeft className="w-5 h-5" />
-                </Button>
-                <h1 className="text-xl font-bold">
-                  Fatura {months[currentMonth]} {currentYear}
-                </h1>
-                <Button variant="ghost" size="icon" onClick={handleNextMonth}>
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                  <Trash2 className="w-3.5 h-3.5" />
-                  Limpar filtro
-                </Button>
-                <FilterPopover>
-                  <Button variant="outline" size="icon" className="h-8 w-8">
-                    <Filter className="w-3.5 h-3.5" />
+                <Settings className="w-3.5 h-3.5" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+                    Agrupar: {groupingLabels[grouping]}
+                    <ChevronDown className="w-3 h-3" />
                   </Button>
-                </FilterPopover>
-                <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  Atualizar
-                </Button>
-              </div>
-            </div>
-
-            {/* Card Info Badge */}
-            <div className="flex items-center gap-3">
-              <Badge
-                className="px-3 py-1.5 text-sm font-medium gap-2 rounded-full"
-                style={{ 
-                  backgroundColor: cardColor, 
-                  color: "white",
-                  borderColor: cardColor 
-                }}
-              >
-                <CreditCard className="w-4 h-4" />
-                {card.name}
-              </Badge>
-              <span className="text-sm text-muted-foreground">• {card.brand}</span>
-            </div>
-
-            {/* Status Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Invoice Status */}
-              <div className="glass rounded-xl p-5 border border-border/50">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">Status da Fatura</p>
-                    <p className="text-2xl font-bold text-warning">{invoiceData.status}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Fatura {invoiceData.status.toLowerCase()}</p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-warning/10">
-                    <FileText className="w-5 h-5 text-warning" />
-                  </div>
-                </div>
-                <div className="mt-4 h-1 rounded-full bg-warning/20">
-                  <div className="h-full w-1/2 rounded-full bg-warning" />
-                </div>
-              </div>
-
-              {/* Invoice Amount */}
-              <div className="glass rounded-xl p-5 border border-border/50">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">Valor da fatura</p>
-                    <p className="text-2xl font-bold text-destructive">{formatCurrency(invoiceData.total)}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Valor total da fatura</p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-destructive/10">
-                    <DollarSign className="w-5 h-5 text-destructive" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Invoice Dates */}
-              <div className="glass rounded-xl p-5 border border-border/50">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground mb-2">Datas da fatura</p>
-                    <div className="flex items-center gap-6">
-                      <div>
-                        <p className="text-2xl font-bold">Dia {invoiceData.closingDate}</p>
-                        <p className="text-xs text-muted-foreground">Fechamento</p>
-                      </div>
-                      <div className="h-10 w-px bg-border" />
-                      <div>
-                        <p className="text-2xl font-bold">Dia {invoiceData.dueDate}</p>
-                        <p className="text-xs text-muted-foreground">Vencimento</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-primary/10">
-                    <Calendar className="w-5 h-5 text-primary" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Transactions Section */}
-              <div className="lg:col-span-2 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold">Fatura {months[currentMonth]}</h2>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: ptBR })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: ptBR })}
-                    </p>
-                  </div>
-                  <Button className="gap-2 bg-destructive hover:bg-destructive/90">
-                    <Plus className="w-4 h-4" />
-                    Despesa Cartão
-                  </Button>
-                </div>
-
-                {/* Toolbar */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-8 gap-1.5 text-xs"
-                    onClick={() => setIsSettingsOpen(true)}
-                  >
-                    <Settings className="w-3.5 h-3.5" />
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                        <FileText className="w-3.5 h-3.5" />
-                        {groupingLabels[grouping]}
-                        <ChevronDown className="w-3 h-3 ml-1" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="bg-background border shadow-lg z-50">
-                      {(Object.keys(groupingLabels) as GroupingOption[]).map((option) => (
-                        <DropdownMenuItem
-                          key={option}
-                          onClick={() => setGrouping(option)}
-                          className={cn(
-                            "flex items-center gap-2 cursor-pointer",
-                            grouping === option && "font-medium"
-                          )}
-                        >
-                          {groupingLabels[option]}
-                          {grouping === option && <Check className="w-4 h-4 ml-auto" />}
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Search & Filters */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Pesquisar transações..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 h-9"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 ml-auto">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                          {sortLabels[sortBy]}
-                          <ChevronDown className="w-3 h-3 ml-1" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-background border shadow-lg z-50">
-                        {(Object.keys(sortLabels) as SortOption[]).map((option) => (
-                          <DropdownMenuItem
-                            key={option}
-                            onClick={() => setSortBy(option)}
-                            className={cn(
-                              "flex items-center gap-2 cursor-pointer",
-                              sortBy === option && "font-medium"
-                            )}
-                          >
-                            {sortLabels[option]}
-                            {sortBy === option && <Check className="w-4 h-4 ml-auto" />}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                      <ArrowUpDown className="w-3.5 h-3.5" />
-                    </Button>
-                    <FilterPopover>
-                      <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs relative">
-                        <Filter className="w-3.5 h-3.5" />
-                      </Button>
-                    </FilterPopover>
-                  </div>
-                </div>
-
-                {/* Transactions Table */}
-                <div className="glass rounded-xl border border-border/50 overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-border/50 hover:bg-transparent">
-                        {visibleColumns.responsavel && <TableHead className="text-xs font-medium">Responsável</TableHead>}
-                        {visibleColumns.descricao && <TableHead className="text-xs font-medium">Descrição</TableHead>}
-                        {visibleColumns.valor && <TableHead className="text-xs font-medium">Valor</TableHead>}
-                        {visibleColumns.categoria && <TableHead className="text-xs font-medium">Categoria</TableHead>}
-                        {visibleColumns.parcela && <TableHead className="text-xs font-medium">Parcela</TableHead>}
-                        {visibleColumns.dataCompra && <TableHead className="text-xs font-medium">Data Compra</TableHead>}
-                        {visibleColumns.fixoVariavel && <TableHead className="text-xs font-medium">Fixo/Variável</TableHead>}
-                        <TableHead className="text-xs font-medium">Ação</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredTransactions.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1} className="h-40">
-                            <div className="flex flex-col items-center justify-center text-center">
-                              <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
-                                <FileText className="w-6 h-6 text-muted-foreground" />
-                              </div>
-                              <p className="font-medium text-sm">Nenhuma transação encontrada</p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Não há transações para exibir no período selecionado.
-                              </p>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        filteredTransactions.map((transaction) => (
-                          <TableRow key={transaction.id} className="border-border/50">
-                            {visibleColumns.responsavel && <TableCell className="text-xs">{transaction.responsavel}</TableCell>}
-                            {visibleColumns.descricao && <TableCell className="text-xs font-medium">{transaction.descricao}</TableCell>}
-                            {visibleColumns.valor && (
-                              <TableCell className="text-xs font-medium text-destructive">
-                                {formatCurrency(transaction.valor)}
-                              </TableCell>
-                            )}
-                            {visibleColumns.categoria && <TableCell className="text-xs">{transaction.categoria}</TableCell>}
-                            {visibleColumns.parcela && (
-                              <TableCell>
-                                <Badge variant="outline" className="text-[10px]">
-                                  {transaction.parcela}
-                                </Badge>
-                              </TableCell>
-                            )}
-                            {visibleColumns.dataCompra && (
-                              <TableCell className="text-xs">
-                                {format(parseISO(transaction.dataCompra), "dd/MM/yyyy")}
-                              </TableCell>
-                            )}
-                            {visibleColumns.fixoVariavel && (
-                              <TableCell>
-                                <Badge variant="outline" className="text-[10px]">
-                                  {transaction.fixoVariavel}
-                                </Badge>
-                              </TableCell>
-                            )}
-                            <TableCell>
-                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                                <Settings className="w-3.5 h-3.5" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-background border shadow-lg z-50">
+                  {(Object.entries(groupingLabels) as [GroupingOption, string][]).map(([key, label]) => (
+                    <DropdownMenuItem
+                      key={key}
+                      onClick={() => setGrouping(key)}
+                      className={cn(
+                        "flex items-center justify-between cursor-pointer",
+                        grouping === key && "font-medium"
                       )}
-                    </TableBody>
-                  </Table>
-                </div>
-
-                {/* Pagination */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className="hover:text-foreground transition-colors flex items-center gap-1">
-                          Mostrar {itemsPerPage}
-                          <ChevronDown className="w-3 h-3" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="bg-background border shadow-lg z-50 min-w-[120px]">
-                        {([30, 50, 100] as const).map((option) => (
-                          <DropdownMenuItem
-                            key={option}
-                            onClick={() => setItemsPerPage(option)}
-                            className={cn(
-                              "flex items-center justify-between cursor-pointer",
-                              itemsPerPage === option && "font-medium"
-                            )}
-                          >
-                            Mostrar {option}
-                            {itemsPerPage === option && <Check className="w-4 h-4 ml-2" />}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <span>|</span>
-                    <span>Total: {filteredTransactions.length}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-7 text-xs" disabled>
-                      Voltar
-                    </Button>
-                    <Button variant="outline" size="sm" className="h-7 text-xs" disabled>
-                      Próximo
-                    </Button>
-                  </div>
-                </div>
+                    >
+                      {label}
+                      {grouping === key && <Check className="w-4 h-4 ml-2" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar transações..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-8 text-xs bg-muted/30 border-0"
+                />
               </div>
-
-              {/* Side Panel */}
-              <div className="space-y-6">
-                {/* Charts Section */}
-                <div className="glass rounded-xl p-5 border border-border/50">
-                  <h3 className="font-semibold mb-4">Gráficos</h3>
-                  <Tabs defaultValue="despesas" className="w-full">
-                    <TabsList className="w-full bg-muted/50 p-1">
-                      <TabsTrigger value="despesas" className="flex-1 text-xs">Despesas</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="despesas" className="mt-4">
-                      <div className="text-center">
-                        <p className="text-sm font-medium mb-1">Despesas por Categoria</p>
-                        <p className="text-xs text-muted-foreground mb-4">
-                          {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: ptBR })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: ptBR })}
-                        </p>
-                        <ExpensesPieChart transactions={filteredTransactions} />
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
-
-                {/* Details Section */}
-                <div className="glass rounded-xl p-5 border border-border/50">
-                  <h3 className="font-semibold mb-4">Detalhes</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Cartão</span>
-                      <span className="font-medium">{card.name}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Bandeira</span>
-                      <span className="font-medium">{card.brand}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Conta</span>
-                      <span className="font-medium">{card.account}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Limite</span>
-                      <span className="font-medium">{formatCurrency(card.limit)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="relatorios" className="space-y-6 mt-0">
-            {/* Filter bar */}
-            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+                    {sortLabels[sortBy]}
+                    <ChevronDown className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-background border shadow-lg z-50">
+                  {(Object.entries(sortLabels) as [SortOption, string][]).map(([key, label]) => (
+                    <DropdownMenuItem
+                      key={key}
+                      onClick={() => setSortBy(key)}
+                      className={cn(
+                        "flex items-center justify-between cursor-pointer",
+                        sortBy === key && "font-medium"
+                      )}
+                    >
+                      {label}
+                      {sortBy === key && <Check className="w-4 h-4 ml-2" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+                <ArrowUpDown className="w-3.5 h-3.5" />
+              </Button>
               <FilterPopover>
-                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs relative">
                   <Filter className="w-3.5 h-3.5" />
-                  Filtros
                 </Button>
               </FilterPopover>
             </div>
 
-            {/* Main content grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left - Charts */}
-              <div className="lg:col-span-2 space-y-6">
-                <CreditCardExpenseCharts transactions={transactions} currentMonth={currentMonth} currentYear={currentYear} />
-              </div>
-
-              {/* Right - Summary Panel */}
-              <div className="space-y-6">
-                {/* Expense summary card */}
-                <div className="glass rounded-xl p-5 border border-border/50">
-                  <h3 className="font-semibold mb-4">Gráfico todas as despesas</h3>
-                  <Tabs defaultValue="despesas" className="w-full">
-                    <TabsList className="w-full bg-muted/50 p-1">
-                      <TabsTrigger value="despesas" className="flex-1 text-xs">Despesas</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="despesas" className="mt-4">
-                      <div className="text-center space-y-4">
-                        <div>
-                          <p className="text-sm font-medium">Todas as Despesas</p>
-                          <p className="text-xs text-primary mt-0.5">
-                            1 de Janeiro - 31 de Dezembro
+            {/* Transactions Table */}
+            <div className="glass rounded-xl border border-border/50 overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border/50 hover:bg-transparent">
+                    {visibleColumns.responsavel && <TableHead className="text-xs font-medium">Responsável</TableHead>}
+                    {visibleColumns.descricao && <TableHead className="text-xs font-medium">Descrição</TableHead>}
+                    {visibleColumns.valor && <TableHead className="text-xs font-medium">Valor</TableHead>}
+                    {visibleColumns.categoria && <TableHead className="text-xs font-medium">Categoria</TableHead>}
+                    {visibleColumns.parcela && <TableHead className="text-xs font-medium">Parcela</TableHead>}
+                    {visibleColumns.dataCompra && <TableHead className="text-xs font-medium">Data Compra</TableHead>}
+                    {visibleColumns.fixoVariavel && <TableHead className="text-xs font-medium">Fixo/Variável</TableHead>}
+                    <TableHead className="text-xs font-medium">Ação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredTransactions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1} className="h-40">
+                        <div className="flex flex-col items-center justify-center text-center">
+                          <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
+                            <FileText className="w-6 h-6 text-muted-foreground" />
+                          </div>
+                          <p className="font-medium text-sm">Nenhuma transação encontrada</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Não há transações para exibir no período selecionado.
                           </p>
                         </div>
-                        
-                        <ExpensesPieChart transactions={transactions} />
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredTransactions.map((transaction) => (
+                      <TableRow key={transaction.id} className="border-border/50">
+                        {visibleColumns.responsavel && <TableCell className="text-xs">{transaction.responsavel}</TableCell>}
+                        {visibleColumns.descricao && <TableCell className="text-xs font-medium">{transaction.descricao}</TableCell>}
+                        {visibleColumns.valor && (
+                          <TableCell className="text-xs font-medium text-destructive">
+                            {formatCurrency(transaction.valor)}
+                          </TableCell>
+                        )}
+                        {visibleColumns.categoria && <TableCell className="text-xs">{transaction.categoria}</TableCell>}
+                        {visibleColumns.parcela && (
+                          <TableCell>
+                            <Badge variant="outline" className="text-[10px]">
+                              {transaction.parcela}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        {visibleColumns.dataCompra && (
+                          <TableCell className="text-xs">
+                            {format(parseISO(transaction.dataCompra), "dd/MM/yyyy")}
+                          </TableCell>
+                        )}
+                        {visibleColumns.fixoVariavel && (
+                          <TableCell>
+                            <Badge variant="outline" className="text-[10px]">
+                              {transaction.fixoVariavel}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        <TableCell>
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <Settings className="w-3.5 h-3.5" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
 
-                {/* Details card */}
-                <div className="glass rounded-xl p-5 border border-border/50">
-                  <h3 className="font-semibold mb-4">Detalhes</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Cartão</span>
-                      <span className="font-medium">{card.name}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Bandeira</span>
-                      <span className="font-medium">{card.brand}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Conta</span>
-                      <span className="font-medium">{card.account}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Limite</span>
-                      <span className="font-medium">{formatCurrency(card.limit)}</span>
-                    </div>
+            {/* Pagination */}
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="hover:text-foreground transition-colors flex items-center gap-1">
+                      Mostrar {itemsPerPage}
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-background border shadow-lg z-50 min-w-[120px]">
+                    {([30, 50, 100] as const).map((option) => (
+                      <DropdownMenuItem
+                        key={option}
+                        onClick={() => setItemsPerPage(option)}
+                        className={cn(
+                          "flex items-center justify-between cursor-pointer",
+                          itemsPerPage === option && "font-medium"
+                        )}
+                      >
+                        Mostrar {option}
+                        {itemsPerPage === option && <Check className="w-4 h-4 ml-2" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <span>|</span>
+                <span>Total: {filteredTransactions.length}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="h-7 text-xs" disabled>
+                  Voltar
+                </Button>
+                <Button variant="outline" size="sm" className="h-7 text-xs" disabled>
+                  Próximo
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Side Panel */}
+          <div className="space-y-6">
+            {/* Pie Chart Section */}
+            <div className="glass rounded-xl p-5 border border-border/50">
+              <h3 className="font-semibold mb-4">Gráficos</h3>
+              <Tabs defaultValue="despesas" className="w-full">
+                <TabsList className="w-full bg-muted/50 p-1">
+                  <TabsTrigger value="despesas" className="flex-1 text-xs">Despesas</TabsTrigger>
+                </TabsList>
+                <TabsContent value="despesas" className="mt-4">
+                  <div className="text-center">
+                    <p className="text-sm font-medium mb-1">Despesas por Categoria</p>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: ptBR })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: ptBR })}
+                    </p>
+                    <ExpensesPieChart transactions={filteredTransactions} />
                   </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* Details Section */}
+            <div className="glass rounded-xl p-5 border border-border/50">
+              <h3 className="font-semibold mb-4">Detalhes</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Cartão</span>
+                  <span className="font-medium">{card.name}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Bandeira</span>
+                  <span className="font-medium">{card.brand}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Conta</span>
+                  <span className="font-medium">{card.account}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Limite</span>
+                  <span className="font-medium">{formatCurrency(card.limit)}</span>
                 </div>
               </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
+
+        {/* Expense Charts Section */}
+        <CreditCardExpenseCharts transactions={transactions} currentMonth={currentMonth} currentYear={currentYear} />
 
         {/* Settings Dialog */}
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
