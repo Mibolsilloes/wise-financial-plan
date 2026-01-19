@@ -59,6 +59,16 @@ const groupingLabels: Record<GroupingOption, string> = {
   responsavel: "Responsável",
 };
 
+type SortOption = "criacao" | "vencimento" | "pagamento" | "competencia" | "valor";
+
+const sortLabels: Record<SortOption, string> = {
+  criacao: "Data de Criação",
+  vencimento: "Data de Vencimento",
+  pagamento: "Data de Pagamento",
+  competencia: "Data de Competência",
+  valor: "Valor",
+};
+
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -188,6 +198,7 @@ export default function CategoryReport() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"cards" | "table">("table");
   const [grouping, setGrouping] = useState<GroupingOption>("none");
+  const [sortBy, setSortBy] = useState<SortOption>("valor");
   
   // Column visibility settings
   const [visibleColumns, setVisibleColumns] = useState({
@@ -522,9 +533,30 @@ export default function CategoryReport() {
               />
             </div>
             <div className="flex items-center gap-2 ml-auto">
-              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                Valor
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
+                    {sortLabels[sortBy]}
+                    <ChevronDown className="w-3 h-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-background border shadow-lg z-50">
+                  <p className="px-2 py-1.5 text-xs text-primary font-medium">Ordenar por</p>
+                  {(Object.keys(sortLabels) as SortOption[]).map((option) => (
+                    <DropdownMenuItem
+                      key={option}
+                      onClick={() => setSortBy(option)}
+                      className={cn(
+                        "flex items-center gap-2 cursor-pointer",
+                        sortBy === option && "font-medium"
+                      )}
+                    >
+                      {sortLabels[option]}
+                      {sortBy === option && <Check className="w-4 h-4 ml-auto" />}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
                 <ArrowUpDown className="w-3.5 h-3.5" />
               </Button>
