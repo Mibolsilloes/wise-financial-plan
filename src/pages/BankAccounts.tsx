@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
-import { 
+import {
   Plus, 
   Edit2, 
   Archive, 
@@ -90,6 +91,7 @@ const formatCurrency = (value: number) => {
 };
 
 export default function BankAccounts() {
+  const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const totalBalance = accounts.reduce((acc, account) => acc + account.balance, 0);
 
@@ -194,7 +196,10 @@ export default function BankAccounts() {
                           <Settings2 className="w-4 h-4" />
                           Ajustar saldo
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2 cursor-pointer">
+                        <DropdownMenuItem 
+                          className="gap-2 cursor-pointer"
+                          onClick={() => navigate(`/contas/${account.id}/extrato`)}
+                        >
                           <FileText className="w-4 h-4" />
                           Extrato
                         </DropdownMenuItem>
@@ -240,7 +245,12 @@ export default function BankAccounts() {
                     <ArrowLeftRight className="w-3 h-3 mr-1" />
                     Transferir
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1 text-xs">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1 text-xs"
+                    onClick={() => navigate(`/contas/${account.id}/extrato`)}
+                  >
                     <FileText className="w-3 h-3 mr-1" />
                     Extrato
                   </Button>
