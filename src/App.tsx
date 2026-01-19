@@ -11,6 +11,7 @@ import CategoryReport from "./pages/CategoryReport";
 import BankAccounts from "./pages/BankAccounts";
 import AccountReport from "./pages/AccountReport";
 import CreditCards from "./pages/CreditCards";
+import CreditCardInvoice from "./pages/CreditCardInvoice";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/contas" element={<BankAccounts />} />
             <Route path="/contas/:id/extrato" element={<AccountReport />} />
             <Route path="/cartoes" element={<CreditCards />} />
+            <Route path="/cartoes/:id/fatura" element={<CreditCardInvoice />} />
             <Route path="/configuracoes" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
