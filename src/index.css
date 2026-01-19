@@ -9,118 +9,120 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 222 47% 11%;
+    /* Fintech Modern Theme - #26805D Green Primary */
+    --background: 192 17% 96%;
+    --foreground: 210 29% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 210 29% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 210 29% 15%;
 
-    --primary: 217 91% 60%;
+    --primary: 157 54% 33%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 192 17% 94%;
+    --secondary-foreground: 210 29% 15%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 192 17% 94%;
+    --muted-foreground: 210 11% 45%;
 
-    --accent: 220 14% 96%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 157 30% 90%;
+    --accent-foreground: 157 54% 25%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 84% 39%;
+    --success: 157 54% 33%;
     --success-foreground: 0 0% 100%;
 
     --warning: 43 96% 56%;
-    --warning-foreground: 222 47% 11%;
+    --warning-foreground: 210 29% 15%;
 
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 217 91% 60%;
+    --border: 192 17% 88%;
+    --input: 192 17% 88%;
+    --ring: 157 54% 33%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-foreground: 210 29% 15%;
+    --sidebar-primary: 157 54% 33%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 157 30% 92%;
+    --sidebar-accent-foreground: 157 54% 25%;
+    --sidebar-border: 192 17% 88%;
+    --sidebar-ring: 157 54% 33%;
 
-    /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(250 91% 60%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(160 84% 50%) 100%);
+    /* Custom gradients - Fintech Green */
+    --gradient-primary: linear-gradient(135deg, hsl(157 54% 33%) 0%, hsl(157 54% 42%) 100%);
+    --gradient-success: linear-gradient(135deg, hsl(157 54% 33%) 0%, hsl(157 54% 42%) 100%);
     --gradient-danger: linear-gradient(135deg, hsl(0 84% 60%) 0%, hsl(0 84% 50%) 100%);
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(192 17% 98%) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%);
 
-    /* Shadows */
-    --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-    --shadow-glow-primary: 0 4px 14px -3px hsl(217 91% 60% / 0.25);
-    --shadow-glow-success: 0 4px 14px -3px hsl(160 84% 39% / 0.25);
+    /* Shadows - Green glow */
+    --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+    --shadow-glow-primary: 0 4px 14px -3px hsl(157 54% 33% / 0.25);
+    --shadow-glow-success: 0 4px 14px -3px hsl(157 54% 33% / 0.25);
     --shadow-glow-danger: 0 4px 14px -3px hsl(0 84% 60% / 0.25);
   }
 
   .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
+    /* Fintech Dark Theme - Green Primary */
+    --background: 200 20% 8%;
+    --foreground: 192 17% 96%;
 
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
+    --card: 200 20% 10%;
+    --card-foreground: 192 17% 96%;
 
-    --popover: 222 47% 10%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 200 20% 12%;
+    --popover-foreground: 192 17% 96%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 157 54% 40%;
+    --primary-foreground: 200 20% 8%;
 
-    --secondary: 222 47% 14%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 200 20% 16%;
+    --secondary-foreground: 192 17% 96%;
 
-    --muted: 222 47% 12%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 200 20% 14%;
+    --muted-foreground: 192 10% 55%;
 
-    --accent: 222 47% 16%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 157 35% 18%;
+    --accent-foreground: 157 54% 70%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 192 17% 96%;
 
-    --success: 160 84% 39%;
-    --success-foreground: 210 40% 98%;
+    --success: 157 54% 40%;
+    --success-foreground: 192 17% 96%;
 
     --warning: 43 96% 56%;
-    --warning-foreground: 222 47% 6%;
+    --warning-foreground: 200 20% 8%;
 
     --info: 199 89% 48%;
-    --info-foreground: 210 40% 98%;
+    --info-foreground: 192 17% 96%;
 
-    --border: 222 47% 16%;
-    --input: 222 47% 14%;
-    --ring: 217 91% 60%;
+    --border: 200 20% 18%;
+    --input: 200 20% 16%;
+    --ring: 157 54% 40%;
 
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 47% 14%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 47% 16%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-background: 200 20% 10%;
+    --sidebar-foreground: 192 17% 96%;
+    --sidebar-primary: 157 54% 40%;
+    --sidebar-primary-foreground: 200 20% 8%;
+    --sidebar-accent: 157 35% 16%;
+    --sidebar-accent-foreground: 157 54% 70%;
+    --sidebar-border: 200 20% 18%;
+    --sidebar-ring: 157 54% 40%;
 
-    --shadow-card: 0 4px 24px -4px rgba(0, 0, 0, 0.4);
-    --shadow-glow-primary: 0 0 40px -10px hsl(217 91% 60% / 0.4);
-    --shadow-glow-success: 0 0 40px -10px hsl(160 84% 39% / 0.4);
+    --shadow-card: 0 4px 24px -4px rgba(0, 0, 0, 0.5);
+    --shadow-glow-primary: 0 0 40px -10px hsl(157 54% 40% / 0.4);
+    --shadow-glow-success: 0 0 40px -10px hsl(157 54% 40% / 0.4);
     --shadow-glow-danger: 0 0 40px -10px hsl(0 84% 60% / 0.4);
   }
 }
