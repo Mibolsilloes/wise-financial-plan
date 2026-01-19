@@ -286,12 +286,9 @@ interface CreditCardExpenseChartsProps {
 }
 
 function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: CreditCardExpenseChartsProps) {
-  const [chart1Type, setChart1Type] = useState<"bar" | "area" | "line">("bar");
-  const [chart1Period, setChart1Period] = useState<"monthly" | "daily">("monthly");
-  const [chart2Type, setChart2Type] = useState<"bar" | "area" | "line">("area");
-  const [chart2Period, setChart2Period] = useState<"monthly" | "daily">("monthly");
-  const [chart1Open, setChart1Open] = useState(true);
-  const [chart2Open, setChart2Open] = useState(true);
+  const [chartType, setChartType] = useState<"bar" | "area" | "line">("bar");
+  const [chartPeriod, setChartPeriod] = useState<"monthly" | "daily">("monthly");
+  const [chartOpen, setChartOpen] = useState(true);
 
   const chartData = useMemo(() => generateMonthlyExpenseData(transactions), [transactions]);
 
@@ -377,13 +374,12 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
 
   return (
     <div className="space-y-4">
-      {/* Chart 1 - Expenses over time */}
-      <Collapsible open={chart1Open} onOpenChange={setChart1Open}>
+      <Collapsible open={chartOpen} onOpenChange={setChartOpen}>
         <div className="glass rounded-xl border border-border/50 overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-border/30">
             <CollapsibleTrigger asChild>
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <ChevronDown className={cn("w-4 h-4 transition-transform", !chart1Open && "-rotate-90")} />
+                <ChevronDown className={cn("w-4 h-4 transition-transform", !chartOpen && "-rotate-90")} />
                 <div className="text-left">
                   <h3 className="font-semibold text-sm">Despesas do Cartão</h3>
                   <p className="text-xs text-muted-foreground">Visualize as despesas ao longo do tempo</p>
@@ -391,7 +387,7 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
               </button>
             </CollapsibleTrigger>
             <div className="flex items-center gap-2">
-              <Select value={chart1Type} onValueChange={(v) => setChart1Type(v as any)}>
+              <Select value={chartType} onValueChange={(v) => setChartType(v as any)}>
                 <SelectTrigger className="h-8 w-[100px] text-xs border-border/50">
                   <BarChart3 className="w-3.5 h-3.5 mr-1" />
                   <SelectValue />
@@ -402,7 +398,7 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
                   <SelectItem value="line">Linha</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={chart1Period} onValueChange={(v) => setChart1Period(v as any)}>
+              <Select value={chartPeriod} onValueChange={(v) => setChartPeriod(v as any)}>
                 <SelectTrigger className="h-8 w-[100px] text-xs border-border/50">
                   <Calendar className="w-3.5 h-3.5 mr-1" />
                   <SelectValue />
@@ -418,56 +414,7 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
             <div className="p-4">
               <div className="h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  {renderChart(chart1Type, chartData)}
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </CollapsibleContent>
-        </div>
-      </Collapsible>
-
-      {/* Chart 2 - Alternative view */}
-      <Collapsible open={chart2Open} onOpenChange={setChart2Open}>
-        <div className="glass rounded-xl border border-border/50 overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b border-border/30">
-            <CollapsibleTrigger asChild>
-              <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <ChevronDown className={cn("w-4 h-4 transition-transform", !chart2Open && "-rotate-90")} />
-                <div className="text-left">
-                  <h3 className="font-semibold text-sm">Evolução de Gastos</h3>
-                  <p className="text-xs text-muted-foreground">Acompanhe a tendência de despesas</p>
-                </div>
-              </button>
-            </CollapsibleTrigger>
-            <div className="flex items-center gap-2">
-              <Select value={chart2Type} onValueChange={(v) => setChart2Type(v as any)}>
-                <SelectTrigger className="h-8 w-[100px] text-xs border-border/50">
-                  <TrendingDown className="w-3.5 h-3.5 mr-1" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="area">Área</SelectItem>
-                  <SelectItem value="bar">Coluna</SelectItem>
-                  <SelectItem value="line">Linha</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={chart2Period} onValueChange={(v) => setChart2Period(v as any)}>
-                <SelectTrigger className="h-8 w-[100px] text-xs border-border/50">
-                  <Calendar className="w-3.5 h-3.5 mr-1" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monthly">Mensal</SelectItem>
-                  <SelectItem value="daily">Diário</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <CollapsibleContent>
-            <div className="p-4">
-              <div className="h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  {renderChart(chart2Type, chartData)}
+                  {renderChart(chartType, chartData)}
                 </ResponsiveContainer>
               </div>
             </div>
