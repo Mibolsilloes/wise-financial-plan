@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { 
   Plus, 
@@ -21,7 +22,8 @@ import {
   Wrench,
   Wallet,
   Search,
-  X
+  X,
+  FileBarChart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -162,6 +164,7 @@ const formatCurrency = (value: number) => {
 };
 
 export default function Categories() {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState(defaultCategories);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -340,6 +343,15 @@ export default function Categories() {
                           className="w-4 h-4 rounded-full shrink-0"
                           style={{ backgroundColor: category.color }}
                         />
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                          onClick={() => navigate(`/categorias/${category.id}/relatorio`)}
+                        >
+                          <FileBarChart className="w-4 h-4" />
+                          Relatórios
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 
