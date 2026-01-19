@@ -518,13 +518,126 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
   );
 }
 
+interface EditAccountDialogProps {
+  account: typeof accounts[0];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function EditAccountDialog({ account, open, onOpenChange }: EditAccountDialogProps) {
+  const [accountName, setAccountName] = useState(account.name);
+  const [isDefault, setIsDefault] = useState(account.isDefault);
+  const [initialBalance, setInitialBalance] = useState(account.balance.toString());
+
+  const AccountIcon = bankIcons[account.name] || Building2;
+  const accountColor = bankColors[account.name] || "hsl(217, 91%, 60%)";
+
+  const handleSave = () => {
+    // Would handle save logic here
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md bg-card border-border">
+        <DialogHeader className="pb-4 border-b border-border">
+          <div className="flex items-center gap-3">
+            <div 
+              className="p-2.5 rounded-xl"
+              style={{ backgroundColor: `${accountColor}20` }}
+            >
+              <AccountIcon className="w-5 h-5" style={{ color: accountColor }} />
+            </div>
+            <div>
+              <DialogTitle className="text-lg">Editar conta</DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Altere as configurações da conta
+              </p>
+            </div>
+          </div>
+        </DialogHeader>
+        
+        <div className="space-y-5 py-4">
+          {/* Account Name */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Nome da conta</Label>
+            <Input
+              value={accountName}
+              onChange={(e) => setAccountName(e.target.value)}
+              placeholder="Ex: Banco Inter"
+              className="h-11"
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Este nome será exibido em todas as transações e relatórios
+            </p>
+          </div>
+
+          {/* Initial Balance */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Saldo inicial</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+              <Input
+                type="text"
+                value={initialBalance}
+                onChange={(e) => setInitialBalance(e.target.value)}
+                className="pl-10 h-11"
+              />
+            </div>
+          </div>
+
+          {/* Default Account Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Star className={cn(
+                  "w-4 h-4",
+                  isDefault ? "text-warning fill-warning" : "text-muted-foreground"
+                )} />
+                <Label className="text-sm font-medium cursor-pointer">Conta padrão</Label>
+              </div>
+              <p className="text-[10px] text-muted-foreground max-w-[220px]">
+                Lançamentos automáticos serão feitos nesta conta, sem precisar informar
+              </p>
+            </div>
+            <Switch
+              checked={isDefault}
+              onCheckedChange={setIsDefault}
+            />
+          </div>
+        </div>
+
+        <DialogFooter className="flex gap-3 pt-4 border-t border-border">
+          <Button 
+            variant="ghost" 
+            onClick={() => onOpenChange(false)}
+            className="flex-1"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleSave}
+            disabled={!accountName.trim()}
+            className="flex-1 gap-2"
+          >
+            <Edit2 className="w-4 h-4" />
+            Salvar alterações
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function BankAccounts() {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [adjustBalanceDialogOpen, setAdjustBalanceDialogOpen] = useState(false);
+  const [editAccountDialogOpen, setEditAccountDialogOpen] = useState(false);
   const [selectedAccountForTransfer, setSelectedAccountForTransfer] = useState<typeof accounts[0] | null>(null);
   const [selectedAccountForAdjust, setSelectedAccountForAdjust] = useState<typeof accounts[0] | null>(null);
+  const [selectedAccountForEdit, setSelectedAccountForEdit] = useState<typeof accounts[0] | null>(null);
   const totalBalance = accounts.reduce((acc, account) => acc + account.balance, 0);
 
   const openTransferDialog = (account: typeof accounts[0]) => {
@@ -535,6 +648,11 @@ export default function BankAccounts() {
   const openAdjustBalanceDialog = (account: typeof accounts[0]) => {
     setSelectedAccountForAdjust(account);
     setAdjustBalanceDialogOpen(true);
+  };
+
+  const openEditAccountDialog = (account: typeof accounts[0]) => {
+    setSelectedAccountForEdit(account);
+    setEditAccountDialogOpen(true);
   };
 
   return (
@@ -652,7 +770,10 @@ export default function BankAccounts() {
                           Extrato
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-border" />
-                        <DropdownMenuItem className="gap-2 cursor-pointer">
+                        <DropdownMenuItem 
+                          className="gap-2 cursor-pointer"
+                          onClick={() => openEditAccountDialog(account)}
+                        >
                           <Edit2 className="w-4 h-4" />
                           Editar
                         </DropdownMenuItem>
@@ -728,6 +849,15 @@ export default function BankAccounts() {
             account={selectedAccountForAdjust}
             open={adjustBalanceDialogOpen}
             onOpenChange={setAdjustBalanceDialogOpen}
+          />
+        )}
+
+        {/* Edit Account Dialog */}
+        {selectedAccountForEdit && (
+          <EditAccountDialog
+            account={selectedAccountForEdit}
+            open={editAccountDialogOpen}
+            onOpenChange={setEditAccountDialogOpen}
           />
         )}
       </div>
