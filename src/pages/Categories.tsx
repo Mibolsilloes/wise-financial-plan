@@ -32,10 +32,79 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { HexColorPicker } from "react-colorful";
+
+// Helper functions for color conversion
+const hslToHex = (hslString: string): string => {
+  const match = hslString.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+  if (!match) return hslString.startsWith('#') ? hslString : '#ff8800';
+  
+  const h = parseInt(match[1]) / 360;
+  const s = parseInt(match[2]) / 100;
+  const l = parseInt(match[3]) / 100;
+  
+  const hue2rgb = (p: number, q: number, t: number) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+  
+  let r, g, b;
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  
+  const toHex = (x: number) => {
+    const hex = Math.round(x * 255).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  };
+  
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+};
+
+const hexToHsl = (hex: string): string => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return hex;
+  
+  const r = parseInt(result[1], 16) / 255;
+  const g = parseInt(result[2], 16) / 255;
+  const b = parseInt(result[3], 16) / 255;
+  
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  
+  return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
+};
 
 const categoryIcons: Record<string, React.ElementType> = {
   "Alimentação": Utensils,
@@ -102,8 +171,10 @@ export default function Categories() {
   const [editingCategory, setEditingCategory] = useState<typeof defaultCategories[0] | null>(null);
   const [editName, setEditName] = useState("");
   const [editColor, setEditColor] = useState("");
+  const [editColorHex, setEditColorHex] = useState("#ff8800");
   const [editKeywords, setEditKeywords] = useState<string[]>([]);
   const [newKeyword, setNewKeyword] = useState("");
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
 
   const filteredCategories = categories.filter(category =>
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -113,6 +184,7 @@ export default function Categories() {
     setEditingCategory(category);
     setEditName(category.name);
     setEditColor(category.color);
+    setEditColorHex(hslToHex(category.color));
     setEditKeywords(category.keywords || []);
     setNewKeyword("");
     setIsEditDialogOpen(true);
@@ -326,7 +398,10 @@ export default function Categories() {
                   {colorPalette.map((color) => (
                     <button
                       key={color}
-                      onClick={() => setEditColor(color)}
+                      onClick={() => {
+                        setEditColor(color);
+                        setEditColorHex(hslToHex(color));
+                      }}
                       className={cn(
                         "w-7 h-7 rounded-full transition-all duration-200 hover:scale-110",
                         editColor === color 
@@ -338,17 +413,54 @@ export default function Categories() {
                   ))}
                 </div>
                 
-                {/* Color Preview with Hex */}
+                {/* Color Preview with Hex and Full Picker */}
                 <div className="flex items-center gap-3 mt-3">
-                  <div 
-                    className="w-10 h-10 rounded-lg border border-border"
-                    style={{ backgroundColor: editColor }}
-                  />
+                  <Popover open={isColorPickerOpen} onOpenChange={setIsColorPickerOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        className="w-10 h-10 rounded-lg border border-border cursor-pointer hover:ring-2 hover:ring-foreground/20 transition-all"
+                        style={{ backgroundColor: editColorHex }}
+                      />
+                    </PopoverTrigger>
+                    <PopoverContent 
+                      className="w-auto p-3 bg-card border-border z-50" 
+                      align="start"
+                      sideOffset={8}
+                    >
+                      <div className="space-y-3">
+                        <HexColorPicker 
+                          color={editColorHex} 
+                          onChange={(newColor) => {
+                            setEditColorHex(newColor);
+                            setEditColor(hexToHsl(newColor));
+                          }}
+                        />
+                        <Input 
+                          value={editColorHex}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setEditColorHex(val);
+                            if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                              setEditColor(hexToHsl(val));
+                            }
+                          }}
+                          className="font-mono text-sm uppercase"
+                          placeholder="#ff8800"
+                        />
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <Input 
-                    value={editColor}
-                    onChange={(e) => setEditColor(e.target.value)}
-                    className="flex-1 font-mono text-sm"
-                    placeholder="hsl(25, 95%, 53%)"
+                    value={editColorHex}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setEditColorHex(val);
+                      if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                        setEditColor(hexToHsl(val));
+                      }
+                    }}
+                    className="flex-1 font-mono text-sm uppercase"
+                    placeholder="#ff8800"
                   />
                 </div>
               </div>
