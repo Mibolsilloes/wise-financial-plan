@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -528,6 +528,13 @@ function EditAccountDialog({ account, open, onOpenChange }: EditAccountDialogPro
   const [accountName, setAccountName] = useState(account.name);
   const [isDefault, setIsDefault] = useState(account.isDefault);
   const [initialBalance, setInitialBalance] = useState(account.balance.toString());
+
+  // Reset form when account changes
+  useEffect(() => {
+    setAccountName(account.name);
+    setIsDefault(account.isDefault);
+    setInitialBalance(account.balance.toString());
+  }, [account]);
 
   const AccountIcon = bankIcons[account.name] || Building2;
   const accountColor = bankColors[account.name] || "hsl(217, 91%, 60%)";
