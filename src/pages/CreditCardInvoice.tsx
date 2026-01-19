@@ -868,6 +868,9 @@ export default function CreditCardInvoice() {
               </Tabs>
             </div>
 
+            {/* Expense Charts Section */}
+            <CreditCardExpenseCharts transactions={transactions} currentMonth={currentMonth} currentYear={currentYear} />
+
             {/* Details Section */}
             <div className="glass rounded-xl p-5 border border-border/50">
               <h3 className="font-semibold mb-4">Detalhes</h3>
@@ -892,9 +895,6 @@ export default function CreditCardInvoice() {
             </div>
           </div>
         </div>
-
-        {/* Expense Charts Section */}
-        <CreditCardExpenseCharts transactions={transactions} currentMonth={currentMonth} currentYear={currentYear} />
 
         {/* Settings Dialog */}
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
