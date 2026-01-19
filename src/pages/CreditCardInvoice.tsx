@@ -279,6 +279,29 @@ const generateMonthlyExpenseData = (transactions: any[]) => {
   return monthlyData;
 };
 
+// Generate daily expense data for a specific month
+const generateDailyExpenseData = (transactions: any[], month: number, year: number) => {
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthAbbr = monthAbbreviations[month];
+  
+  // Create base data for all days in the month
+  const dailyData = Array.from({ length: daysInMonth }, (_, idx) => ({
+    period: `${idx + 1} ${monthAbbr}`,
+    despesas: 0,
+  }));
+  
+  // Aggregate transactions by day
+  transactions.forEach((t) => {
+    const date = parseISO(t.dataCompra);
+    if (date.getMonth() === month && date.getFullYear() === year) {
+      const dayIdx = date.getDate() - 1;
+      dailyData[dayIdx].despesas += Math.abs(t.valor);
+    }
+  });
+  
+  return dailyData;
+};
+
 interface CreditCardExpenseChartsProps {
   transactions: any[];
   currentMonth: number;
@@ -290,7 +313,12 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
   const [chartPeriod, setChartPeriod] = useState<"monthly" | "daily">("monthly");
   const [chartOpen, setChartOpen] = useState(true);
 
-  const chartData = useMemo(() => generateMonthlyExpenseData(transactions), [transactions]);
+  const chartData = useMemo(() => {
+    if (chartPeriod === "daily") {
+      return generateDailyExpenseData(transactions, currentMonth, currentYear);
+    }
+    return generateMonthlyExpenseData(transactions);
+  }, [transactions, chartPeriod, currentMonth, currentYear]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
