@@ -95,99 +95,86 @@ const categoryData: Record<string, { name: string; color: string; type: string }
   "12": { name: "Doações", color: "hsl(172, 66%, 50%)", type: "despesa" },
 };
 
-interface FinancialCardProps {
+// Modern gradient card component matching "Lançamentos pendentes" style
+interface GradientCardProps {
   title: string;
   value: number;
   subtitle?: string;
-  icon: React.ReactNode;
-  iconColor: string;
-  expandable?: boolean;
-  details?: { label: string; value: number; color: string }[];
+  variant: "income" | "expense" | "balance" | "predicted";
   showEye?: boolean;
 }
 
-const FinancialCard = ({ 
+const GradientCard = ({ 
   title, 
   value, 
   subtitle, 
-  icon, 
-  iconColor,
-  expandable = false,
-  details,
+  variant,
   showEye = false
-}: FinancialCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  
+}: GradientCardProps) => {
+  const variants = {
+    income: {
+      bg: "bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/20",
+      border: "border-emerald-200/50 dark:border-emerald-800/30",
+      circle: "bg-emerald-500/10",
+      label: "text-emerald-600 dark:text-emerald-400",
+      value: "text-emerald-700 dark:text-emerald-300",
+      subtitle: "text-emerald-600/70 dark:text-emerald-400/70",
+    },
+    expense: {
+      bg: "bg-gradient-to-br from-rose-50 to-red-50 dark:from-rose-950/30 dark:to-red-950/20",
+      border: "border-rose-200/50 dark:border-rose-800/30",
+      circle: "bg-rose-500/10",
+      label: "text-rose-600 dark:text-rose-400",
+      value: "text-rose-700 dark:text-rose-300",
+      subtitle: "text-rose-600/70 dark:text-rose-400/70",
+    },
+    balance: {
+      bg: "bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-950/50 dark:to-gray-950/30",
+      border: "border-slate-200/50 dark:border-slate-800/30",
+      circle: "bg-slate-500/10",
+      label: "text-slate-600 dark:text-slate-400",
+      value: "text-slate-700 dark:text-slate-300",
+      subtitle: "text-slate-600/70 dark:text-slate-400/70",
+    },
+    predicted: {
+      bg: "bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/5",
+      border: "border-primary/20 dark:border-primary/30",
+      circle: "bg-primary/10",
+      label: "text-primary dark:text-primary",
+      value: "text-primary dark:text-primary",
+      subtitle: "text-primary/70 dark:text-primary/70",
+    },
+  };
+
+  const style = variants[variant];
+
   return (
-    <div className="glass rounded-xl p-4 border border-border/50">
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className={cn("text-xs", iconColor)}>{icon}</span>
-          <span className="text-xs text-muted-foreground font-medium">{title}</span>
+    <div className={cn(
+      "relative overflow-hidden rounded-2xl p-5 border",
+      style.bg,
+      style.border
+    )}>
+      <div className={cn("absolute top-0 right-0 w-24 h-24 rounded-full -translate-y-8 translate-x-8", style.circle)} />
+      <div className="relative">
+        <div className="flex items-center justify-between">
+          <span className={cn("text-xs font-medium uppercase tracking-wide", style.label)}>
+            {title}
+          </span>
+          {showEye && (
+            <Button variant="ghost" size="icon" className={cn("h-7 w-7", style.label, "opacity-50 hover:opacity-100")}>
+              <Eye className="h-4 w-4" />
+            </Button>
+          )}
         </div>
-        {showEye && (
-          <button className="text-muted-foreground hover:text-foreground">
-            <Eye className="w-4 h-4" />
-          </button>
+        <div className="mt-2">
+          <span className={cn("text-3xl font-bold", style.value)}>
+            {formatCurrency(Math.abs(value))}
+          </span>
+        </div>
+        {subtitle && (
+          <p className={cn("text-xs mt-1", style.subtitle)}>{subtitle}</p>
         )}
       </div>
-      
-      <div className={cn(
-        "text-xl font-bold flex items-center gap-1",
-        value < 0 ? "text-destructive" : value > 0 ? "text-success" : "text-foreground"
-      )}>
-        {value < 0 ? <TrendingDown className="w-4 h-4" /> : value > 0 ? <TrendingUp className="w-4 h-4" /> : null}
-        {formatCurrency(Math.abs(value))}
-      </div>
-      
-      {subtitle && (
-        <p className="text-[10px] text-muted-foreground mt-1">{subtitle}</p>
-      )}
-      
-      {expandable && (
-        <>
-          <button 
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-3 transition-colors"
-          >
-            {isExpanded ? "Ocultar detalhes" : "Ver detalhes"}
-            {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-          </button>
-          
-          {isExpanded && details && (
-            <div className="grid grid-cols-2 gap-2 mt-3">
-              {details.map((detail, idx) => (
-                <div 
-                  key={idx}
-                  className={cn(
-                    "rounded-lg px-3 py-2 text-center",
-                    detail.color === "success" ? "bg-success/10 border border-success/20" :
-                    detail.color === "destructive" ? "bg-destructive/10 border border-destructive/20" :
-                    "bg-muted/50 border border-border"
-                  )}
-                >
-                  <p className={cn(
-                    "text-[10px] font-medium mb-0.5",
-                    detail.color === "success" ? "text-success" :
-                    detail.color === "destructive" ? "text-destructive" :
-                    "text-muted-foreground"
-                  )}>
-                    {detail.label}
-                  </p>
-                  <p className={cn(
-                    "text-sm font-bold",
-                    detail.color === "success" ? "text-success" :
-                    detail.color === "destructive" ? "text-destructive" :
-                    "text-foreground"
-                  )}>
-                    {formatCurrency(detail.value)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 };
@@ -341,367 +328,357 @@ export default function CategoryReport() {
           </Badge>
         </div>
         
-        {/* Financial Summary Cards */}
+        {/* Financial Summary Cards - Modern gradient style */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <FinancialCard
+          <GradientCard
             title="Saldo Anterior"
             value={financialData.previousBalance}
-            subtitle={`Até ${format(subDays(effectiveDateRange.from, 1), "d 'de' MMMM", { locale: ptBR })} (Receita - Despesa + Saldo Bancário)`}
-            icon={<TrendingUp className="w-3.5 h-3.5" />}
-            iconColor="text-primary"
-            expandable
-            details={[
-              { label: "Pendências", value: financialData.previousBalance, color: "destructive" },
-              { label: "Disponível", value: financialData.previousBalance, color: "success" },
-            ]}
+            subtitle={`Até ${format(subDays(effectiveDateRange.from, 1), "d 'de' MMMM", { locale: ptBR })}`}
+            variant="balance"
           />
           
-          <FinancialCard
+          <GradientCard
             title="Receitas"
             value={financialData.income}
             subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: ptBR })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })}`}
-            icon={<TrendingUp className="w-3.5 h-3.5" />}
-            iconColor="text-success"
+            variant="income"
             showEye
-            expandable
-            details={[
-              { label: "Recebido", value: financialData.incomeDetails.received, color: "success" },
-              { label: "A receber", value: financialData.incomeDetails.toReceive, color: "default" },
-            ]}
           />
           
-          <FinancialCard
+          <GradientCard
             title="Despesas"
-            value={financialData.expenses}
+            value={Math.abs(financialData.expenses)}
             subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: ptBR })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })}`}
-            icon={<TrendingDown className="w-3.5 h-3.5" />}
-            iconColor="text-destructive"
-            expandable
-            details={[
-              { label: "Pago", value: financialData.expenseDetails.paid, color: "success" },
-              { label: "A pagar", value: financialData.expenseDetails.toPay, color: "destructive" },
-            ]}
+            variant="expense"
           />
           
-          <FinancialCard
+          <GradientCard
             title="Saldo Disponível"
             value={financialData.availableBalance}
-            subtitle={`Até ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })} (Receita - Despesa + Saldo Bancário)`}
-            icon={<Wallet className="w-3.5 h-3.5" />}
-            iconColor="text-primary"
+            subtitle={`Até ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })}`}
+            variant={financialData.availableBalance >= 0 ? "income" : "expense"}
           />
         </div>
         
         {/* Expected Balance Card */}
-        <div className="glass rounded-xl p-4 border border-border/50 max-w-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground font-medium">Saldo Previsto</span>
-          </div>
-          <div className="text-xl font-bold flex items-center gap-1">
-            <Wallet className="w-4 h-4" />
-            {formatCurrency(financialData.expectedBalance)}
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            Até {format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })} (Receita - Despesa + Saldo Bancário)
-          </p>
+        <div className="max-w-sm">
+          <GradientCard
+            title="Saldo Previsto"
+            value={financialData.expectedBalance}
+            subtitle={`Até ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })} (Receita - Despesa + Saldo Bancário)`}
+            variant="predicted"
+          />
         </div>
         
-        {/* Transactions Section */}
-        <div className="space-y-4">
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-muted/50 p-1">
-              <TabsTrigger value="todas" className="text-xs">Todas</TabsTrigger>
-              <TabsTrigger value="despesas" className="text-xs">Despesas</TabsTrigger>
-              <TabsTrigger value="receitas" className="text-xs">Receitas</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-8 gap-1.5 text-xs"
-              onClick={() => setIsSettingsOpen(true)}
-            >
-              <Settings className="w-3.5 h-3.5" />
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                  <FileText className="w-3.5 h-3.5" />
-                  {groupingLabels[grouping]}
-                  <ChevronDown className="w-3 h-3 ml-1" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="bg-background border shadow-lg z-50">
-                {(Object.keys(groupingLabels) as GroupingOption[]).map((option) => (
-                  <DropdownMenuItem
-                    key={option}
-                    onClick={() => setGrouping(option)}
-                    className={cn(
-                      "flex items-center gap-2 cursor-pointer",
-                      grouping === option && "font-medium"
-                    )}
-                  >
-                    {option === "none" && <FileText className="w-4 h-4" />}
-                    {option === "categoria" && <LayoutGrid className="w-4 h-4" />}
-                    {option === "vencimento" && <FileText className="w-4 h-4" />}
-                    {option === "criacao" && <FileText className="w-4 h-4" />}
-                    {option === "responsavel" && <FileText className="w-4 h-4" />}
-                    {groupingLabels[option]}
-                    {grouping === option && <Check className="w-4 h-4 ml-auto" />}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          
-          {/* Settings Dialog */}
-          <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-lg font-semibold">Personalize sua visualização</DialogTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Configure como você quer ver suas transações de forma mais clara e organizada
-                </p>
-              </DialogHeader>
-              
-              <div className="space-y-6 py-4">
-                {/* View Mode Selection */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium">Como você quer ver suas transações?</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => setViewMode("cards")}
-                      className={cn(
-                        "flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all",
-                        viewMode === "cards" 
-                          ? "border-primary bg-primary/5" 
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      <LayoutGrid className="w-5 h-5 text-muted-foreground" />
-                      <div className="text-center">
-                        <p className="text-sm font-medium">Cards</p>
-                        <p className="text-[10px] text-muted-foreground">Visual e organizado</p>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => setViewMode("table")}
-                      className={cn(
-                        "flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all",
-                        viewMode === "table" 
-                          ? "border-primary bg-primary/5" 
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      <TableIcon className="w-5 h-5 text-muted-foreground" />
-                      <div className="text-center">
-                        <p className="text-sm font-medium">Tabela</p>
-                        <p className="text-[10px] text-muted-foreground">Compacto e detalhado</p>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Column Visibility */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium">Quais informações mostrar?</h4>
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-                    {[
-                      { key: "descricao", label: "Descrição" },
-                      { key: "responsavel", label: "Responsável" },
-                      { key: "valor", label: "Valor" },
-                      { key: "categoria", label: "Categoria" },
-                      { key: "tipo", label: "Tipo" },
-                      { key: "status", label: "Status" },
-                      { key: "conta", label: "Conta" },
-                      { key: "cartao", label: "Cartão" },
-                      { key: "dataVencimento", label: "Data de Vencimento" },
-                      { key: "dataCompetencia", label: "Data de Competência" },
-                      { key: "dataPagamento", label: "Data de Pagamento" },
-                      { key: "fixoVariavel", label: "Fixo/Variável" },
-                    ].map(({ key, label }) => (
-                      <button
-                        key={key}
-                        onClick={() => toggleColumn(key as keyof typeof visibleColumns)}
-                        className="flex items-center gap-2 py-1.5 text-sm hover:text-foreground transition-colors group"
-                      >
-                        <div className={cn(
-                          "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
-                          visibleColumns[key as keyof typeof visibleColumns]
-                            ? "border-primary bg-primary"
-                            : "border-muted-foreground/40 group-hover:border-primary/60"
-                        )}>
-                          {visibleColumns[key as keyof typeof visibleColumns] && (
-                            <Check className="w-3 h-3 text-primary-foreground" />
-                          )}
-                        </div>
-                        <span className={cn(
-                          visibleColumns[key as keyof typeof visibleColumns]
-                            ? "text-foreground"
-                            : "text-muted-foreground"
-                        )}>
-                          {label}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <span className="text-amber-500">⚡</span>
-                  Escolha apenas o que você usa mais
-                </p>
+        {/* Transactions Section - Modern design */}
+        <div className="bg-background rounded-2xl border border-border/60 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/5 to-transparent border-b border-border/40">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <FileText className="h-5 w-5 text-primary" />
               </div>
-              
-              <DialogFooter className="flex gap-3 sm:gap-3">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsSettingsOpen(false)}
-                  className="flex-1"
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  onClick={() => setIsSettingsOpen(false)}
-                  className="flex-1"
-                >
-                  Salvar Preferências
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          
-          {/* Search & Filters */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Pesquisar transações..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-9"
-              />
+              <div>
+                <h3 className="font-semibold">Transações</h3>
+                <p className="text-xs text-muted-foreground">Todas as movimentações da categoria</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 ml-auto">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                    {sortLabels[sortBy]}
-                    <ChevronDown className="w-3 h-3 ml-1" />
+          </div>
+          
+          <div className="p-4 space-y-4">
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="bg-muted/50 p-1 rounded-xl">
+                <TabsTrigger value="todas" className="text-xs rounded-lg">Todas</TabsTrigger>
+                <TabsTrigger value="despesas" className="text-xs rounded-lg">Despesas</TabsTrigger>
+                <TabsTrigger value="receitas" className="text-xs rounded-lg">Receitas</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          
+            {/* Toolbar */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 bg-muted/50 rounded-xl p-0.5">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0 rounded-lg"
+                  onClick={() => setIsSettingsOpen(true)}
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs rounded-lg">
+                      <FileText className="w-3.5 h-3.5" />
+                      Agrupar
+                      <ChevronDown className="w-3 h-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-background border shadow-lg z-50">
+                    {(Object.keys(groupingLabels) as GroupingOption[]).map((option) => (
+                      <DropdownMenuItem
+                        key={option}
+                        onClick={() => setGrouping(option)}
+                        className={cn(
+                          "flex items-center gap-2 cursor-pointer",
+                          grouping === option && "font-medium"
+                        )}
+                      >
+                        {option === "none" && <FileText className="w-4 h-4" />}
+                        {option === "categoria" && <LayoutGrid className="w-4 h-4" />}
+                        {option === "vencimento" && <FileText className="w-4 h-4" />}
+                        {option === "criacao" && <FileText className="w-4 h-4" />}
+                        {option === "responsavel" && <FileText className="w-4 h-4" />}
+                        {groupingLabels[option]}
+                        {grouping === option && <Check className="w-4 h-4 ml-auto" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <div className="relative flex-1 min-w-[180px]">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input 
+                  placeholder="Pesquisar transações..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-8 h-8 text-xs rounded-lg bg-muted/30 border-0 focus-visible:ring-1"
+                />
+              </div>
+
+              <div className="flex items-center gap-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs rounded-md">
+                      {sortLabels[sortBy]}
+                      <ChevronDown className="w-3 h-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-background border shadow-lg z-50">
+                    <p className="px-2 py-1.5 text-xs text-primary font-medium">Ordenar por</p>
+                    {(Object.keys(sortLabels) as SortOption[]).map((option) => (
+                      <DropdownMenuItem
+                        key={option}
+                        onClick={() => setSortBy(option)}
+                        className={cn(
+                          "flex items-center gap-2 cursor-pointer",
+                          sortBy === option && "font-medium"
+                        )}
+                      >
+                        {sortLabels[option]}
+                        {sortBy === option && <Check className="w-4 h-4 ml-auto" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-md">
+                  <ArrowUpDown className="h-3.5 w-3.5" />
+                </Button>
+                <FilterPopover>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-md relative">
+                    <Filter className="h-3.5 w-3.5" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-background border shadow-lg z-50">
-                  <p className="px-2 py-1.5 text-xs text-primary font-medium">Ordenar por</p>
-                  {(Object.keys(sortLabels) as SortOption[]).map((option) => (
-                    <DropdownMenuItem
-                      key={option}
-                      onClick={() => setSortBy(option)}
-                      className={cn(
-                        "flex items-center gap-2 cursor-pointer",
-                        sortBy === option && "font-medium"
-                      )}
-                    >
-                      {sortLabels[option]}
-                      {sortBy === option && <Check className="w-4 h-4 ml-auto" />}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs">
-                <ArrowUpDown className="w-3.5 h-3.5" />
-              </Button>
-              <FilterPopover>
-                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs relative">
-                  <Filter className="w-3.5 h-3.5" />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground rounded-full text-[10px] flex items-center justify-center">
-                    1
-                  </span>
-                </Button>
-              </FilterPopover>
+                </FilterPopover>
+              </div>
             </div>
-          </div>
           
-          {/* Transactions Table */}
-          <div className="glass rounded-xl border border-border/50 overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border/50 hover:bg-transparent">
-                  {visibleColumns.responsavel && <TableHead className="text-xs font-medium">Responsável</TableHead>}
-                  {visibleColumns.descricao && <TableHead className="text-xs font-medium">Descrição</TableHead>}
-                  {visibleColumns.valor && <TableHead className="text-xs font-medium">Valor</TableHead>}
-                  {visibleColumns.categoria && <TableHead className="text-xs font-medium">Categoria</TableHead>}
-                  {visibleColumns.tipo && <TableHead className="text-xs font-medium">Tipo</TableHead>}
-                  {visibleColumns.status && <TableHead className="text-xs font-medium">Status</TableHead>}
-                  {visibleColumns.conta && <TableHead className="text-xs font-medium">Conta</TableHead>}
-                  {visibleColumns.cartao && <TableHead className="text-xs font-medium">Cartão</TableHead>}
-                  {visibleColumns.dataVencimento && <TableHead className="text-xs font-medium">Vencimento</TableHead>}
-                  {visibleColumns.dataCompetencia && <TableHead className="text-xs font-medium">Competência</TableHead>}
-                  {visibleColumns.dataPagamento && <TableHead className="text-xs font-medium">Pagamento</TableHead>}
-                  {visibleColumns.fixoVariavel && <TableHead className="text-xs font-medium">Fixo/Variável</TableHead>}
-                  <TableHead className="text-xs font-medium">Ação</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1} className="h-40">
-                      <div className="flex flex-col items-center justify-center text-center">
-                        <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
-                          <FileText className="w-6 h-6 text-muted-foreground" />
+            {/* Settings Dialog */}
+            <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="text-lg font-semibold">Personalize sua visualização</DialogTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Configure como você quer ver suas transações de forma mais clara e organizada
+                  </p>
+                </DialogHeader>
+                
+                <div className="space-y-6 py-4">
+                  {/* View Mode Selection */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium">Como você quer ver suas transações?</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        onClick={() => setViewMode("cards")}
+                        className={cn(
+                          "flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all",
+                          viewMode === "cards" 
+                            ? "border-primary bg-primary/5" 
+                            : "border-border hover:border-primary/50"
+                        )}
+                      >
+                        <LayoutGrid className="w-5 h-5 text-muted-foreground" />
+                        <div className="text-center">
+                          <p className="text-sm font-medium">Cards</p>
+                          <p className="text-[10px] text-muted-foreground">Visual e organizado</p>
                         </div>
-                        <p className="font-medium text-sm">Nenhuma transação encontrada</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Não há transações para exibir no período selecionado.
-                        </p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : null}
-              </TableBody>
-            </Table>
-          </div>
+                      </button>
+                      <button
+                        onClick={() => setViewMode("table")}
+                        className={cn(
+                          "flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all",
+                          viewMode === "table" 
+                            ? "border-primary bg-primary/5" 
+                            : "border-border hover:border-primary/50"
+                        )}
+                      >
+                        <TableIcon className="w-5 h-5 text-muted-foreground" />
+                        <div className="text-center">
+                          <p className="text-sm font-medium">Tabela</p>
+                          <p className="text-[10px] text-muted-foreground">Compacto e detalhado</p>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Column Visibility */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium">Quais informações mostrar?</h4>
+                    <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                      {[
+                        { key: "descricao", label: "Descrição" },
+                        { key: "responsavel", label: "Responsável" },
+                        { key: "valor", label: "Valor" },
+                        { key: "categoria", label: "Categoria" },
+                        { key: "tipo", label: "Tipo" },
+                        { key: "status", label: "Status" },
+                        { key: "conta", label: "Conta" },
+                        { key: "cartao", label: "Cartão" },
+                        { key: "dataVencimento", label: "Data de Vencimento" },
+                        { key: "dataCompetencia", label: "Data de Competência" },
+                        { key: "dataPagamento", label: "Data de Pagamento" },
+                        { key: "fixoVariavel", label: "Fixo/Variável" },
+                      ].map(({ key, label }) => (
+                        <button
+                          key={key}
+                          onClick={() => toggleColumn(key as keyof typeof visibleColumns)}
+                          className="flex items-center gap-2 py-1.5 text-sm hover:text-foreground transition-colors group"
+                        >
+                          <div className={cn(
+                            "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                            visibleColumns[key as keyof typeof visibleColumns]
+                              ? "border-primary bg-primary"
+                              : "border-muted-foreground/40 group-hover:border-primary/60"
+                          )}>
+                            {visibleColumns[key as keyof typeof visibleColumns] && (
+                              <Check className="w-3 h-3 text-primary-foreground" />
+                            )}
+                          </div>
+                          <span className={cn(
+                            visibleColumns[key as keyof typeof visibleColumns]
+                              ? "text-foreground"
+                              : "text-muted-foreground"
+                          )}>
+                            {label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <span className="text-amber-500">⚡</span>
+                    Escolha apenas o que você usa mais
+                  </p>
+                </div>
+                
+                <DialogFooter className="flex gap-3 sm:gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsSettingsOpen(false)}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    onClick={() => setIsSettingsOpen(false)}
+                    className="flex-1"
+                  >
+                    Salvar Preferências
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           
-          {/* Pagination Footer */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="hover:text-foreground transition-colors flex items-center gap-1">
-                    Mostrar {itemsPerPage}
-                    <ChevronDown className="w-3 h-3" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-background border shadow-lg z-50 min-w-[120px]">
-                  {([30, 50, 100] as const).map((option) => (
-                    <DropdownMenuItem
-                      key={option}
-                      onClick={() => setItemsPerPage(option)}
-                      className={cn(
-                        "flex items-center justify-between cursor-pointer",
-                        itemsPerPage === option && "font-medium"
-                      )}
-                    >
-                      Mostrar {option}
-                      {itemsPerPage === option && <Check className="w-4 h-4 ml-2" />}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <span>|</span>
-              <span>Total: 0</span>
+            {/* Transactions Table */}
+            <div className="rounded-xl border border-border/50 overflow-hidden bg-muted/20">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50 hover:bg-muted/50">
+                    {visibleColumns.responsavel && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Responsável</TableHead>}
+                    {visibleColumns.descricao && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Descrição</TableHead>}
+                    {visibleColumns.valor && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Valor</TableHead>}
+                    {visibleColumns.categoria && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Categoria</TableHead>}
+                    {visibleColumns.tipo && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Tipo</TableHead>}
+                    {visibleColumns.status && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Status</TableHead>}
+                    {visibleColumns.conta && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Conta</TableHead>}
+                    {visibleColumns.cartao && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Cartão</TableHead>}
+                    {visibleColumns.dataVencimento && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Vencimento</TableHead>}
+                    {visibleColumns.dataCompetencia && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Competência</TableHead>}
+                    {visibleColumns.dataPagamento && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Pagamento</TableHead>}
+                    {visibleColumns.fixoVariavel && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Fixo/Variável</TableHead>}
+                    <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Ação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transactions.length === 0 ? (
+                    <TableRow className="hover:bg-transparent">
+                      <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1} className="h-28">
+                        <div className="flex flex-col items-center justify-center text-center gap-1.5">
+                          <div className="w-12 h-12 rounded-full bg-muted/80 flex items-center justify-center">
+                            <FileText className="h-6 w-6 text-muted-foreground/40" />
+                          </div>
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Nenhuma transação encontrada
+                          </p>
+                          <p className="text-xs text-muted-foreground/60">
+                            Não há transações para exibir no período selecionado.
+                          </p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-7 text-xs" disabled>
-                Voltar
-              </Button>
-              <Button variant="outline" size="sm" className="h-7 text-xs" disabled>
-                Próximo
-              </Button>
+          
+            {/* Pagination - Minimal */}
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="hover:text-foreground transition-colors flex items-center gap-1">
+                      {itemsPerPage}
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-background border shadow-lg z-50 min-w-[100px]">
+                    {([30, 50, 100] as const).map((option) => (
+                      <DropdownMenuItem
+                        key={option}
+                        onClick={() => setItemsPerPage(option)}
+                        className={cn(
+                          "flex items-center justify-between cursor-pointer",
+                          itemsPerPage === option && "font-medium"
+                        )}
+                      >
+                        {option}
+                        {itemsPerPage === option && <Check className="w-4 h-4 ml-2" />}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <span>Total: 0</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled>
+                  <ChevronDown className="h-3 w-3 mr-1 rotate-90" />
+                  Anterior
+                </Button>
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled>
+                  Próximo
+                  <ChevronDown className="h-3 w-3 ml-1 -rotate-90" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
