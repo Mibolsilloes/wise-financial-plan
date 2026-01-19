@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { isWithinInterval, parseISO, startOfDay, endOfDay } from "date-fns";
+import { isWithinInterval, parseISO, startOfDay, endOfDay, format, subDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { 
@@ -345,7 +346,7 @@ export default function CategoryReport() {
           <FinancialCard
             title="Saldo Anterior"
             value={financialData.previousBalance}
-            subtitle={`Até ${new Date(currentYear, currentMonth - 1, 0).getDate()} de ${monthNames[currentMonth - 1]} (Receita - Despesa + Saldo Bancário)`}
+            subtitle={`Até ${format(subDays(effectiveDateRange.from, 1), "d 'de' MMMM", { locale: ptBR })} (Receita - Despesa + Saldo Bancário)`}
             icon={<TrendingUp className="w-3.5 h-3.5" />}
             iconColor="text-primary"
             expandable
@@ -358,7 +359,7 @@ export default function CategoryReport() {
           <FinancialCard
             title="Receitas"
             value={financialData.income}
-            subtitle={`1 de ${monthNames[currentMonth]} - ${new Date(currentYear, currentMonth + 1, 0).getDate()} de ${monthNames[currentMonth]}`}
+            subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: ptBR })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })}`}
             icon={<TrendingUp className="w-3.5 h-3.5" />}
             iconColor="text-success"
             showEye
@@ -372,7 +373,7 @@ export default function CategoryReport() {
           <FinancialCard
             title="Despesas"
             value={financialData.expenses}
-            subtitle={`1 de ${monthNames[currentMonth]} - ${new Date(currentYear, currentMonth + 1, 0).getDate()} de ${monthNames[currentMonth]}`}
+            subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: ptBR })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })}`}
             icon={<TrendingDown className="w-3.5 h-3.5" />}
             iconColor="text-destructive"
             expandable
@@ -385,7 +386,7 @@ export default function CategoryReport() {
           <FinancialCard
             title="Saldo Disponível"
             value={financialData.availableBalance}
-            subtitle={`Até ${new Date(currentYear, currentMonth + 1, 0).getDate()} de ${monthNames[currentMonth]} (Receita - Despesa + Saldo Bancário)`}
+            subtitle={`Até ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })} (Receita - Despesa + Saldo Bancário)`}
             icon={<Wallet className="w-3.5 h-3.5" />}
             iconColor="text-primary"
           />
@@ -402,7 +403,7 @@ export default function CategoryReport() {
             {formatCurrency(financialData.expectedBalance)}
           </div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            Até {new Date(currentYear, currentMonth + 1, 0).getDate()} de {monthNames[currentMonth]} (Receita - Despesa + Saldo Bancário)
+            Até {format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })} (Receita - Despesa + Saldo Bancário)
           </p>
         </div>
         
