@@ -192,116 +192,107 @@ export default function CreditCards() {
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {cards.map((card, index) => {
             const available = card.limit - card.used;
             const usedPercentage = (card.used / card.limit) * 100;
-            const gradient = brandGradients[card.brand] || "from-gray-600 to-gray-800";
+            const brandColor = brandColors[card.brand] || "hsl(217, 91%, 60%)";
             
             return (
               <div
                 key={card.id}
-                className="relative animate-scale-in"
-                style={{ animationDelay: `${index * 100}ms` }}
+                className="bg-card rounded-xl border border-border/60 shadow-sm overflow-hidden animate-scale-in"
+                style={{ animationDelay: `${index * 80}ms` }}
               >
-                {/* Credit Card Visual */}
-                <div className={cn(
-                  "relative h-48 rounded-2xl p-6 bg-gradient-to-br shadow-xl overflow-hidden",
-                  gradient
-                )}>
-                  {/* Pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white transform translate-x-10 -translate-y-10" />
-                    <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-white transform -translate-x-10 translate-y-10" />
+                {/* Header with Person */}
+                <div className="px-4 py-3 bg-muted/30 border-b border-border/40 flex items-center gap-2">
+                  <div 
+                    className="w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-bold text-white"
+                    style={{ backgroundColor: brandColor }}
+                  >
+                    {card.person.slice(0, 2).toUpperCase()}
+                  </div>
+                  <span className="text-sm font-medium text-foreground">{card.person}</span>
+                </div>
+
+                {/* Card Content */}
+                <div className="p-4 space-y-4">
+                  {/* Card Name and Limit Used */}
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-semibold text-foreground">{card.name}</span>
                   </div>
 
-                  <div className="relative h-full flex flex-col justify-between">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="text-white/70 text-xs mb-1">Limite usado</p>
-                        <p className="text-white text-xl font-bold">{formatCurrency(card.used)}</p>
-                      </div>
-                      <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
-                        {card.brand}
-                      </Badge>
+                  {/* Limit Progress Bar */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs text-muted-foreground">Limite usado</span>
+                      <span className="text-sm font-medium">{formatCurrency(card.used)}</span>
                     </div>
+                    <Progress 
+                      value={usedPercentage} 
+                      className="h-1.5 bg-muted"
+                    />
+                  </div>
 
+                  {/* Three Column Limits */}
+                  <div className="grid grid-cols-3 gap-2 pt-2">
                     <div>
-                      <div className="flex items-center gap-4 mb-4">
-                        <CreditCard className="w-10 h-10 text-white/80" />
-                        <div className="text-white/50 text-lg tracking-widest">
-                          •••• •••• •••• ••••
-                        </div>
+                      <p className="text-[10px] text-muted-foreground mb-0.5">Limite usado</p>
+                      <p className="text-sm font-semibold text-destructive">{formatCurrency(card.used)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground mb-0.5">Limite disponível</p>
+                      <p className="text-sm font-semibold text-success">{formatCurrency(available)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground mb-0.5">Limite total</p>
+                      <p className="text-sm font-semibold text-foreground">{formatCurrency(card.limit)}</p>
+                    </div>
+                  </div>
+
+                  {/* Dates Row */}
+                  <div className="flex items-center gap-6 pt-3 border-t border-border/40">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Fechamento</p>
+                        <p className="text-xs font-medium">Todo dia {card.closingDay}</p>
                       </div>
-                      <p className="text-white font-medium">{card.name}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                      <div>
+                        <p className="text-[10px] text-muted-foreground">Vencimento</p>
+                        <p className="text-xs font-medium">Todo dia {card.dueDay}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Card Details */}
-                <div className="glass rounded-xl p-5 mt-4 border border-border/50">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="font-semibold">{card.name}</h3>
-                      <p className="text-xs text-muted-foreground">{card.person} • {card.account}</p>
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-popover border-border">
-                        <DropdownMenuItem 
-                          className="gap-2 cursor-pointer"
-                          onClick={() => navigate(`/cartoes/${card.id}/fatura`)}
-                        >
-                          <FileText className="w-4 h-4" />
-                          Detalhes da fatura
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-border" />
-                        <DropdownMenuItem 
-                          className="gap-2 cursor-pointer"
-                          onClick={() => openEditDialog(card)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2 cursor-pointer text-warning">
-                          <Archive className="w-4 h-4" />
-                          Arquivar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  {/* Limit Progress */}
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-destructive">Usado: {formatCurrency(card.used)}</span>
-                      <span className="text-success">Disponível: {formatCurrency(available)}</span>
-                    </div>
-                    <Progress 
-                      value={usedPercentage} 
-                      className="h-2 bg-muted"
-                    />
-                    <p className="text-xs text-muted-foreground mt-2 text-center">
-                      Limite total: {formatCurrency(card.limit)}
-                    </p>
-                  </div>
-
-                  {/* Dates */}
-                  <div className="flex gap-4 pt-4 border-t border-border/50">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Fecha dia</span>
-                      <span className="font-medium">{card.closingDay}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Vence dia</span>
-                      <span className="font-medium">{card.dueDay}</span>
-                    </div>
+                {/* Footer Actions */}
+                <div className="px-4 py-3 bg-muted/20 border-t border-border/40 flex items-center justify-between">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs gap-1.5 text-muted-foreground hover:text-foreground h-8"
+                    onClick={() => navigate(`/cartoes/${card.id}/fatura`)}
+                  >
+                    Detalhes da fatura
+                    <span className="text-lg leading-none">→</span>
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => openEditDialog(card)}
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                      <Archive className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                 </div>
               </div>
