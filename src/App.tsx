@@ -7,6 +7,7 @@ import { PeriodProvider } from "./contexts/PeriodContext";
 import Index from "./pages/Index";
 import Reports from "./pages/Reports";
 import Categories from "./pages/Categories";
+import CategoryReport from "./pages/CategoryReport";
 import BankAccounts from "./pages/BankAccounts";
 import CreditCards from "./pages/CreditCards";
 import Settings from "./pages/Settings";
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/relatorios" element={<Reports />} />
             <Route path="/categorias" element={<Categories />} />
+            <Route path="/categorias/:id/relatorio" element={<CategoryReport />} />
             <Route path="/contas" element={<BankAccounts />} />
             <Route path="/cartoes" element={<CreditCards />} />
             <Route path="/configuracoes" element={<Settings />} />
