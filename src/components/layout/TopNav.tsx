@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import logoIcon from "@/assets/logo-icon.png";
+
 
 const navItems = [
   { path: "/", label: "Planea tus finanzas", icon: Home },
@@ -45,11 +45,9 @@ export function TopNav() {
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <img 
-              src={logoIcon} 
-              alt="MiBolsillo" 
-              className="w-8 h-8 transition-transform group-hover:scale-105"
-            />
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
+              <span className="text-white font-bold text-sm">MB</span>
+            </div>
           </Link>
 
           {/* Navigation */}
