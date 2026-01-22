@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
-  LayoutDashboard, 
+  Home, 
   BarChart3, 
   Tags, 
   Building2, 
@@ -9,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { path: "/", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/", label: "Inicio", icon: Home },
   { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { path: "/categorias", label: "Categorias", icon: Tags },
   { path: "/contas", label: "Contas", icon: Building2 },

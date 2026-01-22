@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
-  LayoutDashboard, 
+  Home, 
   BarChart3, 
   Tags, 
   Building2, 
@@ -22,7 +22,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navItems = [
-  { path: "/", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/", label: "Planea tus finanzas", icon: Home },
   { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
   { path: "/categorias", label: "Categorias", icon: Tags },
   { path: "/contas", label: "Contas bancárias", icon: Building2 },
@@ -45,11 +45,8 @@ export function TopNav() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center transition-transform group-hover:scale-105">
-              <span className="text-white font-bold text-sm">₽</span>
+              <Home className="w-4 h-4 text-white" />
             </div>
-            <span className="font-semibold text-white hidden sm:block">
-              Planeje sua grana
-            </span>
           </Link>
 
           {/* Navigation */}
