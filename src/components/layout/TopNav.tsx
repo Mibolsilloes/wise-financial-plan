@@ -39,15 +39,15 @@ export function TopNav() {
   });
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-lg">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-glow-primary transition-transform group-hover:scale-105">
-              <span className="text-primary-foreground font-bold text-sm">₽</span>
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center transition-transform group-hover:scale-105">
+              <span className="text-white font-bold text-sm">₽</span>
             </div>
-            <span className="font-semibold text-foreground hidden sm:block">
+            <span className="font-semibold text-white hidden sm:block">
               Planeje sua grana
             </span>
           </Link>
@@ -63,12 +63,12 @@ export function TopNav() {
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                     isActive
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                      ? "bg-white/20 text-white"
+                      : "text-white/70 hover:text-white hover:bg-white/10"
                   )}
                 >
                   <item.icon className="w-4 h-4" />
-                  <span className="hidden xl:block">{item.label}</span>
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
@@ -77,21 +77,21 @@ export function TopNav() {
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary/50 transition-colors">
-                <Avatar className="w-8 h-8 border-2 border-primary/30">
+              <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors">
+                <Avatar className="w-8 h-8 border-2 border-white/30">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
+                  <AvatarFallback className="bg-white/20 text-white text-xs font-semibold">
                     {user.name.split(" ").map(n => n[0]).join("")}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-foreground">{user.name}</p>
+                  <p className="text-sm font-medium text-white">{user.name}</p>
                   <div className="flex items-center gap-1">
-                    <Crown className="w-3 h-3 text-warning" />
-                    <span className="text-xs text-warning">{user.plan}</span>
+                    <Crown className="w-3 h-3 text-yellow-300" />
+                    <span className="text-xs text-yellow-300">{user.plan}</span>
                   </div>
                 </div>
-                <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
+                <ChevronDown className="w-4 h-4 text-white/70 hidden sm:block" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-popover border-border">
