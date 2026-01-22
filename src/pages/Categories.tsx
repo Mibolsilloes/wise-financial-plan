@@ -109,21 +109,21 @@ const hexToHsl = (hex: string): string => {
 };
 
 const categoryIcons: Record<string, React.ElementType> = {
-  "Alimentação": Utensils,
+  "Alimentación": Utensils,
   "Transporte": Car,
-  "Casa": Home,
-  "Mercado": ShoppingCart,
-  "Salário": Briefcase,
-  "Saúde": Heart,
-  "Lazer": Gamepad2,
-  "Educação": GraduationCap,
-  "Vestuário": Shirt,
-  "Viagem": Plane,
-  "Pets": PawPrint,
-  "Doações": Gift,
-  "Assinatura": Tv,
-  "Utilidades": Wrench,
-  "Outros": Wallet,
+  "Hogar": Home,
+  "Supermercado": ShoppingCart,
+  "Salario": Briefcase,
+  "Salud": Heart,
+  "Ocio": Gamepad2,
+  "Educación": GraduationCap,
+  "Ropa": Shirt,
+  "Viajes": Plane,
+  "Mascotas": PawPrint,
+  "Donaciones": Gift,
+  "Suscripciones": Tv,
+  "Servicios": Wrench,
+  "Otros": Wallet,
 };
 
 const colorPalette = [
@@ -142,24 +142,24 @@ const colorPalette = [
 ];
 
 const defaultCategories = [
-  { id: 1, name: "Alimentação", color: "hsl(25, 95%, 53%)", subcategories: 3, total: 1250.00, type: "despesa", keywords: ["restaurante", "lanche"] },
-  { id: 2, name: "Transporte", color: "hsl(217, 91%, 60%)", subcategories: 2, total: 450.00, type: "despesa", keywords: ["uber", "gasolina"] },
-  { id: 3, name: "Casa", color: "hsl(340, 82%, 52%)", subcategories: 4, total: 2100.00, type: "despesa", keywords: ["aluguel", "luz"] },
-  { id: 4, name: "Mercado", color: "hsl(45, 93%, 47%)", subcategories: 0, total: 680.00, type: "despesa", keywords: [] },
-  { id: 5, name: "Salário", color: "hsl(160, 84%, 39%)", subcategories: 2, total: 9700.00, type: "receita", keywords: ["pagamento"] },
-  { id: 6, name: "Saúde", color: "hsl(280, 65%, 60%)", subcategories: 3, total: 520.00, type: "despesa", keywords: ["farmácia", "consulta"] },
-  { id: 7, name: "Lazer", color: "hsl(199, 89%, 48%)", subcategories: 5, total: 380.00, type: "despesa", keywords: ["cinema", "jogos"] },
-  { id: 8, name: "Educação", color: "hsl(142, 76%, 36%)", subcategories: 2, total: 850.00, type: "despesa", keywords: ["curso", "livros"] },
-  { id: 9, name: "Vestuário", color: "hsl(330, 81%, 60%)", subcategories: 0, total: 320.00, type: "despesa", keywords: [] },
-  { id: 10, name: "Viagem", color: "hsl(199, 89%, 48%)", subcategories: 1, total: 0.00, type: "despesa", keywords: [] },
-  { id: 11, name: "Pets", color: "hsl(35, 91%, 58%)", subcategories: 2, total: 180.00, type: "despesa", keywords: ["ração", "veterinário"] },
-  { id: 12, name: "Doações", color: "hsl(172, 66%, 50%)", subcategories: 0, total: 100.00, type: "despesa", keywords: [] },
+  { id: 1, name: "Alimentación", color: "hsl(25, 95%, 53%)", subcategories: 3, total: 1250.00, type: "gasto", keywords: ["restaurante", "comida"] },
+  { id: 2, name: "Transporte", color: "hsl(217, 91%, 60%)", subcategories: 2, total: 450.00, type: "gasto", keywords: ["uber", "gasolina"] },
+  { id: 3, name: "Hogar", color: "hsl(340, 82%, 52%)", subcategories: 4, total: 2100.00, type: "gasto", keywords: ["alquiler", "luz"] },
+  { id: 4, name: "Supermercado", color: "hsl(45, 93%, 47%)", subcategories: 0, total: 680.00, type: "gasto", keywords: [] },
+  { id: 5, name: "Salario", color: "hsl(160, 84%, 39%)", subcategories: 2, total: 9700.00, type: "ingreso", keywords: ["nómina"] },
+  { id: 6, name: "Salud", color: "hsl(280, 65%, 60%)", subcategories: 3, total: 520.00, type: "gasto", keywords: ["farmacia", "consulta"] },
+  { id: 7, name: "Ocio", color: "hsl(199, 89%, 48%)", subcategories: 5, total: 380.00, type: "gasto", keywords: ["cine", "juegos"] },
+  { id: 8, name: "Educación", color: "hsl(142, 76%, 36%)", subcategories: 2, total: 850.00, type: "gasto", keywords: ["curso", "libros"] },
+  { id: 9, name: "Ropa", color: "hsl(330, 81%, 60%)", subcategories: 0, total: 320.00, type: "gasto", keywords: [] },
+  { id: 10, name: "Viajes", color: "hsl(199, 89%, 48%)", subcategories: 1, total: 0.00, type: "gasto", keywords: [] },
+  { id: 11, name: "Mascotas", color: "hsl(35, 91%, 58%)", subcategories: 2, total: 180.00, type: "gasto", keywords: ["pienso", "veterinario"] },
+  { id: 12, name: "Donaciones", color: "hsl(172, 66%, 50%)", subcategories: 0, total: 100.00, type: "gasto", keywords: [] },
 ];
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("pt-BR", {
+  return new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "BRL",
+    currency: "EUR",
   }).format(value);
 };
 
@@ -222,29 +222,29 @@ export default function Categories() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Categorias</h1>
+            <h1 className="text-2xl font-bold">Categorías</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Organize suas transações por categorias
+              Organiza tus transacciones por categorías
             </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2 bg-primary hover:bg-primary/90 shadow-glow-primary">
                 <Plus className="w-4 h-4" />
-                Nova categoria
+                Nueva categoría
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-card border-border">
               <DialogHeader>
-                <DialogTitle>Criar nova categoria</DialogTitle>
+                <DialogTitle>Crear nueva categoría</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div>
-                  <Label htmlFor="name">Nome da categoria</Label>
-                  <Input id="name" placeholder="Ex: Investimentos" className="mt-1.5" />
+                  <Label htmlFor="name">Nombre de la categoría</Label>
+                  <Input id="name" placeholder="Ej: Inversiones" className="mt-1.5" />
                 </div>
                 <div>
-                  <Label htmlFor="color">Cor</Label>
+                  <Label htmlFor="color">Color</Label>
                   <div className="flex gap-2 mt-1.5">
                     {["hsl(340, 82%, 52%)", "hsl(25, 95%, 53%)", "hsl(45, 93%, 47%)", "hsl(160, 84%, 39%)", "hsl(217, 91%, 60%)", "hsl(280, 65%, 60%)"].map((color) => (
                       <button
@@ -256,10 +256,10 @@ export default function Categories() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="description">Descrição (opcional)</Label>
-                  <Textarea id="description" placeholder="Descreva esta categoria..." className="mt-1.5" />
+                  <Label htmlFor="description">Descripción (opcional)</Label>
+                  <Textarea id="description" placeholder="Describe esta categoría..." className="mt-1.5" />
                 </div>
-                <Button className="w-full">Criar categoria</Button>
+                <Button className="w-full">Crear categoría</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -269,7 +269,7 @@ export default function Categories() {
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar categorias..."
+            placeholder="Buscar categorías..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -280,7 +280,7 @@ export default function Categories() {
         <div className="space-y-3">
           {filteredCategories.map((category, index) => {
             const Icon = categoryIcons[category.name] || Wallet;
-            const isIncome = category.type === "receita";
+            const isIncome = category.type === "ingreso";
             
             return (
               <div
@@ -318,13 +318,13 @@ export default function Categories() {
                                   : "bg-destructive/10 text-destructive border-destructive/20"
                               )}
                             >
-                              {isIncome ? "Receita" : "Despesa"}
+                              {isIncome ? "Ingreso" : "Gasto"}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-3 mt-1">
                             {category.subcategories > 0 && (
                               <span className="text-xs text-muted-foreground">
-                                {category.subcategories} subcategorias
+                                {category.subcategories} subcategorías
                               </span>
                             )}
                             <span className={cn(
@@ -350,7 +350,7 @@ export default function Categories() {
                           onClick={() => navigate(`/categorias/${category.id}/relatorio`)}
                         >
                           <FileBarChart className="w-4 h-4" />
-                          Relatórios
+                          Informes
                         </Button>
                         <Button 
                           variant="ghost" 
@@ -378,7 +378,7 @@ export default function Categories() {
 
         {filteredCategories.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            <p>Nenhuma categoria encontrada</p>
+            <p>No se encontraron categorías</p>
           </div>
         )}
 
@@ -386,12 +386,12 @@ export default function Categories() {
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="bg-card border-border max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-lg font-semibold">Editar Categoria</DialogTitle>
+              <DialogTitle className="text-lg font-semibold">Editar Categoría</DialogTitle>
             </DialogHeader>
             <div className="space-y-5 pt-2">
               {/* Category Name */}
               <div className="space-y-2">
-                <Label className="text-sm text-muted-foreground">Nome da Categoria</Label>
+                <Label className="text-sm text-muted-foreground">Nombre de la Categoría</Label>
                 <Input 
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
@@ -405,7 +405,7 @@ export default function Categories() {
 
               {/* Color Picker */}
               <div className="space-y-3">
-                <Label className="text-sm text-muted-foreground">Cor da Categoria</Label>
+                <Label className="text-sm text-muted-foreground">Color de la Categoría</Label>
                 <div className="flex flex-wrap gap-2">
                   {colorPalette.map((color) => (
                     <button
@@ -479,7 +479,7 @@ export default function Categories() {
 
               {/* Keywords */}
               <div className="space-y-3">
-                <Label className="text-sm text-muted-foreground">Palavras para identificar a categoria</Label>
+                <Label className="text-sm text-muted-foreground">Palabras para identificar la categoría</Label>
                 
                 {/* Keywords Tags */}
                 {editKeywords.length > 0 && (
@@ -508,7 +508,7 @@ export default function Categories() {
                     value={newKeyword}
                     onChange={(e) => setNewKeyword(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddKeyword())}
-                    placeholder="Adicionar palavra-chave"
+                    placeholder="Añadir palabra clave"
                     className="flex-1"
                   />
                   <Button 
@@ -516,7 +516,7 @@ export default function Categories() {
                     onClick={handleAddKeyword}
                     className="bg-success hover:bg-success/90 text-success-foreground px-4"
                   >
-                    Adicionar
+                    Añadir
                   </Button>
                 </div>
               </div>
@@ -526,7 +526,7 @@ export default function Categories() {
                 onClick={handleSaveEdit}
                 className="w-full bg-success hover:bg-success/90 text-success-foreground font-medium py-5"
               >
-                Salvar Alterações
+                Guardar Cambios
               </Button>
             </div>
           </DialogContent>

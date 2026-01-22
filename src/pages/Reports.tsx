@@ -75,52 +75,52 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { es } from "date-fns/locale";
 import { FilterPopover } from "@/components/dashboard/FilterPopover";
 import { AddRevenueDialog } from "@/components/dashboard/AddRevenueDialog";
 import { AddExpenseDialog } from "@/components/dashboard/AddExpenseDialog";
 import { usePeriod, PeriodType } from "@/contexts/PeriodContext";
 
 const expenseData = [
-  { name: "Casa", value: 1800, color: "hsl(340, 82%, 52%)" },
-  { name: "Mercado", value: 650, color: "hsl(25, 95%, 53%)" },
+  { name: "Hogar", value: 1800, color: "hsl(340, 82%, 52%)" },
+  { name: "Supermercado", value: 650, color: "hsl(25, 95%, 53%)" },
   { name: "Transporte", value: 320, color: "hsl(45, 93%, 47%)" },
-  { name: "Saúde", value: 450, color: "hsl(160, 84%, 39%)" },
-  { name: "Lazer", value: 280, color: "hsl(217, 91%, 60%)" },
+  { name: "Salud", value: 450, color: "hsl(160, 84%, 39%)" },
+  { name: "Ocio", value: 280, color: "hsl(217, 91%, 60%)" },
 ];
 
 const incomeData = [
-  { name: "Salário", value: 8500, color: "hsl(160, 84%, 39%)" },
+  { name: "Salario", value: 8500, color: "hsl(160, 84%, 39%)" },
   { name: "Freelance", value: 1200, color: "hsl(160, 84%, 50%)" },
-  { name: "Investimentos", value: 350, color: "hsl(160, 84%, 60%)" },
+  { name: "Inversiones", value: 350, color: "hsl(160, 84%, 60%)" },
 ];
 
 const frequencyDataMonthly = [
-  { period: "Jan", receitas: 8500, despesas: 4200 },
-  { period: "Fev", receitas: 8500, despesas: 3800 },
-  { period: "Mar", receitas: 9200, despesas: 4500 },
-  { period: "Abr", receitas: 8500, despesas: 4100 },
-  { period: "Mai", receitas: 10000, despesas: 5200 },
-  { period: "Jun", receitas: 8500, despesas: 3900 },
-  { period: "Jul", receitas: 8800, despesas: 4300 },
-  { period: "Ago", receitas: 8500, despesas: 4000 },
-  { period: "Set", receitas: 9500, despesas: 4800 },
-  { period: "Out", receitas: 8500, despesas: 3700 },
-  { period: "Nov", receitas: 8500, despesas: 4600 },
-  { period: "Dez", receitas: 9700, despesas: 4230 },
+  { period: "Ene", ingresos: 8500, gastos: 4200 },
+  { period: "Feb", ingresos: 8500, gastos: 3800 },
+  { period: "Mar", ingresos: 9200, gastos: 4500 },
+  { period: "Abr", ingresos: 8500, gastos: 4100 },
+  { period: "May", ingresos: 10000, gastos: 5200 },
+  { period: "Jun", ingresos: 8500, gastos: 3900 },
+  { period: "Jul", ingresos: 8800, gastos: 4300 },
+  { period: "Ago", ingresos: 8500, gastos: 4000 },
+  { period: "Sep", ingresos: 9500, gastos: 4800 },
+  { period: "Oct", ingresos: 8500, gastos: 3700 },
+  { period: "Nov", ingresos: 8500, gastos: 4600 },
+  { period: "Dic", ingresos: 9700, gastos: 4230 },
 ];
 
 const frequencyDataDaily = [
-  { period: "01", receitas: 280, despesas: 150 },
-  { period: "05", receitas: 350, despesas: 220 },
-  { period: "10", receitas: 8500, despesas: 180 },
-  { period: "15", receitas: 120, despesas: 450 },
-  { period: "20", receitas: 200, despesas: 280 },
-  { period: "25", receitas: 180, despesas: 320 },
-  { period: "30", receitas: 150, despesas: 200 },
+  { period: "01", ingresos: 280, gastos: 150 },
+  { period: "05", ingresos: 350, gastos: 220 },
+  { period: "10", ingresos: 8500, gastos: 180 },
+  { period: "15", ingresos: 120, gastos: 450 },
+  { period: "20", ingresos: 200, gastos: 280 },
+  { period: "25", ingresos: 180, gastos: 320 },
+  { period: "30", ingresos: 150, gastos: 200 },
 ];
 
-const monthAbbreviations = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const monthAbbreviations = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
 // Get days in month
 const getDaysInMonth = (month: number, year: number) => {
@@ -140,24 +140,24 @@ const getCashFlowData = (period: string, currentMonth: number, currentYear: numb
   switch (period) {
     case "today":
       return [
-        { period: "00:00", receitas: 0, despesas: 0, saldo: 0 },
-        { period: "06:00", receitas: 150, despesas: 80, saldo: 70 },
-        { period: "12:00", receitas: 320, despesas: 150, saldo: 170 },
-        { period: "18:00", receitas: 180, despesas: 220, saldo: -40 },
-        { period: "23:59", receitas: 100, despesas: 50, saldo: 50 },
+        { period: "00:00", ingresos: 0, gastos: 0, saldo: 0 },
+        { period: "06:00", ingresos: 150, gastos: 80, saldo: 70 },
+        { period: "12:00", ingresos: 320, gastos: 150, saldo: 170 },
+        { period: "18:00", ingresos: 180, gastos: 220, saldo: -40 },
+        { period: "23:59", ingresos: 100, gastos: 50, saldo: 50 },
       ];
     case "7days": {
       // Generate last 7 days ending on the 15th of current month (simulating current day)
       const days = [];
       for (let i = 6; i >= 0; i--) {
         const day = Math.max(1, 15 - i); // Simulating days ending on 15th
-        const receitas = generateValue(day, 1100, 400);
-        const despesas = generateValue(day, 700, 300);
+        const ingresos = generateValue(day, 1100, 400);
+        const gastos = generateValue(day, 700, 300);
         days.push({
           period: `${day} ${monthAbbr}`,
-          receitas,
-          despesas,
-          saldo: receitas - despesas,
+          ingresos,
+          gastos,
+          saldo: ingresos - gastos,
         });
       }
       return days;
@@ -166,24 +166,24 @@ const getCashFlowData = (period: string, currentMonth: number, currentYear: numb
       // Generate data points every 2 days for the month
       const days = [];
       for (let day = 2; day <= daysInMonth; day += 2) {
-        const receitas = generateValue(day, 2200, 600);
-        const despesas = generateValue(day, 1500, 400);
+        const ingresos = generateValue(day, 2200, 600);
+        const gastos = generateValue(day, 1500, 400);
         days.push({
           period: `${day} ${monthAbbr}`,
-          receitas,
-          despesas,
-          saldo: receitas - despesas,
+          ingresos,
+          gastos,
+          saldo: ingresos - gastos,
         });
       }
       // Add last day if not already included
       if (daysInMonth % 2 !== 0) {
-        const receitas = generateValue(daysInMonth, 2200, 600);
-        const despesas = generateValue(daysInMonth, 1500, 400);
+        const ingresos = generateValue(daysInMonth, 2200, 600);
+        const gastos = generateValue(daysInMonth, 1500, 400);
         days.push({
           period: `${daysInMonth} ${monthAbbr}`,
-          receitas,
-          despesas,
-          saldo: receitas - despesas,
+          ingresos,
+          gastos,
+          saldo: ingresos - gastos,
         });
       }
       return days;
@@ -191,13 +191,13 @@ const getCashFlowData = (period: string, currentMonth: number, currentYear: numb
     case "year":
     default:
       return monthAbbreviations.map((abbr, idx) => {
-        const receitas = generateValue(idx + 1, 8800, 1200);
-        const despesas = generateValue(idx + 1, 4400, 600);
+        const ingresos = generateValue(idx + 1, 8800, 1200);
+        const gastos = generateValue(idx + 1, 4400, 600);
         return {
           period: abbr,
-          receitas,
-          despesas,
-          saldo: receitas - despesas,
+          ingresos,
+          gastos,
+          saldo: ingresos - gastos,
         };
       });
   }
@@ -205,15 +205,15 @@ const getCashFlowData = (period: string, currentMonth: number, currentYear: numb
 
 const chartTypes = [
   { id: "area", label: "Área" },
-  { id: "line", label: "Linha" },
-  { id: "bar", label: "Coluna" },
-  { id: "stacked", label: "Coluna empilhada" },
+  { id: "line", label: "Línea" },
+  { id: "bar", label: "Columna" },
+  { id: "stacked", label: "Columna apilada" },
 ];
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("pt-BR", {
+  return new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "BRL",
+    currency: "EUR",
   }).format(value);
 };
 
@@ -234,20 +234,20 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const months = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
 const tableColumns = [
-  "Responsável", "Descrição", "Valor", "Categoria", "Cartão", 
-  "Vencimento", "Competência", "Pagamento", "Fixo/Variável", "Ação"
+  "Responsable", "Descripción", "Importe", "Categoría", "Tarjeta", 
+  "Vencimiento", "Aplicación", "Pago", "Fijo/Variable", "Acción"
 ];
 
 const periodButtons: { id: PeriodType; label: string }[] = [
-  { id: "today", label: "Hoje" },
-  { id: "7days", label: "7 dias atrás" },
-  { id: "month", label: "Esse mês" },
-  { id: "year", label: "Esse ano" },
+  { id: "today", label: "Hoy" },
+  { id: "7days", label: "Últimos 7 días" },
+  { id: "month", label: "Este mes" },
+  { id: "year", label: "Este año" },
 ];
 
 export default function Reports() {
@@ -333,8 +333,8 @@ export default function Reports() {
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Line type="monotone" dataKey="receitas" stroke="hsl(160, 84%, 39%)" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="despesas" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="ingresos" name="Ingresos" stroke="hsl(160, 84%, 39%)" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="gastos" name="Gastos" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={false} />
           </LineChart>
         );
       case "bar":
@@ -345,8 +345,8 @@ export default function Reports() {
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Bar dataKey="receitas" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="despesas" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="ingresos" name="Ingresos" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="gastos" name="Gastos" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
           </BarChart>
         );
       case "stacked":
@@ -357,19 +357,19 @@ export default function Reports() {
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Bar dataKey="receitas" stackId="a" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="despesas" stackId="a" fill="hsl(0, 84%, 60%)" radius={[0, 0, 0, 0]} />
+            <Bar dataKey="ingresos" name="Ingresos" stackId="a" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="gastos" name="Gastos" stackId="a" fill="hsl(0, 84%, 60%)" radius={[0, 0, 0, 0]} />
           </BarChart>
         );
       default:
         return (
           <AreaChart {...commonProps}>
             <defs>
-              <linearGradient id="colorReceitas" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0.3}/>
                 <stop offset="95%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0}/>
               </linearGradient>
-              <linearGradient id="colorDespesas" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="colorGastos" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.3}/>
                 <stop offset="95%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0}/>
               </linearGradient>
@@ -379,14 +379,14 @@ export default function Reports() {
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Area type="monotone" dataKey="receitas" stroke="hsl(160, 84%, 39%)" fillOpacity={1} fill="url(#colorReceitas)" />
-            <Area type="monotone" dataKey="despesas" stroke="hsl(0, 84%, 60%)" fillOpacity={1} fill="url(#colorDespesas)" />
+            <Area type="monotone" dataKey="ingresos" name="Ingresos" stroke="hsl(160, 84%, 39%)" fillOpacity={1} fill="url(#colorIngresos)" />
+            <Area type="monotone" dataKey="gastos" name="Gastos" stroke="hsl(0, 84%, 60%)" fillOpacity={1} fill="url(#colorGastos)" />
           </AreaChart>
         );
     }
   };
 
-  const renderPendingTransactionsTable = (type: "receitas" | "despesas") => (
+  const renderPendingTransactionsTable = (type: "ingresos" | "gastos") => (
     <div className="space-y-4">
       {/* Controls Row - Dashboard style */}
       <div className="flex flex-col lg:flex-row gap-3">
@@ -397,13 +397,13 @@ export default function Reports() {
           
           <Select defaultValue="none">
             <SelectTrigger className="w-[160px] h-9">
-              <SelectValue placeholder="Sem agrupamento" />
+              <SelectValue placeholder="Sin agrupar" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">Sem agrupamento</SelectItem>
-              <SelectItem value="category">Categoria</SelectItem>
-              <SelectItem value="date">Data de vencimento</SelectItem>
-              <SelectItem value="responsible">Responsável</SelectItem>
+              <SelectItem value="none">Sin agrupar</SelectItem>
+              <SelectItem value="category">Categoría</SelectItem>
+              <SelectItem value="date">Fecha de vencimiento</SelectItem>
+              <SelectItem value="responsible">Responsable</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -411,20 +411,20 @@ export default function Reports() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder={type === "receitas" ? "Buscar receitas..." : "Buscar despesas..."}
+            placeholder={type === "ingresos" ? "Buscar ingresos..." : "Buscar gastos..."}
             className="pl-10 h-9"
           />
         </div>
 
         <div className="flex items-center gap-2 lg:ml-auto">
-          <Select defaultValue="vencimento">
+          <Select defaultValue="vencimiento">
             <SelectTrigger className="w-[160px] h-9">
-              <SelectValue placeholder="Data de Vencimento" />
+              <SelectValue placeholder="Fecha de vencimiento" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="vencimento">Data de Vencimento</SelectItem>
-              <SelectItem value="competencia">Data de Competência</SelectItem>
-              <SelectItem value="pagamento">Data de Pagamento</SelectItem>
+              <SelectItem value="vencimiento">Fecha de vencimiento</SelectItem>
+              <SelectItem value="aplicacion">Fecha de aplicación</SelectItem>
+              <SelectItem value="pago">Fecha de pago</SelectItem>
             </SelectContent>
           </Select>
 
@@ -460,10 +460,10 @@ export default function Reports() {
                     <FileText className="w-8 h-8 text-muted-foreground" />
                   </div>
                   <p className="text-muted-foreground font-medium">
-                    Nenhum lançamento encontrado
+                    No se encontraron movimientos
                   </p>
                   <p className="text-sm text-muted-foreground/70 mt-1">
-                    {type === "receitas" ? "Adicione uma receita para começar" : "Adicione uma despesa para começar"}
+                    {type === "ingresos" ? "Añade un ingreso para comenzar" : "Añade un gasto para comenzar"}
                   </p>
                 </div>
               </TableCell>
@@ -493,10 +493,10 @@ export default function Reports() {
 
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled>
-            Voltar
+            Anterior
           </Button>
           <Button variant="outline" size="sm" disabled>
-            Próximo
+            Siguiente
           </Button>
         </div>
       </div>
@@ -519,13 +519,13 @@ export default function Reports() {
               value="lancamentos" 
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-0 pb-3 text-sm font-medium"
             >
-              Lançamentos pendentes
+              Movimientos pendientes
             </TabsTrigger>
             <TabsTrigger 
               value="fluxo" 
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-0 pb-3 text-sm font-medium"
             >
-              Fluxo de caixa
+              Flujo de caja
             </TabsTrigger>
           </TabsList>
 
@@ -536,7 +536,7 @@ export default function Reports() {
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
                   <Settings2 className="h-4 w-4" />
-                  <span className="text-sm">Gerenciar gráficos</span>
+                  <span className="text-sm">Gestionar gráficos</span>
                   <ChevronDown className="h-4 w-4 transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
                 </Button>
               </CollapsibleTrigger>
@@ -544,13 +544,13 @@ export default function Reports() {
                 <div className="glass rounded-xl p-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {[
-                      { key: "expenses", label: "Pizza - despesas" },
-                      { key: "income", label: "Pizza - receitas" },
-                      { key: "frequency", label: "Frequência receitas x despesas" },
-                      { key: "expensesPaid", label: "Pizza - despesas pagas" },
-                      { key: "expensesUnpaid", label: "Pizza - despesas não pagas" },
-                      { key: "incomePaid", label: "Pizza - receitas pagas" },
-                      { key: "incomeUnpaid", label: "Pizza - receitas não pagas" },
+                      { key: "expenses", label: "Tarta - gastos" },
+                      { key: "income", label: "Tarta - ingresos" },
+                      { key: "frequency", label: "Frecuencia ingresos x gastos" },
+                      { key: "expensesPaid", label: "Tarta - gastos pagados" },
+                      { key: "expensesUnpaid", label: "Tarta - gastos no pagados" },
+                      { key: "incomePaid", label: "Tarta - ingresos cobrados" },
+                      { key: "incomeUnpaid", label: "Tarta - ingresos no cobrados" },
                     ].map((chart) => (
                       <div key={chart.key} className="flex items-center space-x-2">
                         <Switch
@@ -574,8 +574,8 @@ export default function Reports() {
               {/* Expenses Pie */}
               {charts.expenses && (
                 <div className="glass rounded-xl p-5 animate-scale-in">
-                  <h3 className="text-lg font-semibold mb-2">Despesas por categoria</h3>
-                  <p className="text-xs text-muted-foreground mb-4">Dezembro 2024</p>
+                  <h3 className="text-lg font-semibold mb-2">Gastos por categoría</h3>
+                  <p className="text-xs text-muted-foreground mb-4">Diciembre 2024</p>
                   <div className="h-[200px] relative">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -618,8 +618,8 @@ export default function Reports() {
               {/* Income Pie */}
               {charts.income && (
                 <div className="glass rounded-xl p-5 animate-scale-in" style={{ animationDelay: "100ms" }}>
-                  <h3 className="text-lg font-semibold mb-2">Receitas por categoria</h3>
-                  <p className="text-xs text-muted-foreground mb-4">Dezembro 2024</p>
+                  <h3 className="text-lg font-semibold mb-2">Ingresos por categoría</h3>
+                  <p className="text-xs text-muted-foreground mb-4">Diciembre 2024</p>
                   <div className="h-[200px] relative">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -664,11 +664,11 @@ export default function Reports() {
                 <div className="glass rounded-xl p-5 lg:col-span-1 animate-scale-in" style={{ animationDelay: "200ms" }}>
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-lg font-semibold">Frequência</h3>
-                      <p className="text-xs text-muted-foreground">Receitas x Despesas</p>
+                      <h3 className="text-lg font-semibold">Frecuencia</h3>
+                      <p className="text-xs text-muted-foreground">Ingresos x Gastos</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      {/* Period Toggle - Diário / Mensal */}
+                      {/* Period Toggle - Diario / Mensual */}
                       <div className="flex items-center bg-muted rounded-lg p-0.5">
                         <Button
                           variant="ghost"
@@ -681,7 +681,7 @@ export default function Reports() {
                               : "text-muted-foreground hover:text-foreground"
                           )}
                         >
-                          Diário
+                          Diario
                         </Button>
                         <Button
                           variant="ghost"
@@ -694,7 +694,7 @@ export default function Reports() {
                               : "text-muted-foreground hover:text-foreground"
                           )}
                         >
-                          Mensal
+                          Mensual
                         </Button>
                       </div>
                       <Select value={chartType} onValueChange={setChartType}>
@@ -721,7 +721,7 @@ export default function Reports() {
             </div>
           </TabsContent>
 
-          {/* Lançamentos Pendentes Tab */}
+          {/* Movimientos Pendientes Tab */}
           <TabsContent value="lancamentos" className="mt-6 space-y-5">
             {/* Header with Month Navigation and Summary Cards - Dashboard style */}
             <div className="glass rounded-xl p-5 animate-slide-up">
@@ -757,37 +757,37 @@ export default function Reports() {
                     onClick={() => setIsRevenueDialogOpen(true)}
                   >
                     <TrendingUp className="w-4 h-4" />
-                    Receita
+                    Ingreso
                   </Button>
                   <Button 
                     className="gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                     onClick={() => setIsExpenseDialogOpen(true)}
                   >
                     <TrendingDown className="w-4 h-4" />
-                    Despesa
+                    Gasto
                   </Button>
                 </div>
               </div>
 
               {/* Summary Cards - Standard dashboard style */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                {/* A Receber */}
+                {/* Por Cobrar */}
                 <div className="glass rounded-xl p-4 border border-success/20">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">A Receber</span>
+                    <span className="text-sm text-muted-foreground">Por Cobrar</span>
                     <TrendingUp className="h-4 w-4 text-success" />
                   </div>
-                  <span className="text-2xl font-bold text-success">R$ 0,00</span>
+                  <span className="text-2xl font-bold text-success">€ 0,00</span>
                   <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
                 </div>
 
-                {/* A Pagar */}
+                {/* Por Pagar */}
                 <div className="glass rounded-xl p-4 border border-destructive/20">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">A Pagar</span>
+                    <span className="text-sm text-muted-foreground">Por Pagar</span>
                     <TrendingDown className="h-4 w-4 text-destructive" />
                   </div>
-                  <span className="text-2xl font-bold text-destructive">R$ 0,00</span>
+                  <span className="text-2xl font-bold text-destructive">€ 0,00</span>
                   <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
                 </div>
 
@@ -797,7 +797,7 @@ export default function Reports() {
                     <span className="text-sm text-muted-foreground">Saldo Previsto</span>
                     <Eye className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="text-2xl font-bold text-primary">R$ 0,00</span>
+                  <span className="text-2xl font-bold text-primary">€ 0,00</span>
                   <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
                 </div>
               </div>
@@ -834,14 +834,14 @@ export default function Reports() {
                       selected={dateRange}
                       onSelect={handleDateRangeSelect}
                       numberOfMonths={2}
-                      locale={ptBR}
+                      locale={es}
                       className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
                 <Button variant="ghost" size="sm" className="h-8 gap-2" onClick={clearFilters}>
                   <Trash2 className="h-4 w-4" />
-                  Limpar
+                  Limpiar
                 </Button>
                 <Button variant="ghost" size="sm" className="h-8" onClick={refresh}>
                   <RefreshCw className="h-4 w-4" />
@@ -851,7 +851,7 @@ export default function Reports() {
 
             {/* Transactions Tables - Two columns */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-              {/* Receitas Pendentes */}
+              {/* Ingresos Pendientes */}
               <div className="glass rounded-xl p-5 animate-slide-up">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -859,15 +859,15 @@ export default function Reports() {
                       <TrendingUp className="h-5 w-5 text-success" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">Receitas pendentes</h3>
-                      <p className="text-xs text-muted-foreground">Lançamentos a receber</p>
+                      <h3 className="font-semibold">Ingresos pendientes</h3>
+                      <p className="text-xs text-muted-foreground">Movimientos por cobrar</p>
                     </div>
                   </div>
                 </div>
-                {renderPendingTransactionsTable("receitas")}
+                {renderPendingTransactionsTable("ingresos")}
               </div>
 
-              {/* Despesas Pendentes */}
+              {/* Gastos Pendientes */}
               <div className="glass rounded-xl p-5 animate-slide-up">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -875,12 +875,12 @@ export default function Reports() {
                       <TrendingDown className="h-5 w-5 text-destructive" />
                     </div>
                     <div>
-                      <h3 className="font-semibold">Despesas pendentes</h3>
-                      <p className="text-xs text-muted-foreground">Lançamentos a pagar</p>
+                      <h3 className="font-semibold">Gastos pendientes</h3>
+                      <p className="text-xs text-muted-foreground">Movimientos por pagar</p>
                     </div>
                   </div>
                 </div>
-                {renderPendingTransactionsTable("despesas")}
+                {renderPendingTransactionsTable("gastos")}
               </div>
             </div>
 
@@ -889,7 +889,7 @@ export default function Reports() {
             <AddExpenseDialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen} />
           </TabsContent>
 
-          {/* Fluxo de Caixa Tab */}
+          {/* Flujo de Caja Tab */}
           <TabsContent value="fluxo" className="mt-6 space-y-5">
             {/* Period Selector Bar */}
             <div className="bg-gradient-to-r from-primary/5 via-background to-accent/5 rounded-2xl p-4 border border-border/40 shadow-sm">
@@ -942,14 +942,14 @@ export default function Reports() {
                         selected={dateRange}
                         onSelect={handleDateRangeSelect}
                         numberOfMonths={2}
-                        locale={ptBR}
+                        locale={es}
                       />
                     </PopoverContent>
                   </Popover>
                   
                   <Button variant="ghost" size="sm" className="h-8 px-3 gap-1.5 text-xs rounded-lg" onClick={clearFilters}>
                     <Trash2 className="h-3.5 w-3.5" />
-                    Limpar
+                    Limpiar
                   </Button>
                   <FilterPopover>
                     <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">
@@ -972,8 +972,8 @@ export default function Reports() {
                     <TrendingUp className="h-5 w-5 text-indigo-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Gráfico de frequência Receitas X Despesas</h3>
-                    <p className="text-sm text-muted-foreground">Visualize a frequência de receitas e despesas ao longo do tempo</p>
+                    <h3 className="text-lg font-semibold">Gráfico de frecuencia Ingresos X Gastos</h3>
+                    <p className="text-sm text-muted-foreground">Visualiza la frecuencia de ingresos y gastos a lo largo del tiempo</p>
                   </div>
                 </div>
                 
@@ -1025,8 +1025,8 @@ export default function Reports() {
                               <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
                               <Tooltip content={<CustomTooltip />} />
                               <Legend />
-                              <Line type="monotone" dataKey="receitas" name="Receitas" stroke="hsl(160, 84%, 39%)" strokeWidth={2} dot={false} />
-                              <Line type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="ingresos" name="Ingresos" stroke="hsl(160, 84%, 39%)" strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="gastos" name="Gastos" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={false} />
                               {showSaldo && <Line type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(217, 91%, 60%)" strokeWidth={2} dot={false} />}
                             </LineChart>
                           );
@@ -1038,8 +1038,8 @@ export default function Reports() {
                               <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
                               <Tooltip content={<CustomTooltip />} />
                               <Legend />
-                              <Bar dataKey="receitas" name="Receitas" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
-                              <Bar dataKey="despesas" name="Despesas" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
+                              <Bar dataKey="ingresos" name="Ingresos" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
+                              <Bar dataKey="gastos" name="Gastos" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
                               {showSaldo && <Bar dataKey="saldo" name="Saldo" fill="hsl(217, 91%, 60%)" radius={[4, 4, 0, 0]} />}
                             </BarChart>
                           );
@@ -1051,8 +1051,8 @@ export default function Reports() {
                               <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
                               <Tooltip content={<CustomTooltip />} />
                               <Legend />
-                              <Bar dataKey="receitas" name="Receitas" stackId="a" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
-                              <Bar dataKey="despesas" name="Despesas" stackId="a" fill="hsl(0, 84%, 60%)" />
+                              <Bar dataKey="ingresos" name="Ingresos" stackId="a" fill="hsl(160, 84%, 39%)" radius={[4, 4, 0, 0]} />
+                              <Bar dataKey="gastos" name="Gastos" stackId="a" fill="hsl(0, 84%, 60%)" />
                               {showSaldo && <Bar dataKey="saldo" name="Saldo" fill="hsl(217, 91%, 60%)" />}
                             </BarChart>
                           );
@@ -1060,11 +1060,11 @@ export default function Reports() {
                           return (
                             <AreaChart data={cashFlowData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                               <defs>
-                                <linearGradient id="colorReceitasCF" x1="0" y1="0" x2="0" y2="1">
+                                <linearGradient id="colorIngresosCF" x1="0" y1="0" x2="0" y2="1">
                                   <stop offset="5%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0.3}/>
                                   <stop offset="95%" stopColor="hsl(160, 84%, 39%)" stopOpacity={0}/>
                                 </linearGradient>
-                                <linearGradient id="colorDespesasCF" x1="0" y1="0" x2="0" y2="1">
+                                <linearGradient id="colorGastosCF" x1="0" y1="0" x2="0" y2="1">
                                   <stop offset="5%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.3}/>
                                   <stop offset="95%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0}/>
                                 </linearGradient>
@@ -1078,8 +1078,8 @@ export default function Reports() {
                               <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `${v/1000}k`} />
                               <Tooltip content={<CustomTooltip />} />
                               <Legend />
-                              <Area type="monotone" dataKey="receitas" name="Receitas" stroke="hsl(160, 84%, 39%)" fillOpacity={1} fill="url(#colorReceitasCF)" />
-                              <Area type="monotone" dataKey="despesas" name="Despesas" stroke="hsl(0, 84%, 60%)" fillOpacity={1} fill="url(#colorDespesasCF)" />
+                              <Area type="monotone" dataKey="ingresos" name="Ingresos" stroke="hsl(160, 84%, 39%)" fillOpacity={1} fill="url(#colorIngresosCF)" />
+                              <Area type="monotone" dataKey="gastos" name="Gastos" stroke="hsl(0, 84%, 60%)" fillOpacity={1} fill="url(#colorGastosCF)" />
                               {showSaldo && <Area type="monotone" dataKey="saldo" name="Saldo" stroke="hsl(217, 91%, 60%)" fillOpacity={1} fill="url(#colorSaldoCF)" />}
                             </AreaChart>
                           );
