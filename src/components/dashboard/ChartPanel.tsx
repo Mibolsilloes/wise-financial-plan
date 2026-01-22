@@ -6,12 +6,12 @@ import { usePeriod } from "@/contexts/PeriodContext";
 
 const chartTabs = [
   { id: "all", label: "Todas" },
-  { id: "receitas", label: "Receitas" },
-  { id: "despesas", label: "Despesas" },
-  { id: "despesas-nao-pagas", label: "Despesas Não Pagas" },
-  { id: "despesas-pagas", label: "Despesas Pagas" },
-  { id: "receitas-nao-pagas", label: "Receitas Não Pagas" },
-  { id: "receitas-pagas", label: "Receitas Pagas" },
+  { id: "ingresos", label: "Ingresos" },
+  { id: "gastos", label: "Gastos" },
+  { id: "gastos-no-pagados", label: "Gastos No Pagados" },
+  { id: "gastos-pagados", label: "Gastos Pagados" },
+  { id: "ingresos-no-cobrados", label: "Ingresos No Cobrados" },
+  { id: "ingresos-cobrados", label: "Ingresos Cobrados" },
 ];
 
 const sampleData = [
@@ -39,7 +39,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 export function ChartPanel() {
-  const [selectedTab, setSelectedTab] = useState("receitas-pagas");
+  const [selectedTab, setSelectedTab] = useState("ingresos-cobrados");
   const { periodLabel } = usePeriod();
   
   const hasData = false; // Set to true when there's actual data
@@ -52,12 +52,12 @@ export function ChartPanel() {
   };
 
   const getTabLabel = () => {
-    return chartTabs.find(t => t.id === selectedTab)?.label || "Receitas Pagas";
+    return chartTabs.find(t => t.id === selectedTab)?.label || "Ingresos Cobrados";
   };
 
   return (
     <div className="glass rounded-xl p-5 animate-slide-up h-full" style={{ animationDelay: "100ms" }}>
-      {/* Header */}
+      {/* Encabezado */}
       <h2 className="text-lg font-semibold mb-4">Gráficos</h2>
 
       {/* Tabs - Horizontal scrollable */}
@@ -112,15 +112,15 @@ export function ChartPanel() {
               <Flag className="w-10 h-10 text-muted-foreground" />
             </div>
             <p className="text-muted-foreground text-sm">
-              Sem dados para exibir
+              Sin datos para mostrar
             </p>
           </div>
         )}
       </div>
 
-      {/* Details Section */}
+      {/* Sección de Detalles */}
       <div className="mt-4 pt-4 border-t border-border">
-        <h4 className="font-medium text-sm mb-3">Detalhes</h4>
+        <h4 className="font-medium text-sm mb-3">Detalles</h4>
         
         {hasData ? (
           <div className="space-y-2 max-h-[150px] overflow-y-auto">
@@ -142,7 +142,7 @@ export function ChartPanel() {
           </div>
         ) : (
           <p className="text-sm text-muted-foreground text-center py-4">
-            Nenhuma categoria encontrada
+            Ninguna categoría encontrada
           </p>
         )}
       </div>
