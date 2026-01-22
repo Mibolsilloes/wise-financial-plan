@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { es } from "date-fns/locale";
 import { Layout } from "@/components/layout/Layout";
 import { 
   Plus, 
@@ -60,46 +60,46 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 const bankIcons: Record<string, React.ElementType> = {
-  "Nubank": CreditCardIcon,
-  "Itaú": Landmark,
-  "Bradesco": Building2,
-  "Santander": Building2,
-  "Carteira": Wallet,
+  "Santander": Landmark,
+  "BBVA": Building2,
+  "CaixaBank": Building2,
+  "Sabadell": Building2,
+  "Efectivo": Wallet,
 };
 
 const bankColors: Record<string, string> = {
-  "Nubank": "hsl(280, 100%, 50%)",
-  "Itaú": "hsl(25, 95%, 53%)",
-  "Bradesco": "hsl(0, 84%, 60%)",
   "Santander": "hsl(0, 84%, 60%)",
-  "Carteira": "hsl(160, 84%, 39%)",
+  "BBVA": "hsl(217, 91%, 60%)",
+  "CaixaBank": "hsl(199, 89%, 48%)",
+  "Sabadell": "hsl(25, 95%, 53%)",
+  "Efectivo": "hsl(160, 84%, 39%)",
 };
 
 const accounts = [
   { 
     id: 1, 
-    name: "Nubank", 
+    name: "Santander", 
     balance: 5420.50, 
     isDefault: true,
     lastUpdate: "2024-12-20"
   },
   { 
     id: 2, 
-    name: "Itaú", 
+    name: "BBVA", 
     balance: 12350.00, 
     isDefault: false,
     lastUpdate: "2024-12-19"
   },
   { 
     id: 3, 
-    name: "Bradesco", 
+    name: "CaixaBank", 
     balance: 890.25, 
     isDefault: false,
     lastUpdate: "2024-12-18"
   },
   { 
     id: 4, 
-    name: "Carteira", 
+    name: "Efectivo", 
     balance: 150.00, 
     isDefault: false,
     lastUpdate: "2024-12-20"
@@ -107,9 +107,9 @@ const accounts = [
 ];
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("pt-BR", {
+  return new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "BRL",
+    currency: "EUR",
   }).format(value);
 };
 
@@ -143,8 +143,8 @@ function TransferDialog({ sourceAccount, open, onOpenChange }: TransferDialogPro
               <SendHorizontal className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <DialogTitle className="text-lg">Transferir entre contas</DialogTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">Mova dinheiro entre suas contas</p>
+              <DialogTitle className="text-lg">Transferir entre cuentas</DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">Mueve dinero entre tus cuentas</p>
             </div>
           </div>
         </DialogHeader>
@@ -176,10 +176,10 @@ function TransferDialog({ sourceAccount, open, onOpenChange }: TransferDialogPro
 
             {/* Destination Account */}
             <div className="flex-1 p-4 rounded-xl border border-border bg-muted/30">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">Para</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-2">A</p>
               <Select value={destinationAccountId} onValueChange={setDestinationAccountId}>
                 <SelectTrigger className="border-0 bg-transparent p-0 h-auto shadow-none focus:ring-0">
-                  <SelectValue placeholder="Selecionar conta" />
+                  <SelectValue placeholder="Seleccionar cuenta" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
                   {accounts
@@ -213,9 +213,9 @@ function TransferDialog({ sourceAccount, open, onOpenChange }: TransferDialogPro
           <div className="grid grid-cols-2 gap-4">
             {/* Amount */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Valor da transferência</Label>
+              <Label className="text-xs text-muted-foreground">Importe de la transferencia</Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
                 <Input
                   type="text"
                   placeholder="0,00"
@@ -228,7 +228,7 @@ function TransferDialog({ sourceAccount, open, onOpenChange }: TransferDialogPro
 
             {/* Date */}
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Data da transferência</Label>
+              <Label className="text-xs text-muted-foreground">Fecha de la transferencia</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -239,7 +239,7 @@ function TransferDialog({ sourceAccount, open, onOpenChange }: TransferDialogPro
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {transferDate ? format(transferDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+                    {transferDate ? format(transferDate, "dd/MM/yyyy", { locale: es }) : "Seleccionar"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-popover border-border" align="start">
@@ -249,7 +249,7 @@ function TransferDialog({ sourceAccount, open, onOpenChange }: TransferDialogPro
                     onSelect={(date) => date && setTransferDate(date)}
                     initialFocus
                     className="pointer-events-auto"
-                    locale={ptBR}
+                    locale={es}
                   />
                 </PopoverContent>
               </Popover>
@@ -258,9 +258,9 @@ function TransferDialog({ sourceAccount, open, onOpenChange }: TransferDialogPro
 
           {/* Description */}
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Descrição (opcional)</Label>
+            <Label className="text-xs text-muted-foreground">Descripción (opcional)</Label>
             <Textarea
-              placeholder="Ex: Transferência para poupança, reserva de emergência..."
+              placeholder="Ej: Transferencia a ahorros, fondo de emergencia..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="resize-none h-20"
@@ -338,7 +338,7 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
             <div>
               <DialogTitle className="text-lg">Ajustar saldo</DialogTitle>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Conta: <span className="font-medium text-foreground">{account.name}</span>
+                Cuenta: <span className="font-medium text-foreground">{account.name}</span>
               </p>
             </div>
           </div>
@@ -348,7 +348,7 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
           {/* Current Balance Display */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Saldo atual</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Saldo actual</p>
               <p className={cn(
                 "text-xl font-bold",
                 account.balance >= 0 ? "text-success" : "text-destructive"
@@ -357,7 +357,7 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Novo saldo</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Nuevo saldo</p>
               <p className={cn(
                 "text-xl font-bold",
                 calculateNewBalance() >= 0 ? "text-success" : "text-destructive"
@@ -388,7 +388,7 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
                   "text-xs font-medium",
                   adjustmentType === "add" ? "text-success" : "text-muted-foreground"
                 )}>
-                  Adicionar
+                  Añadir
                 </span>
               </button>
               <button
@@ -408,7 +408,7 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
                   "text-xs font-medium",
                   adjustmentType === "subtract" ? "text-destructive" : "text-muted-foreground"
                 )}>
-                  Subtrair
+                  Restar
                 </span>
               </button>
               <button
@@ -428,7 +428,7 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
                   "text-xs font-medium",
                   adjustmentType === "set" ? "text-primary" : "text-muted-foreground"
                 )}>
-                  Definir
+                  Establecer
                 </span>
               </button>
             </div>
@@ -438,10 +438,10 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">
-                {adjustmentType === "set" ? "Novo saldo" : "Valor"}
+                {adjustmentType === "set" ? "Nuevo saldo" : "Importe"}
               </Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
                 <Input
                   type="text"
                   placeholder="0,00"
@@ -453,7 +453,7 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Data de competência</Label>
+              <Label className="text-xs text-muted-foreground">Fecha de aplicación</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -464,7 +464,7 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {adjustmentDate ? format(adjustmentDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+                    {adjustmentDate ? format(adjustmentDate, "dd/MM/yyyy", { locale: es }) : "Seleccionar"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-popover border-border" align="start">
@@ -474,7 +474,7 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
                     onSelect={(date) => date && setAdjustmentDate(date)}
                     initialFocus
                     className="pointer-events-auto"
-                    locale={ptBR}
+                    locale={es}
                   />
                 </PopoverContent>
               </Popover>
@@ -483,9 +483,9 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
 
           {/* Reason */}
           <div className="space-y-2">
-            <Label className="text-xs text-muted-foreground">Motivo do ajuste (opcional)</Label>
+            <Label className="text-xs text-muted-foreground">Motivo del ajuste (opcional)</Label>
             <Input
-              placeholder="Ex: Correção de lançamento duplicado..."
+              placeholder="Ej: Corrección de asiento duplicado..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
@@ -510,7 +510,7 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
             )}
           >
             <Settings2 className="w-4 h-4" />
-            {adjustmentType === "add" ? "Adicionar" : adjustmentType === "subtract" ? "Subtrair" : "Definir"} Saldo
+            {adjustmentType === "add" ? "Añadir" : adjustmentType === "subtract" ? "Restar" : "Establecer"} Saldo
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -556,9 +556,9 @@ function EditAccountDialog({ account, open, onOpenChange }: EditAccountDialogPro
               <AccountIcon className="w-5 h-5" style={{ color: accountColor }} />
             </div>
             <div>
-              <DialogTitle className="text-lg">Editar conta</DialogTitle>
+              <DialogTitle className="text-lg">Editar cuenta</DialogTitle>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Altere as configurações da conta
+                Modifica la configuración de la cuenta
               </p>
             </div>
           </div>
@@ -567,15 +567,15 @@ function EditAccountDialog({ account, open, onOpenChange }: EditAccountDialogPro
         <div className="space-y-5 py-4">
           {/* Account Name */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Nome da conta</Label>
+            <Label className="text-sm font-medium">Nombre de la cuenta</Label>
             <Input
               value={accountName}
               onChange={(e) => setAccountName(e.target.value)}
-              placeholder="Ex: Banco Inter"
+              placeholder="Ej: Banco Sabadell"
               className="h-11"
             />
             <p className="text-[10px] text-muted-foreground">
-              Este nome será exibido em todas as transações e relatórios
+              Este nombre se mostrará en todas las transacciones e informes
             </p>
           </div>
 
@@ -583,7 +583,7 @@ function EditAccountDialog({ account, open, onOpenChange }: EditAccountDialogPro
           <div className="space-y-2">
             <Label className="text-sm font-medium">Saldo inicial</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
               <Input
                 type="text"
                 value={initialBalance}
@@ -601,10 +601,10 @@ function EditAccountDialog({ account, open, onOpenChange }: EditAccountDialogPro
                   "w-4 h-4",
                   isDefault ? "text-warning fill-warning" : "text-muted-foreground"
                 )} />
-                <Label className="text-sm font-medium cursor-pointer">Conta padrão</Label>
+                <Label className="text-sm font-medium cursor-pointer">Cuenta por defecto</Label>
               </div>
               <p className="text-[10px] text-muted-foreground max-w-[220px]">
-                Lançamentos automáticos serão feitos nesta conta, sem precisar informar
+                Los movimientos automáticos se registrarán en esta cuenta
               </p>
             </div>
             <Switch
@@ -628,7 +628,7 @@ function EditAccountDialog({ account, open, onOpenChange }: EditAccountDialogPro
             className="flex-1 gap-2"
           >
             <Edit2 className="w-4 h-4" />
-            Salvar alterações
+            Guardar cambios
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -668,26 +668,26 @@ export default function BankAccounts() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Contas bancárias</h1>
+            <h1 className="text-2xl font-bold">Cuentas bancarias</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Gerencie suas contas e acompanhe seus saldos
+              Gestiona tus cuentas y controla tus saldos
             </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2 bg-primary hover:bg-primary/90 shadow-glow-primary">
                 <Plus className="w-4 h-4" />
-                Nova conta
+                Nueva cuenta
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-card border-border">
               <DialogHeader>
-                <DialogTitle>Criar nova conta bancária</DialogTitle>
+                <DialogTitle>Crear nueva cuenta bancaria</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div>
-                  <Label htmlFor="name">Nome da conta</Label>
-                  <Input id="name" placeholder="Ex: Banco Inter" className="mt-1.5" />
+                  <Label htmlFor="name">Nombre de la cuenta</Label>
+                  <Input id="name" placeholder="Ej: Banco Sabadell" className="mt-1.5" />
                 </div>
                 <div>
                   <Label htmlFor="balance">Saldo inicial</Label>
@@ -695,12 +695,12 @@ export default function BankAccounts() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="default">Conta padrão</Label>
-                    <p className="text-xs text-muted-foreground">Definir como conta principal</p>
+                    <Label htmlFor="default">Cuenta por defecto</Label>
+                    <p className="text-xs text-muted-foreground">Establecer como cuenta principal</p>
                   </div>
                   <Switch id="default" />
                 </div>
-                <Button className="w-full">Criar conta</Button>
+                <Button className="w-full">Crear cuenta</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -715,7 +715,7 @@ export default function BankAccounts() {
             <div>
               <p className="text-sm text-muted-foreground">Saldo total</p>
               <p className="text-3xl font-bold text-success">{formatCurrency(totalBalance)}</p>
-              <p className="text-xs text-muted-foreground mt-1">{accounts.length} contas ativas</p>
+              <p className="text-xs text-muted-foreground mt-1">{accounts.length} cuentas activas</p>
             </div>
           </div>
         </div>
@@ -774,7 +774,7 @@ export default function BankAccounts() {
                           onClick={() => navigate(`/contas/${account.id}/extrato`)}
                         >
                           <FileText className="w-4 h-4" />
-                          Extrato
+                          Extracto
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-border" />
                         <DropdownMenuItem 
@@ -786,7 +786,7 @@ export default function BankAccounts() {
                         </DropdownMenuItem>
                         <DropdownMenuItem className="gap-2 cursor-pointer text-warning">
                           <Archive className="w-4 h-4" />
-                          Arquivar
+                          Archivar
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -800,18 +800,18 @@ export default function BankAccounts() {
                     variant="secondary" 
                     className="text-[10px] bg-warning/10 text-warning border-warning/20 mb-4"
                   >
-                    Conta padrão
+                    Cuenta por defecto
                   </Badge>
                 )}
 
                 {/* Balance */}
                 <div className={cn("pt-4 border-t border-border/50", !account.isDefault && "mt-4")}>
-                  <p className="text-xs text-muted-foreground mb-1">Saldo atual</p>
+                  <p className="text-xs text-muted-foreground mb-1">Saldo actual</p>
                   <p className="text-xl font-bold text-success">
                     {formatCurrency(account.balance)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Atualizado em {new Date(account.lastUpdate).toLocaleDateString("pt-BR")}
+                    Actualizado el {new Date(account.lastUpdate).toLocaleDateString("es-ES")}
                   </p>
                 </div>
 
@@ -833,7 +833,7 @@ export default function BankAccounts() {
                     onClick={() => navigate(`/contas/${account.id}/extrato`)}
                   >
                     <FileText className="w-3 h-3 mr-1" />
-                    Extrato
+                    Extracto
                   </Button>
                 </div>
               </div>

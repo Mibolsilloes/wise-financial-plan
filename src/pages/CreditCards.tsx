@@ -59,43 +59,43 @@ const brandGradients: Record<string, string> = {
 const cards = [
   { 
     id: 1, 
-    name: "Nubank Platinum",
+    name: "Santander Platinum",
     brand: "Mastercard",
     limit: 15000.00,
     used: 4230.75,
     closingDay: 3,
     dueDay: 10,
-    account: "Nubank",
-    person: "João"
+    account: "Santander",
+    person: "Juan"
   },
   { 
     id: 2, 
-    name: "Itaú Click",
+    name: "BBVA Aqua",
     brand: "Visa",
     limit: 8000.00,
     used: 2150.00,
     closingDay: 15,
     dueDay: 22,
-    account: "Itaú",
-    person: "Maria"
+    account: "BBVA",
+    person: "María"
   },
   { 
     id: 3, 
-    name: "Bradesco Neo",
-    brand: "Elo",
+    name: "CaixaBank Neo",
+    brand: "Visa",
     limit: 5000.00,
     used: 890.50,
     closingDay: 20,
     dueDay: 27,
-    account: "Bradesco",
-    person: "João"
+    account: "CaixaBank",
+    person: "Juan"
   },
 ];
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("pt-BR", {
+  return new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "BRL",
+    currency: "EUR",
   }).format(value);
 };
 
@@ -115,47 +115,46 @@ export default function CreditCards() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Cartões de crédito</h1>
+            <h1 className="text-2xl font-bold">Tarjetas de crédito</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Gerencie seus cartões e acompanhe suas faturas
+              Gestiona tus tarjetas y controla tus facturas
             </p>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" className="gap-2">
               <TrendingUp className="w-4 h-4" />
-              Adicionar despesa
+              Añadir gasto
             </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2 bg-primary hover:bg-primary/90 shadow-glow-primary">
                   <Plus className="w-4 h-4" />
-                  Novo cartão
+                  Nueva tarjeta
                 </Button>
               </DialogTrigger>
               <DialogContent className="bg-card border-border">
                 <DialogHeader>
-                  <DialogTitle>Cadastrar novo cartão</DialogTitle>
+                  <DialogTitle>Registrar nueva tarjeta</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <div>
-                    <Label htmlFor="name">Descrição</Label>
-                    <Input id="name" placeholder="Ex: Nubank Ultravioleta" className="mt-1.5" />
+                    <Label htmlFor="name">Descripción</Label>
+                    <Input id="name" placeholder="Ej: Santander Platinum" className="mt-1.5" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="limit">Limite total</Label>
+                      <Label htmlFor="limit">Límite total</Label>
                       <Input id="limit" type="number" placeholder="0,00" className="mt-1.5" />
                     </div>
                     <div>
-                      <Label htmlFor="brand">Bandeira</Label>
+                      <Label htmlFor="brand">Marca</Label>
                       <Select>
                         <SelectTrigger className="mt-1.5">
-                          <SelectValue placeholder="Selecione" />
+                          <SelectValue placeholder="Seleccionar" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="visa">Visa</SelectItem>
                           <SelectItem value="mastercard">Mastercard</SelectItem>
-                          <SelectItem value="elo">Elo</SelectItem>
                           <SelectItem value="amex">American Express</SelectItem>
                         </SelectContent>
                       </Select>
@@ -163,28 +162,28 @@ export default function CreditCards() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="closing">Dia fechamento</Label>
-                      <Input id="closing" type="number" min="1" max="31" placeholder="Ex: 15" className="mt-1.5" />
+                      <Label htmlFor="closing">Día de cierre</Label>
+                      <Input id="closing" type="number" min="1" max="31" placeholder="Ej: 15" className="mt-1.5" />
                     </div>
                     <div>
-                      <Label htmlFor="due">Dia vencimento</Label>
-                      <Input id="due" type="number" min="1" max="31" placeholder="Ex: 22" className="mt-1.5" />
+                      <Label htmlFor="due">Día de vencimiento</Label>
+                      <Input id="due" type="number" min="1" max="31" placeholder="Ej: 22" className="mt-1.5" />
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="account">Conta associada</Label>
+                    <Label htmlFor="account">Cuenta asociada</Label>
                     <Select>
                       <SelectTrigger className="mt-1.5">
-                        <SelectValue placeholder="Selecione a conta" />
+                        <SelectValue placeholder="Seleccionar cuenta" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="nubank">Nubank</SelectItem>
-                        <SelectItem value="itau">Itaú</SelectItem>
-                        <SelectItem value="bradesco">Bradesco</SelectItem>
+                        <SelectItem value="santander">Santander</SelectItem>
+                        <SelectItem value="bbva">BBVA</SelectItem>
+                        <SelectItem value="caixabank">CaixaBank</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button className="w-full">Cadastrar cartão</Button>
+                  <Button className="w-full">Registrar tarjeta</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -226,7 +225,7 @@ export default function CreditCards() {
                   {/* Limit Progress Bar */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs text-muted-foreground">Limite usado</span>
+                      <span className="text-xs text-muted-foreground">Límite usado</span>
                       <span className="text-sm font-medium">{formatCurrency(card.used)}</span>
                     </div>
                     <Progress 
@@ -238,15 +237,15 @@ export default function CreditCards() {
                   {/* Three Column Limits */}
                   <div className="grid grid-cols-3 gap-2 pt-2">
                     <div>
-                      <p className="text-[10px] text-muted-foreground mb-0.5">Limite usado</p>
+                      <p className="text-[10px] text-muted-foreground mb-0.5">Límite usado</p>
                       <p className="text-sm font-semibold text-destructive">{formatCurrency(card.used)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground mb-0.5">Limite disponível</p>
+                      <p className="text-[10px] text-muted-foreground mb-0.5">Límite disponible</p>
                       <p className="text-sm font-semibold text-success">{formatCurrency(available)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground mb-0.5">Limite total</p>
+                      <p className="text-[10px] text-muted-foreground mb-0.5">Límite total</p>
                       <p className="text-sm font-semibold text-foreground">{formatCurrency(card.limit)}</p>
                     </div>
                   </div>
@@ -256,15 +255,15 @@ export default function CreditCards() {
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                       <div>
-                        <p className="text-[10px] text-muted-foreground">Fechamento</p>
-                        <p className="text-xs font-medium">Todo dia {card.closingDay}</p>
+                        <p className="text-[10px] text-muted-foreground">Cierre</p>
+                        <p className="text-xs font-medium">Día {card.closingDay}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
                       <div>
-                        <p className="text-[10px] text-muted-foreground">Vencimento</p>
-                        <p className="text-xs font-medium">Todo dia {card.dueDay}</p>
+                        <p className="text-[10px] text-muted-foreground">Vencimiento</p>
+                        <p className="text-xs font-medium">Día {card.dueDay}</p>
                       </div>
                     </div>
                   </div>
@@ -278,7 +277,7 @@ export default function CreditCards() {
                     className="text-xs gap-1.5 text-muted-foreground hover:text-foreground h-8"
                     onClick={() => navigate(`/cartoes/${card.id}/fatura`)}
                   >
-                    Detalhes da fatura
+                    Detalles de la factura
                     <span className="text-lg leading-none">→</span>
                   </Button>
                   <div className="flex items-center gap-1">
@@ -356,9 +355,9 @@ function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
               <CreditCard className="w-5 h-5" style={{ color: cardColor }} />
             </div>
             <div>
-              <DialogTitle className="text-lg">Editar cartão</DialogTitle>
+              <DialogTitle className="text-lg">Editar tarjeta</DialogTitle>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Altere as configurações do cartão
+                Modifica la configuración de la tarjeta
               </p>
             </div>
           </div>
@@ -367,20 +366,20 @@ function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
         <div className="space-y-5 py-4">
           {/* Card Name */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Descrição</Label>
+            <Label className="text-sm font-medium">Descripción</Label>
             <Input
               value={cardName}
               onChange={(e) => setCardName(e.target.value)}
-              placeholder="Ex: Nubank Ultravioleta"
+              placeholder="Ej: Santander Platinum"
             />
           </div>
 
           {/* Limit and Brand */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Limite total</Label>
+              <Label className="text-sm font-medium">Límite total</Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">€</span>
                 <Input
                   type="text"
                   value={limit}
@@ -390,7 +389,7 @@ function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Bandeira</Label>
+              <Label className="text-sm font-medium">Marca</Label>
               <Select value={brand} onValueChange={setBrand}>
                 <SelectTrigger>
                   <SelectValue />
@@ -398,7 +397,6 @@ function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
                 <SelectContent className="bg-popover border-border">
                   <SelectItem value="visa">Visa</SelectItem>
                   <SelectItem value="mastercard">Mastercard</SelectItem>
-                  <SelectItem value="elo">Elo</SelectItem>
                   <SelectItem value="american express">American Express</SelectItem>
                 </SelectContent>
               </Select>
@@ -408,7 +406,7 @@ function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
           {/* Closing and Due Days */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Dia fechamento</Label>
+              <Label className="text-sm font-medium">Día de cierre</Label>
               <Input
                 type="number"
                 min="1"
@@ -418,7 +416,7 @@ function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Dia vencimento</Label>
+              <Label className="text-sm font-medium">Día de vencimiento</Label>
               <Input
                 type="number"
                 min="1"
@@ -431,15 +429,15 @@ function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
 
           {/* Account */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Conta associada</Label>
+            <Label className="text-sm font-medium">Cuenta asociada</Label>
             <Select value={account} onValueChange={setAccount}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border">
-                <SelectItem value="nubank">Nubank</SelectItem>
-                <SelectItem value="itaú">Itaú</SelectItem>
-                <SelectItem value="bradesco">Bradesco</SelectItem>
+                <SelectItem value="santander">Santander</SelectItem>
+                <SelectItem value="bbva">BBVA</SelectItem>
+                <SelectItem value="caixabank">CaixaBank</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -452,10 +450,10 @@ function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
                   "w-4 h-4",
                   isActive ? "text-success fill-success" : "text-muted-foreground"
                 )} />
-                <Label className="text-sm font-medium cursor-pointer">Cartão ativo</Label>
+                <Label className="text-sm font-medium cursor-pointer">Tarjeta activa</Label>
               </div>
               <p className="text-[10px] text-muted-foreground max-w-[220px]">
-                Cartões inativos não aparecem nas opções de lançamento
+                Las tarjetas inactivas no aparecen en las opciones de registro
               </p>
             </div>
             <Switch
@@ -479,7 +477,7 @@ function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
             className="flex-1 gap-2"
           >
             <Edit2 className="w-4 h-4" />
-            Salvar alterações
+            Guardar cambios
           </Button>
         </DialogFooter>
       </DialogContent>

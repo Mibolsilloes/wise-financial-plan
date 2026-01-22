@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { path: "/", label: "Inicio", icon: Home },
-  { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
-  { path: "/categorias", label: "Categorias", icon: Tags },
-  { path: "/contas", label: "Contas", icon: Building2 },
-  { path: "/cartoes", label: "Cartões", icon: CreditCard },
+  { path: "/relatorios", label: "Informes", icon: BarChart3 },
+  { path: "/categorias", label: "Categorías", icon: Tags },
+  { path: "/contas", label: "Cuentas", icon: Building2 },
+  { path: "/cartoes", label: "Tarjetas", icon: CreditCard },
 ];
 
 export function MobileNav() {
