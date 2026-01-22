@@ -11,10 +11,10 @@ const Index = () => {
         {/* Page Header */}
         <div>
           <h1 className="text-2xl font-bold">
-            <span className="gradient-text">Planeje sua grana</span>
+            <span className="gradient-text">Planifica tu dinero</span>
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Gerencie suas finanças de forma inteligente
+            Gestiona tus finanzas de forma inteligente
           </p>
         </div>
 

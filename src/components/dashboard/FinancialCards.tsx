@@ -12,7 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { format, subMonths } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { es } from "date-fns/locale";
 
 interface DetailBadge {
   label: string;
@@ -43,10 +43,10 @@ function FinancialCard({
   const [expanded, setExpanded] = useState(true);
 
   const formatCurrency = (value: number) => {
-    if (hidden) return "R$ •••••";
-    return new Intl.NumberFormat("pt-BR", {
+    if (hidden) return "€ •••••";
+    return new Intl.NumberFormat("es-ES", {
       style: "currency",
-      currency: "BRL",
+      currency: "EUR",
     }).format(value);
   };
 
@@ -115,7 +115,7 @@ function FinancialCard({
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
         >
           {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          {expanded ? "Ocultar detalhes" : "Mostrar detalhes"}
+          {expanded ? "Ocultar detalles" : "Mostrar detalles"}
         </button>
 
         {expanded && (
@@ -142,21 +142,21 @@ function FinancialCard({
 export function FinancialCards() {
   const { effectiveDateRange, monthName, selectedPeriod } = usePeriod();
   
-  // Get previous month name for the "Saldo Do Período Anterior" card
+  // Get previous month name for the "Saldo Del Período Anterior" card
   const previousMonthDate = subMonths(effectiveDateRange.from, 1);
-  const previousMonthName = format(previousMonthDate, "MMMM", { locale: ptBR });
+  const previousMonthName = format(previousMonthDate, "MMMM", { locale: es });
   const previousMonthFormatted = previousMonthName.charAt(0).toUpperCase() + previousMonthName.slice(1);
   
   // Format the end date of the previous month
-  const previousMonthEndDate = format(subMonths(effectiveDateRange.from, 1), "dd 'de' MMMM", { locale: ptBR });
+  const previousMonthEndDate = format(subMonths(effectiveDateRange.from, 1), "dd 'de' MMMM", { locale: es });
   
   // Determine the period label for the cards
   const getPeriodLabel = () => {
     switch (selectedPeriod) {
       case "today":
-        return "Hoje";
+        return "Hoy";
       case "7days":
-        return "Últimos 7 dias";
+        return "Últimos 7 días";
       case "year":
         return `${effectiveDateRange.from.getFullYear()}`;
       case "custom":
@@ -171,46 +171,46 @@ export function FinancialCards() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       <FinancialCard
-        title="Saldo Do Período Anterior"
+        title="Saldo del período anterior"
         mainValue={0}
-        subtitle={`Até ${previousMonthEndDate}`}
-        formula="Receita - Despesa + Saldo Bancário"
+        subtitle={`Hasta ${previousMonthEndDate}`}
+        formula="Ingresos - Gastos + Saldo bancario"
         details={[
-          { label: "Pendências", value: 0, variant: "danger" },
-          { label: "Disponível", value: 0, variant: "success" },
+          { label: "Pendiente", value: 0, variant: "danger" },
+          { label: "Disponible", value: 0, variant: "success" },
         ]}
         icon={Wallet}
         variant="neutral"
       />
       <FinancialCard
-        title="Receitas"
+        title="Ingresos"
         mainValue={0}
-        subtitle={`Total em ${periodLabel}`}
+        subtitle={`Total en ${periodLabel}`}
         details={[
-          { label: "Recebido", value: 0, variant: "success" },
-          { label: "A receber", value: 0, variant: "warning" },
+          { label: "Cobrado", value: 0, variant: "success" },
+          { label: "Por cobrar", value: 0, variant: "warning" },
         ]}
         icon={TrendingUp}
         variant="success"
       />
       <FinancialCard
-        title="Despesas"
+        title="Gastos"
         mainValue={0}
-        subtitle={`Total em ${periodLabel}`}
+        subtitle={`Total en ${periodLabel}`}
         details={[
-          { label: "Pago", value: 0, variant: "danger" },
-          { label: "A pagar", value: 0, variant: "warning" },
+          { label: "Pagado", value: 0, variant: "danger" },
+          { label: "Por pagar", value: 0, variant: "warning" },
         ]}
         icon={TrendingDown}
         variant="danger"
       />
       <FinancialCard
-        title="Saldo Previsto"
+        title="Saldo previsto"
         mainValue={0}
-        subtitle={`Previsão para ${periodLabel}`}
-        formula="Receita - Despesa + Saldo Bancário"
+        subtitle={`Previsión para ${periodLabel}`}
+        formula="Ingresos - Gastos + Saldo bancario"
         details={[
-          { label: "Disponível", value: 0, variant: "success" },
+          { label: "Disponible", value: 0, variant: "success" },
           { label: "Previsto", value: 0, variant: "neutral" },
         ]}
         icon={PiggyBank}

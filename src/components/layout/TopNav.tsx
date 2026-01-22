@@ -23,18 +23,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 
 const navItems = [
-  { path: "/", label: "Planea tus finanzas", icon: Home },
-  { path: "/relatorios", label: "Relatórios", icon: BarChart3 },
-  { path: "/categorias", label: "Categorias", icon: Tags },
-  { path: "/contas", label: "Contas bancárias", icon: Building2 },
-  { path: "/cartoes", label: "Cartão de crédito", icon: CreditCard },
-  { path: "/configuracoes", label: "Configurações", icon: Settings },
+  { path: "/", label: "Planifica tu dinero", icon: Home },
+  { path: "/relatorios", label: "Informes", icon: BarChart3 },
+  { path: "/categorias", label: "Categorías", icon: Tags },
+  { path: "/contas", label: "Cuentas bancarias", icon: Building2 },
+  { path: "/cartoes", label: "Tarjetas de crédito", icon: CreditCard },
+  { path: "/configuracoes", label: "Ajustes", icon: Settings },
 ];
 
 export function TopNav() {
   const location = useLocation();
   const [user] = useState({
-    name: "João Silva",
+    name: "Juan García",
     plan: "Premium",
     avatar: "",
   });
@@ -95,24 +95,24 @@ export function TopNav() {
             <DropdownMenuContent align="end" className="w-56 bg-popover border-border">
               <div className="px-3 py-2">
                 <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-muted-foreground">joao@email.com</p>
+                <p className="text-xs text-muted-foreground">juan@email.com</p>
               </div>
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem asChild>
                 <Link to="/configuracoes" className="flex items-center gap-2 cursor-pointer">
                   <User className="w-4 h-4" />
-                  Meu perfil
+                  Mi perfil
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/configuracoes" className="flex items-center gap-2 cursor-pointer">
                   <Settings className="w-4 h-4" />
-                  Configurações
+                  Ajustes
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer">
-                Sair
+                Cerrar sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
