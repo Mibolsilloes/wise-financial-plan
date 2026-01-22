@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 interface AddRevenueDialogProps {
@@ -33,22 +33,22 @@ interface AddRevenueDialogProps {
 }
 
 const categories = [
-  { id: "salario", label: "Salário" },
+  { id: "salario", label: "Salario" },
   { id: "freelance", label: "Freelance" },
-  { id: "investimentos", label: "Investimentos" },
-  { id: "vendas", label: "Vendas" },
-  { id: "outros", label: "Outros" },
+  { id: "inversiones", label: "Inversiones" },
+  { id: "ventas", label: "Ventas" },
+  { id: "otros", label: "Otros" },
 ];
 
 const accounts = [
-  { id: "itau", label: "Conta Itaú" },
-  { id: "nubank", label: "Nubank" },
-  { id: "bradesco", label: "Bradesco" },
+  { id: "santander", label: "Cuenta Santander" },
+  { id: "bbva", label: "BBVA" },
+  { id: "caixabank", label: "CaixaBank" },
 ];
 
 const responsibles = [
-  { id: "renan", label: "Renan Gomes Jardon" },
-  { id: "maria", label: "Maria Silva" },
+  { id: "juan", label: "Juan García" },
+  { id: "maria", label: "María López" },
 ];
 
 export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) {
@@ -90,43 +90,43 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <TrendingUp className="h-5 w-5 text-success" />
-            Adicionar Receita
+            Añadir ingreso
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Informações Básicas */}
+          {/* Información básica */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-success" />
-              <span className="text-sm font-medium text-muted-foreground">Informações Básicas</span>
+              <span className="text-sm font-medium text-muted-foreground">Información básica</span>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="valor">Valor</Label>
+              <Label htmlFor="valor">Importe</Label>
               <Input
                 id="valor"
-                placeholder="Digite o valor"
+                placeholder="Introduce el importe"
                 value={valor}
                 onChange={(e) => setValor(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="descricao">Descrição</Label>
+              <Label htmlFor="descricao">Descripción</Label>
               <Input
                 id="descricao"
-                placeholder="Ex: Compra no supermercado"
+                placeholder="Ej: Nómina mensual"
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Categoria</Label>
+              <Label>Categoría</Label>
               <Select value={categoria} onValueChange={setCategoria}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Escolha uma categoria" />
+                  <SelectValue placeholder="Elige una categoría" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
@@ -139,27 +139,27 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
             </div>
 
             <div className="space-y-2">
-              <Label>Subcategoria</Label>
+              <Label>Subcategoría</Label>
               <Select value={subcategoria} onValueChange={setSubcategoria} disabled={!categoria}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria primeiro" />
+                  <SelectValue placeholder="Selecciona una categoría primero" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sub1">Subcategoria 1</SelectItem>
-                  <SelectItem value="sub2">Subcategoria 2</SelectItem>
+                  <SelectItem value="sub1">Subcategoría 1</SelectItem>
+                  <SelectItem value="sub2">Subcategoría 2</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Configurações de Transação */}
+          {/* Configuración de transacción */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-success" />
-              <span className="text-sm font-medium text-muted-foreground">Configurações de Transação</span>
+              <span className="text-sm font-medium text-muted-foreground">Configuración de transacción</span>
             </div>
 
-            {/* Foi Recebida */}
+            {/* Estado de cobro */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -178,9 +178,9 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                       "font-medium text-sm",
                       foiRecebida ? "text-success" : "text-destructive"
                     )}>
-                      {foiRecebida ? "Foi Recebida" : "Não Recebida"}
+                      {foiRecebida ? "Cobrado" : "No cobrado"}
                     </p>
-                    <p className="text-xs text-muted-foreground">Status do pagamento/recebimento</p>
+                    <p className="text-xs text-muted-foreground">Estado del pago/cobro</p>
                   </div>
                 </div>
                 <Switch checked={foiRecebida} onCheckedChange={setFoiRecebida} />
@@ -188,7 +188,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
 
               {foiRecebida && (
                 <div className="mt-4 space-y-2">
-                  <Label className="text-xs">Data do Recebimento</Label>
+                  <Label className="text-xs">Fecha del cobro</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -199,7 +199,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dataRecebimento ? format(dataRecebimento, "dd/MM/yyyy") : "Selecionar data"}
+                        {dataRecebimento ? format(dataRecebimento, "dd/MM/yyyy") : "Seleccionar fecha"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -207,7 +207,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                         mode="single"
                         selected={dataRecebimento}
                         onSelect={(date) => date && setDataRecebimento(date)}
-                        locale={ptBR}
+                        locale={es}
                         className="pointer-events-auto"
                       />
                     </PopoverContent>
@@ -216,15 +216,15 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
               )}
             </div>
 
-            {/* Data de Vencimento */}
+            {/* Fecha de vencimiento */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
                   <CalendarIcon className="h-4 w-4 text-warning" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Data de Vencimento</p>
-                  <p className="text-xs text-muted-foreground">Quando a transação deve ser paga/recebida</p>
+                  <p className="font-medium text-sm">Fecha de vencimiento</p>
+                  <p className="text-xs text-muted-foreground">Cuándo debe pagarse/cobrarse la transacción</p>
                 </div>
               </div>
               <Popover>
@@ -237,7 +237,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataVencimento ? format(dataVencimento, "dd/MM/yyyy") : "Selecionar data"}
+                    {dataVencimento ? format(dataVencimento, "dd/MM/yyyy") : "Seleccionar fecha"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -245,27 +245,27 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                     mode="single"
                     selected={dataVencimento}
                     onSelect={(date) => date && setDataVencimento(date)}
-                    locale={ptBR}
+                    locale={es}
                     className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
             </div>
 
-            {/* Conta */}
+            {/* Cuenta */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                   <div className="w-4 h-4 rounded bg-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Conta</p>
-                  <p className="text-xs text-muted-foreground">Escolha a conta para esta transação</p>
+                  <p className="font-medium text-sm">Cuenta</p>
+                  <p className="text-xs text-muted-foreground">Elige la cuenta para esta transacción</p>
                 </div>
               </div>
               <Select value={conta} onValueChange={setConta}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma conta" />
+                  <SelectValue placeholder="Selecciona una cuenta" />
                 </SelectTrigger>
                 <SelectContent>
                   {accounts.map((acc) => (
@@ -277,7 +277,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
               </Select>
             </div>
 
-            {/* Receita Fixa */}
+            {/* Ingreso fijo */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -285,15 +285,15 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                     <div className="w-4 h-4 rounded-full border-2 border-purple-500" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Receita Fixa</p>
-                    <p className="text-xs text-muted-foreground">Classifica como uma receita fixa</p>
+                    <p className="font-medium text-sm">Ingreso fijo</p>
+                    <p className="text-xs text-muted-foreground">Clasificar como ingreso fijo</p>
                   </div>
                 </div>
                 <Switch checked={receitaFixa} onCheckedChange={setReceitaFixa} />
               </div>
             </div>
 
-            {/* Repetir Transação */}
+            {/* Repetir transacción */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -301,28 +301,28 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                     <TrendingUp className="h-4 w-4 text-blue-500" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Repetir Transação</p>
-                    <p className="text-xs text-muted-foreground">Criar múltiplas transações automaticamente</p>
+                    <p className="font-medium text-sm">Repetir transacción</p>
+                    <p className="text-xs text-muted-foreground">Crear múltiples transacciones automáticamente</p>
                   </div>
                 </div>
                 <Switch checked={repetirTransacao} onCheckedChange={setRepetirTransacao} />
               </div>
             </div>
 
-            {/* Pessoa Responsável */}
+            {/* Persona responsable */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center">
                   <div className="w-4 h-4 rounded-full bg-cyan-500" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Pessoa Responsável</p>
-                  <p className="text-xs text-muted-foreground">Identifique alguém</p>
+                  <p className="font-medium text-sm">Persona responsable</p>
+                  <p className="text-xs text-muted-foreground">Identifica a alguien</p>
                 </div>
               </div>
               <Select value={responsavel} onValueChange={setResponsavel}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione um responsável" />
+                  <SelectValue placeholder="Selecciona un responsable" />
                 </SelectTrigger>
                 <SelectContent>
                   {responsibles.map((resp) => (
@@ -334,15 +334,15 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
               </Select>
             </div>
 
-            {/* Data de Competência */}
+            {/* Fecha de competencia */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
                   <CalendarIcon className="h-4 w-4 text-amber-500" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Data de Competência</p>
-                  <p className="text-xs text-muted-foreground">Data de aquisição ou emissão do produto ou serviço</p>
+                  <p className="font-medium text-sm">Fecha de competencia</p>
+                  <p className="text-xs text-muted-foreground">Fecha de adquisición o emisión del producto o servicio</p>
                 </div>
               </div>
               <Popover>
@@ -355,7 +355,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataCompetencia ? format(dataCompetencia, "dd/MM/yyyy") : "Selecionar data"}
+                    {dataCompetencia ? format(dataCompetencia, "dd/MM/yyyy") : "Seleccionar fecha"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -363,7 +363,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                     mode="single"
                     selected={dataCompetencia}
                     onSelect={(date) => date && setDataCompetencia(date)}
-                    locale={ptBR}
+                    locale={es}
                     className="pointer-events-auto"
                   />
                 </PopoverContent>
@@ -372,13 +372,13 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
           </div>
         </div>
 
-        {/* Save Button */}
+        {/* Botón guardar */}
         <Button
           onClick={handleSave}
           className="w-full bg-success hover:bg-success/90 text-white"
         >
           <TrendingUp className="mr-2 h-4 w-4" />
-          Salvar Receita
+          Guardar ingreso
         </Button>
       </DialogContent>
     </Dialog>

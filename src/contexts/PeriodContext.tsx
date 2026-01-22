@@ -10,7 +10,7 @@ import {
   endOfYear,
   format 
 } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { es } from "date-fns/locale";
 
 export type PeriodType = "today" | "7days" | "month" | "year" | "custom";
 
@@ -42,8 +42,8 @@ interface PeriodContextType {
 }
 
 const months = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
 const PeriodContext = createContext<PeriodContextType | undefined>(undefined);

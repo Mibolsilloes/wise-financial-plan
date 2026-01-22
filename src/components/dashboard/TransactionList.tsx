@@ -8,7 +8,6 @@ import {
   ArrowUpDown,
   Filter,
   FileText,
-  ChevronDown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -34,28 +33,28 @@ import { FilterPopover } from "./FilterPopover";
 import { usePeriod } from "@/contexts/PeriodContext";
 
 const tableColumns = [
-  "Responsável",
-  "Descrição",
-  "Valor",
-  "Categoria",
+  "Responsable",
+  "Descripción",
+  "Importe",
+  "Categoría",
   "Tipo",
-  "Conta",
-  "Cartão",
-  "Vencimento",
-  "Competência",
-  "Pagamento",
-  "Fixo/Variável",
-  "Ação",
+  "Cuenta",
+  "Tarjeta",
+  "Vencimiento",
+  "Competencia",
+  "Pago",
+  "Fijo/Variable",
+  "Acción",
 ];
 
 export function TransactionList() {
-  const [filter, setFilter] = useState<"all" | "receitas" | "despesas">("all");
+  const [filter, setFilter] = useState<"all" | "ingresos" | "gastos">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState("30");
   const [isRevenueDialogOpen, setIsRevenueDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
 
-  const { monthName, handlePrevMonth, handleNextMonth, periodLabel } = usePeriod();
+  const { monthName, handlePrevMonth, handleNextMonth } = usePeriod();
 
   return (
     <div className="glass rounded-xl p-5 animate-slide-up">
@@ -91,14 +90,14 @@ export function TransactionList() {
             onClick={() => setIsRevenueDialogOpen(true)}
           >
             <Plus className="w-4 h-4" />
-            Receita
+            Ingreso
           </Button>
           <Button 
             className="gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             onClick={() => setIsExpenseDialogOpen(true)}
           >
             <Plus className="w-4 h-4" />
-            Despesa
+            Gasto
           </Button>
         </div>
       </div>
@@ -109,7 +108,7 @@ export function TransactionList() {
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-1 mb-4 border-b border-border">
-        {(["all", "receitas", "despesas"] as const).map((f) => (
+        {(["all", "ingresos", "gastos"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -120,7 +119,7 @@ export function TransactionList() {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             )}
           >
-            {f === "all" ? "Todas" : f.charAt(0).toUpperCase() + f.slice(1)}
+            {f === "all" ? "Todas" : f === "ingresos" ? "Ingresos" : "Gastos"}
           </button>
         ))}
       </div>
@@ -134,13 +133,13 @@ export function TransactionList() {
           
           <Select defaultValue="none">
             <SelectTrigger className="w-[180px] h-9">
-              <SelectValue placeholder="Sem agrupamento" />
+              <SelectValue placeholder="Sin agrupación" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">Sem agrupamento</SelectItem>
-              <SelectItem value="category">Categoria</SelectItem>
-              <SelectItem value="date">Data de vencimento</SelectItem>
-              <SelectItem value="responsible">Responsável</SelectItem>
+              <SelectItem value="none">Sin agrupación</SelectItem>
+              <SelectItem value="category">Categoría</SelectItem>
+              <SelectItem value="date">Fecha de vencimiento</SelectItem>
+              <SelectItem value="responsible">Responsable</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -148,7 +147,7 @@ export function TransactionList() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Pesquisar transações..."
+            placeholder="Buscar transacciones..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 h-9"
@@ -158,13 +157,13 @@ export function TransactionList() {
         <div className="flex items-center gap-2 lg:ml-auto">
           <Select defaultValue="competencia">
             <SelectTrigger className="w-[180px] h-9">
-              <SelectValue placeholder="Data de Competência" />
+              <SelectValue placeholder="Fecha de competencia" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="competencia">Data de Competência</SelectItem>
-              <SelectItem value="vencimento">Data de Vencimento</SelectItem>
-              <SelectItem value="pagamento">Data de Pagamento</SelectItem>
-              <SelectItem value="criacao">Data de Criação</SelectItem>
+              <SelectItem value="competencia">Fecha de competencia</SelectItem>
+              <SelectItem value="vencimiento">Fecha de vencimiento</SelectItem>
+              <SelectItem value="pago">Fecha de pago</SelectItem>
+              <SelectItem value="creacion">Fecha de creación</SelectItem>
             </SelectContent>
           </Select>
 
@@ -201,10 +200,10 @@ export function TransactionList() {
                     <FileText className="w-8 h-8 text-muted-foreground" />
                   </div>
                   <p className="text-muted-foreground font-medium">
-                    Nenhuma transação encontrada
+                    No se encontraron transacciones
                   </p>
                   <p className="text-sm text-muted-foreground/70 mt-1">
-                    Adicione uma receita ou despesa para começar
+                    Añade un ingreso o gasto para empezar
                   </p>
                 </div>
               </TableCell>
@@ -234,10 +233,10 @@ export function TransactionList() {
 
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled>
-            Voltar
+            Anterior
           </Button>
           <Button variant="outline" size="sm" disabled>
-            Próximo
+            Siguiente
           </Button>
         </div>
       </div>

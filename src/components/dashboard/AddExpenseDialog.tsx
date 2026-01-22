@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 interface AddExpenseDialogProps {
@@ -33,39 +33,39 @@ interface AddExpenseDialogProps {
 }
 
 const categories = [
-  { id: "alimentacao", label: "Alimentação" },
-  { id: "assinatura", label: "Assinatura" },
-  { id: "casa", label: "Casa" },
-  { id: "cuidados-pessoais", label: "Cuidados pessoais" },
-  { id: "doacoes", label: "Doações" },
-  { id: "educacao", label: "Educação" },
-  { id: "impostos", label: "Impostos" },
-  { id: "lazer", label: "Lazer e Entretenimento" },
-  { id: "mercado", label: "Mercado" },
-  { id: "outros", label: "Outros" },
-  { id: "pets", label: "Pets" },
-  { id: "salario", label: "Salário" },
-  { id: "saude", label: "Saúde" },
+  { id: "alimentacion", label: "Alimentación" },
+  { id: "suscripcion", label: "Suscripción" },
+  { id: "hogar", label: "Hogar" },
+  { id: "cuidado-personal", label: "Cuidado personal" },
+  { id: "donaciones", label: "Donaciones" },
+  { id: "educacion", label: "Educación" },
+  { id: "impuestos", label: "Impuestos" },
+  { id: "ocio", label: "Ocio y entretenimiento" },
+  { id: "supermercado", label: "Supermercado" },
+  { id: "otros", label: "Otros" },
+  { id: "mascotas", label: "Mascotas" },
+  { id: "salario", label: "Salario" },
+  { id: "salud", label: "Salud" },
   { id: "transporte", label: "Transporte" },
-  { id: "utilidades", label: "Utilidades" },
-  { id: "vestuario", label: "Vestuário" },
-  { id: "viagem", label: "Viagem" },
+  { id: "servicios", label: "Servicios" },
+  { id: "ropa", label: "Ropa" },
+  { id: "viaje", label: "Viaje" },
 ];
 
 const accounts = [
-  { id: "itau", label: "Conta Itaú" },
-  { id: "nubank", label: "Nubank" },
-  { id: "bradesco", label: "Bradesco" },
+  { id: "santander", label: "Cuenta Santander" },
+  { id: "bbva", label: "BBVA" },
+  { id: "caixabank", label: "CaixaBank" },
 ];
 
 const cards = [
-  { id: "nubank", label: "Nubank Crédito" },
-  { id: "itau", label: "Itaú Platinum" },
+  { id: "visa", label: "Visa Santander" },
+  { id: "mastercard", label: "Mastercard BBVA" },
 ];
 
 const responsibles = [
-  { id: "renan", label: "Renan Gomes Jardon" },
-  { id: "maria", label: "Maria Silva" },
+  { id: "juan", label: "Juan García" },
+  { id: "maria", label: "María López" },
 ];
 
 export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) {
@@ -109,43 +109,43 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
             <TrendingDown className="h-5 w-5 text-destructive" />
-            Adicionar Despesa
+            Añadir gasto
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Informações Básicas */}
+          {/* Información básica */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-destructive" />
-              <span className="text-sm font-medium text-muted-foreground">Informações Básicas</span>
+              <span className="text-sm font-medium text-muted-foreground">Información básica</span>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="valor">Valor</Label>
+              <Label htmlFor="valor">Importe</Label>
               <Input
                 id="valor"
-                placeholder="Digite o valor"
+                placeholder="Introduce el importe"
                 value={valor}
                 onChange={(e) => setValor(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="descricao">Descrição</Label>
+              <Label htmlFor="descricao">Descripción</Label>
               <Input
                 id="descricao"
-                placeholder="Ex: Compra no supermercado"
+                placeholder="Ej: Compra en el supermercado"
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Categoria</Label>
+              <Label>Categoría</Label>
               <Select value={categoria} onValueChange={setCategoria}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Escolha uma categoria" />
+                  <SelectValue placeholder="Elige una categoría" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
@@ -158,27 +158,27 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
             </div>
 
             <div className="space-y-2">
-              <Label>Subcategoria</Label>
+              <Label>Subcategoría</Label>
               <Select value={subcategoria} onValueChange={setSubcategoria} disabled={!categoria}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria primeiro" />
+                  <SelectValue placeholder="Selecciona una categoría primero" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sub1">Subcategoria 1</SelectItem>
-                  <SelectItem value="sub2">Subcategoria 2</SelectItem>
+                  <SelectItem value="sub1">Subcategoría 1</SelectItem>
+                  <SelectItem value="sub2">Subcategoría 2</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Configurações de Transação */}
+          {/* Configuración de transacción */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-destructive" />
-              <span className="text-sm font-medium text-muted-foreground">Configurações de Transação</span>
+              <span className="text-sm font-medium text-muted-foreground">Configuración de transacción</span>
             </div>
 
-            {/* Foi Paga */}
+            {/* Estado de pago */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -197,9 +197,9 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                       "font-medium text-sm",
                       foiPaga ? "text-success" : "text-destructive"
                     )}>
-                      {foiPaga ? "Foi Paga" : "Não Foi Paga"}
+                      {foiPaga ? "Pagado" : "No pagado"}
                     </p>
-                    <p className="text-xs text-muted-foreground">Status do pagamento</p>
+                    <p className="text-xs text-muted-foreground">Estado del pago</p>
                   </div>
                 </div>
                 <Switch checked={foiPaga} onCheckedChange={setFoiPaga} />
@@ -207,7 +207,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
 
               {foiPaga && (
                 <div className="mt-4 space-y-2">
-                  <Label className="text-xs">Data do Pagamento</Label>
+                  <Label className="text-xs">Fecha de pago</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -218,7 +218,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dataPagamento ? format(dataPagamento, "dd/MM/yyyy") : "Selecionar data"}
+                        {dataPagamento ? format(dataPagamento, "dd/MM/yyyy") : "Seleccionar fecha"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -226,7 +226,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                         mode="single"
                         selected={dataPagamento}
                         onSelect={(date) => date && setDataPagamento(date)}
-                        locale={ptBR}
+                        locale={es}
                         className="pointer-events-auto"
                       />
                     </PopoverContent>
@@ -235,15 +235,15 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
               )}
             </div>
 
-            {/* Data de Vencimento */}
+            {/* Fecha de vencimiento */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
                   <CalendarIcon className="h-4 w-4 text-warning" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Data de Vencimento</p>
-                  <p className="text-xs text-muted-foreground">Quando a transação deve ser paga</p>
+                  <p className="font-medium text-sm">Fecha de vencimiento</p>
+                  <p className="text-xs text-muted-foreground">Cuándo debe pagarse la transacción</p>
                 </div>
               </div>
               <Popover>
@@ -256,7 +256,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataVencimento ? format(dataVencimento, "dd/MM/yyyy") : "Selecionar data"}
+                    {dataVencimento ? format(dataVencimento, "dd/MM/yyyy") : "Seleccionar fecha"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -264,27 +264,27 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                     mode="single"
                     selected={dataVencimento}
                     onSelect={(date) => date && setDataVencimento(date)}
-                    locale={ptBR}
+                    locale={es}
                     className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
             </div>
 
-            {/* Conta */}
+            {/* Cuenta */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                   <div className="w-4 h-4 rounded bg-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Conta</p>
-                  <p className="text-xs text-muted-foreground">Escolha a conta para esta transação</p>
+                  <p className="font-medium text-sm">Cuenta</p>
+                  <p className="text-xs text-muted-foreground">Elige la cuenta para esta transacción</p>
                 </div>
               </div>
               <Select value={conta} onValueChange={setConta}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma conta" />
+                  <SelectValue placeholder="Selecciona una cuenta" />
                 </SelectTrigger>
                 <SelectContent>
                   {accounts.map((acc) => (
@@ -296,20 +296,20 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
               </Select>
             </div>
 
-            {/* Cartão de Crédito */}
+            {/* Tarjeta de crédito */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
                   <div className="w-4 h-3 rounded bg-violet-500" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Cartão de Crédito</p>
-                  <p className="text-xs text-muted-foreground">Vincular a um cartão (opcional)</p>
+                  <p className="font-medium text-sm">Tarjeta de crédito</p>
+                  <p className="text-xs text-muted-foreground">Vincular a una tarjeta (opcional)</p>
                 </div>
               </div>
               <Select value={cartao} onValueChange={setCartao}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione um cartão" />
+                  <SelectValue placeholder="Selecciona una tarjeta" />
                 </SelectTrigger>
                 <SelectContent>
                   {cards.map((card) => (
@@ -321,7 +321,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
               </Select>
             </div>
 
-            {/* Despesa Fixa */}
+            {/* Gasto fijo */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -329,15 +329,15 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                     <div className="w-4 h-4 rounded-full border-2 border-purple-500" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Despesa Fixa</p>
-                    <p className="text-xs text-muted-foreground">Classifica como uma despesa fixa</p>
+                    <p className="font-medium text-sm">Gasto fijo</p>
+                    <p className="text-xs text-muted-foreground">Clasificar como gasto fijo</p>
                   </div>
                 </div>
                 <Switch checked={despesaFixa} onCheckedChange={setDespesaFixa} />
               </div>
             </div>
 
-            {/* Repetir Transação */}
+            {/* Repetir transacción */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -345,28 +345,28 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                     <TrendingDown className="h-4 w-4 text-blue-500" />
                   </div>
                   <div>
-                    <p className="font-medium text-sm">Repetir Transação</p>
-                    <p className="text-xs text-muted-foreground">Criar múltiplas transações automaticamente</p>
+                    <p className="font-medium text-sm">Repetir transacción</p>
+                    <p className="text-xs text-muted-foreground">Crear múltiples transacciones automáticamente</p>
                   </div>
                 </div>
                 <Switch checked={repetirTransacao} onCheckedChange={setRepetirTransacao} />
               </div>
             </div>
 
-            {/* Pessoa Responsável */}
+            {/* Persona responsable */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center">
                   <div className="w-4 h-4 rounded-full bg-cyan-500" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Pessoa Responsável</p>
-                  <p className="text-xs text-muted-foreground">Identifique alguém</p>
+                  <p className="font-medium text-sm">Persona responsable</p>
+                  <p className="text-xs text-muted-foreground">Identifica a alguien</p>
                 </div>
               </div>
               <Select value={responsavel} onValueChange={setResponsavel}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione um responsável" />
+                  <SelectValue placeholder="Selecciona un responsable" />
                 </SelectTrigger>
                 <SelectContent>
                   {responsibles.map((resp) => (
@@ -378,15 +378,15 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
               </Select>
             </div>
 
-            {/* Data de Competência */}
+            {/* Fecha de competencia */}
             <div className="bg-muted/30 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
                   <CalendarIcon className="h-4 w-4 text-amber-500" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Data de Competência</p>
-                  <p className="text-xs text-muted-foreground">Data de aquisição ou emissão do produto ou serviço</p>
+                  <p className="font-medium text-sm">Fecha de competencia</p>
+                  <p className="text-xs text-muted-foreground">Fecha de adquisición o emisión del producto o servicio</p>
                 </div>
               </div>
               <Popover>
@@ -399,7 +399,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataCompetencia ? format(dataCompetencia, "dd/MM/yyyy") : "Selecionar data"}
+                    {dataCompetencia ? format(dataCompetencia, "dd/MM/yyyy") : "Seleccionar fecha"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -407,7 +407,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                     mode="single"
                     selected={dataCompetencia}
                     onSelect={(date) => date && setDataCompetencia(date)}
-                    locale={ptBR}
+                    locale={es}
                     className="pointer-events-auto"
                   />
                 </PopoverContent>
@@ -416,13 +416,13 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
           </div>
         </div>
 
-        {/* Save Button */}
+        {/* Botón guardar */}
         <Button
           onClick={handleSave}
           className="w-full bg-destructive hover:bg-destructive/90 text-white"
         >
           <TrendingDown className="mr-2 h-4 w-4" />
-          Salvar Despesa
+          Guardar gasto
         </Button>
       </DialogContent>
     </Dialog>

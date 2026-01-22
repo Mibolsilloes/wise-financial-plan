@@ -39,10 +39,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const themes = [
-  { id: "dark", name: "Padrão", colors: ["hsl(222, 47%, 6%)", "hsl(217, 91%, 60%)"] },
+  { id: "dark", name: "Predeterminado", colors: ["hsl(222, 47%, 6%)", "hsl(217, 91%, 60%)"] },
   { id: "pink", name: "Rosa", colors: ["hsl(340, 30%, 8%)", "hsl(340, 82%, 52%)"] },
   { id: "blue", name: "Azul", colors: ["hsl(217, 47%, 8%)", "hsl(199, 89%, 48%)"] },
-  { id: "black", name: "Preto", colors: ["hsl(0, 0%, 4%)", "hsl(0, 0%, 50%)"] },
+  { id: "black", name: "Negro", colors: ["hsl(0, 0%, 4%)", "hsl(0, 0%, 50%)"] },
 ];
 
 export default function Settings() {
@@ -60,9 +60,9 @@ export default function Settings() {
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold">Configurações</h1>
+          <h1 className="text-2xl font-bold">Ajustes</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Personalize sua experiência no sistema
+            Personaliza tu experiencia en el sistema
           </p>
         </div>
 
@@ -70,38 +70,38 @@ export default function Settings() {
           <TabsList className="glass border border-border/50 p-1">
             <TabsTrigger value="profile" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <User className="w-4 h-4" />
-              Meu perfil
+              Mi perfil
             </TabsTrigger>
             <TabsTrigger value="shared" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Share2 className="w-4 h-4" />
-              Compartilhado
+              Compartido
             </TabsTrigger>
             <TabsTrigger value="preferences" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Globe className="w-4 h-4" />
-              Preferências
+              Preferencias
             </TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Bell className="w-4 h-4" />
-              Notificações
+              Notificaciones
             </TabsTrigger>
             <TabsTrigger value="appearance" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Palette className="w-4 h-4" />
-              Aparência
+              Apariencia
             </TabsTrigger>
             <TabsTrigger value="data" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <Database className="w-4 h-4" />
-              Dados
+              Datos
             </TabsTrigger>
             <TabsTrigger value="plans" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <CreditCard className="w-4 h-4" />
-              Planos
+              Planes
             </TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
           <TabsContent value="profile" className="animate-fade-in">
             <div className="glass rounded-xl p-6 max-w-2xl">
-              <h2 className="text-lg font-semibold mb-6">Informações pessoais</h2>
+              <h2 className="text-lg font-semibold mb-6">Información personal</h2>
               
               {/* Avatar */}
               <div className="flex items-center gap-6 mb-8">
@@ -109,7 +109,7 @@ export default function Settings() {
                   <Avatar className="w-24 h-24 border-4 border-primary/30">
                     <AvatarImage src="" />
                     <AvatarFallback className="bg-primary/20 text-primary text-2xl font-bold">
-                      JS
+                      JG
                     </AvatarFallback>
                   </Avatar>
                   <button className="absolute bottom-0 right-0 p-2 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors">
@@ -117,11 +117,11 @@ export default function Settings() {
                   </button>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">João Silva</h3>
+                  <h3 className="font-semibold text-lg">Juan García</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <Crown className="w-4 h-4 text-warning" />
                     <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
-                      Plano Premium
+                      Plan Premium
                     </Badge>
                   </div>
                 </div>
@@ -131,27 +131,27 @@ export default function Settings() {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="name">Nome completo</Label>
-                    <Input id="name" defaultValue="João Silva" className="mt-1.5" />
+                    <Label htmlFor="name">Nombre completo</Label>
+                    <Input id="name" defaultValue="Juan García" className="mt-1.5" />
                   </div>
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">Correo electrónico</Label>
                     <div className="relative mt-1.5">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input id="email" defaultValue="joao@email.com" className="pl-10" />
+                      <Input id="email" defaultValue="juan@email.com" className="pl-10" />
                     </div>
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="phone">Telefone</Label>
+                  <Label htmlFor="phone">Teléfono</Label>
                   <div className="relative mt-1.5">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="phone" defaultValue="(11) 99999-9999" className="pl-10" />
+                    <Input id="phone" defaultValue="+34 612 345 678" className="pl-10" />
                   </div>
                 </div>
                 <Button className="gap-2">
                   <Edit2 className="w-4 h-4" />
-                  Salvar alterações
+                  Guardar cambios
                 </Button>
               </div>
             </div>
@@ -165,15 +165,15 @@ export default function Settings() {
                   <Crown className="w-6 h-6 text-warning" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold">Gestão compartilhada</h2>
+                  <h2 className="text-lg font-semibold">Gestión compartida</h2>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Recurso exclusivo do plano Premium. Compartilhe o acesso com familiares ou parceiros.
+                    Función exclusiva del plan Premium. Comparte el acceso con familiares o parejas.
                   </p>
                 </div>
               </div>
               <Button className="gap-2 bg-warning text-warning-foreground hover:bg-warning/90">
                 <Share2 className="w-4 h-4" />
-                Convidar pessoa
+                Invitar persona
               </Button>
             </div>
           </TabsContent>
@@ -181,31 +181,31 @@ export default function Settings() {
           {/* Preferences Tab */}
           <TabsContent value="preferences" className="animate-fade-in">
             <div className="glass rounded-xl p-6 max-w-2xl">
-              <h2 className="text-lg font-semibold mb-6">Preferências do sistema</h2>
+              <h2 className="text-lg font-semibold mb-6">Preferencias del sistema</h2>
               <div className="space-y-6">
                 <div>
                   <Label>Idioma</Label>
-                  <Select defaultValue="pt-BR">
+                  <Select defaultValue="es-ES">
                     <SelectTrigger className="mt-1.5 w-full max-w-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
+                      <SelectItem value="es-ES">Español (España)</SelectItem>
                       <SelectItem value="en-US">English (US)</SelectItem>
-                      <SelectItem value="es">Español</SelectItem>
+                      <SelectItem value="pt-BR">Português (Brasil)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>Moeda</Label>
-                  <Select defaultValue="BRL">
+                  <Label>Moneda</Label>
+                  <Select defaultValue="EUR">
                     <SelectTrigger className="mt-1.5 w-full max-w-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="BRL">Real (R$)</SelectItem>
-                      <SelectItem value="USD">Dólar ($)</SelectItem>
                       <SelectItem value="EUR">Euro (€)</SelectItem>
+                      <SelectItem value="USD">Dólar ($)</SelectItem>
+                      <SelectItem value="GBP">Libra (£)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -216,12 +216,12 @@ export default function Settings() {
           {/* Notifications Tab */}
           <TabsContent value="notifications" className="animate-fade-in">
             <div className="glass rounded-xl p-6 max-w-2xl">
-              <h2 className="text-lg font-semibold mb-6">Configurações de notificação</h2>
+              <h2 className="text-lg font-semibold mb-6">Configuración de notificaciones</h2>
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Ativar notificações</Label>
-                    <p className="text-sm text-muted-foreground">Receba alertas sobre seus pagamentos</p>
+                    <Label>Activar notificaciones</Label>
+                    <p className="text-sm text-muted-foreground">Recibe alertas sobre tus pagos</p>
                   </div>
                   <Switch 
                     checked={notifications.enabled} 
@@ -233,7 +233,7 @@ export default function Settings() {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>WhatsApp</Label>
-                      <p className="text-sm text-muted-foreground">Receber via WhatsApp</p>
+                      <p className="text-sm text-muted-foreground">Recibir por WhatsApp</p>
                     </div>
                     <Switch 
                       checked={notifications.whatsapp} 
@@ -243,8 +243,8 @@ export default function Settings() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label>Email</Label>
-                      <p className="text-sm text-muted-foreground">Receber via email</p>
+                      <Label>Correo electrónico</Label>
+                      <p className="text-sm text-muted-foreground">Recibir por email</p>
                     </div>
                     <Switch 
                       checked={notifications.email} 
@@ -255,11 +255,11 @@ export default function Settings() {
                 </div>
 
                 <div className="pt-4 border-t border-border space-y-4">
-                  <h3 className="font-medium">Lembretes</h3>
+                  <h3 className="font-medium">Recordatorios</h3>
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label>1 dia antes</Label>
-                      <p className="text-sm text-muted-foreground">Lembrar um dia antes do vencimento</p>
+                      <Label>1 día antes</Label>
+                      <p className="text-sm text-muted-foreground">Recordar un día antes del vencimiento</p>
                     </div>
                     <Switch 
                       checked={notifications.dayBefore} 
@@ -269,8 +269,8 @@ export default function Settings() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label>No dia do vencimento</Label>
-                      <p className="text-sm text-muted-foreground">Lembrar no dia do vencimento</p>
+                      <Label>El día del vencimiento</Label>
+                      <p className="text-sm text-muted-foreground">Recordar el día del vencimiento</p>
                     </div>
                     <Switch 
                       checked={notifications.dueDate} 
@@ -286,7 +286,7 @@ export default function Settings() {
           {/* Appearance Tab */}
           <TabsContent value="appearance" className="animate-fade-in">
             <div className="glass rounded-xl p-6 max-w-2xl">
-              <h2 className="text-lg font-semibold mb-6">Tema do sistema</h2>
+              <h2 className="text-lg font-semibold mb-6">Tema del sistema</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {themes.map((theme) => (
                   <button
@@ -318,19 +318,19 @@ export default function Settings() {
           {/* Data Tab */}
           <TabsContent value="data" className="animate-fade-in">
             <div className="glass rounded-xl p-6 max-w-2xl">
-              <h2 className="text-lg font-semibold mb-6">Gerenciamento de dados</h2>
+              <h2 className="text-lg font-semibold mb-6">Gestión de datos</h2>
               <div className="space-y-4">
                 <Button variant="outline" className="gap-2 w-full justify-start">
                   <Download className="w-4 h-4" />
-                  Exportar lançamentos
+                  Exportar transacciones
                 </Button>
                 <Button variant="outline" className="gap-2 w-full justify-start text-warning hover:text-warning">
                   <Trash2 className="w-4 h-4" />
-                  Excluir todos os lançamentos
+                  Eliminar todas las transacciones
                 </Button>
                 <Button variant="outline" className="gap-2 w-full justify-start text-destructive hover:text-destructive">
                   <AlertTriangle className="w-4 h-4" />
-                  Excluir conta
+                  Eliminar cuenta
                 </Button>
               </div>
             </div>
@@ -341,16 +341,16 @@ export default function Settings() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
               {/* Free Plan */}
               <div className="glass rounded-xl p-6 border border-border/50">
-                <h3 className="text-lg font-semibold mb-2">Plano Gratuito</h3>
-                <p className="text-3xl font-bold mb-4">R$ 0<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
+                <h3 className="text-lg font-semibold mb-2">Plan Gratuito</h3>
+                <p className="text-3xl font-bold mb-4">0 €<span className="text-sm font-normal text-muted-foreground">/mes</span></p>
                 <ul className="space-y-2 mb-6 text-sm text-muted-foreground">
-                  <li>• Até 50 transações/mês</li>
-                  <li>• 2 contas bancárias</li>
-                  <li>• 1 cartão de crédito</li>
-                  <li>• Relatórios básicos</li>
+                  <li>• Hasta 50 transacciones/mes</li>
+                  <li>• 2 cuentas bancarias</li>
+                  <li>• 1 tarjeta de crédito</li>
+                  <li>• Informes básicos</li>
                 </ul>
                 <Button variant="outline" className="w-full" disabled>
-                  Plano atual
+                  Plan actual
                 </Button>
               </div>
 
@@ -361,19 +361,19 @@ export default function Settings() {
                 </Badge>
                 <div className="flex items-center gap-2 mb-2">
                   <Crown className="w-5 h-5 text-warning" />
-                  <h3 className="text-lg font-semibold">Plano Premium</h3>
+                  <h3 className="text-lg font-semibold">Plan Premium</h3>
                 </div>
-                <p className="text-3xl font-bold mb-4">R$ 19,90<span className="text-sm font-normal text-muted-foreground">/mês</span></p>
+                <p className="text-3xl font-bold mb-4">9,90 €<span className="text-sm font-normal text-muted-foreground">/mes</span></p>
                 <ul className="space-y-2 mb-6 text-sm">
-                  <li className="text-success">✓ Transações ilimitadas</li>
-                  <li className="text-success">✓ Contas ilimitadas</li>
-                  <li className="text-success">✓ Cartões ilimitados</li>
-                  <li className="text-success">✓ Relatórios avançados</li>
-                  <li className="text-success">✓ Gestão compartilhada</li>
-                  <li className="text-success">✓ Suporte prioritário</li>
+                  <li className="text-success">✓ Transacciones ilimitadas</li>
+                  <li className="text-success">✓ Cuentas ilimitadas</li>
+                  <li className="text-success">✓ Tarjetas ilimitadas</li>
+                  <li className="text-success">✓ Informes avanzados</li>
+                  <li className="text-success">✓ Gestión compartida</li>
+                  <li className="text-success">✓ Soporte prioritario</li>
                 </ul>
                 <Button className="w-full bg-warning text-warning-foreground hover:bg-warning/90">
-                  Fazer upgrade
+                  Mejorar plan
                 </Button>
               </div>
             </div>
