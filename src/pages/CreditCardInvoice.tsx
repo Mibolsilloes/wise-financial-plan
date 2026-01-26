@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { parseISO, format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { es } from "date-fns/locale";
 import { Layout } from "@/components/layout/Layout";
 import { 
   ArrowLeft,
@@ -83,27 +83,27 @@ import {
   Line
 } from "recharts";
 
-type GroupingOption = "none" | "categoria" | "vencimento" | "responsavel";
+type GroupingOption = "none" | "categoria" | "vencimiento" | "responsable";
 
 const groupingLabels: Record<GroupingOption, string> = {
-  none: "Sem agrupamento",
-  categoria: "Categoria",
-  vencimento: "Data de Vencimento",
-  responsavel: "Responsável",
+  none: "Sin agrupación",
+  categoria: "Categoría",
+  vencimiento: "Fecha de vencimiento",
+  responsable: "Responsable",
 };
 
-type SortOption = "criacao" | "vencimento" | "valor";
+type SortOption = "creacion" | "vencimiento" | "valor";
 
 const sortLabels: Record<SortOption, string> = {
-  criacao: "Data de Criação",
-  vencimento: "Data de Vencimento",
-  valor: "Valor",
+  creacion: "Fecha de creación",
+  vencimiento: "Fecha de vencimiento",
+  valor: "Importe",
 };
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("pt-BR", {
+  return new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "BRL",
+    currency: "EUR",
   }).format(value);
 };
 
@@ -116,32 +116,31 @@ const cardsData: Record<string, {
   dueDay: number;
   account: string;
 }> = {
-  "1": { name: "Nubank Platinum", brand: "Mastercard", limit: 15000, closingDay: 3, dueDay: 10, account: "Nubank" },
-  "2": { name: "Itaú Click", brand: "Visa", limit: 8000, closingDay: 15, dueDay: 22, account: "Itaú" },
-  "3": { name: "Bradesco Neo", brand: "Elo", limit: 5000, closingDay: 20, dueDay: 27, account: "Bradesco" },
+  "1": { name: "Santander Platinum", brand: "Mastercard", limit: 15000, closingDay: 3, dueDay: 10, account: "Santander" },
+  "2": { name: "BBVA Aqua", brand: "Visa", limit: 8000, closingDay: 15, dueDay: 22, account: "BBVA" },
+  "3": { name: "CaixaBank Visa", brand: "Visa", limit: 5000, closingDay: 20, dueDay: 27, account: "CaixaBank" },
 };
 
 const brandColors: Record<string, string> = {
   "Mastercard": "hsl(25, 95%, 53%)",
   "Visa": "hsl(217, 91%, 60%)",
-  "Elo": "hsl(45, 93%, 47%)",
   "American Express": "hsl(199, 89%, 48%)",
 };
 
 const months = [
-  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
 ];
 
 const categoryColors: Record<string, string> = {
   "Streaming": "hsl(280, 70%, 50%)",
-  "Mercado": "hsl(140, 70%, 45%)",
-  "Eletrônicos": "hsl(200, 80%, 50%)",
-  "Alimentação": "hsl(25, 90%, 55%)",
+  "Supermercado": "hsl(140, 70%, 45%)",
+  "Electrónica": "hsl(200, 80%, 50%)",
+  "Alimentación": "hsl(25, 90%, 55%)",
   "Transporte": "hsl(45, 90%, 50%)",
-  "Saúde": "hsl(340, 70%, 50%)",
-  "Lazer": "hsl(170, 60%, 45%)",
-  "Outros": "hsl(220, 15%, 55%)",
+  "Salud": "hsl(340, 70%, 50%)",
+  "Ocio": "hsl(170, 60%, 45%)",
+  "Otros": "hsl(220, 15%, 55%)",
 };
 
 interface ExpensesPieChartProps {
@@ -182,7 +181,7 @@ function ExpensesPieChart({ transactions }: ExpensesPieChartProps) {
           <PieChartIcon className="w-6 h-6 text-muted-foreground" />
         </div>
         <p className="text-xs text-muted-foreground">
-          Não há dados suficientes para mostrar este gráfico.
+          No hay datos suficientes para mostrar este gráfico.
         </p>
       </div>
     );
@@ -231,7 +230,7 @@ function ExpensesPieChart({ transactions }: ExpensesPieChartProps) {
       {/* Total in center label */}
       <div className="text-center -mt-2">
         <p className="text-lg font-bold text-destructive">{formatCurrency(total)}</p>
-        <p className="text-[10px] text-muted-foreground">Total da fatura</p>
+        <p className="text-[10px] text-muted-foreground">Total de la factura</p>
       </div>
 
       {/* Legend */}
@@ -259,7 +258,7 @@ function ExpensesPieChart({ transactions }: ExpensesPieChartProps) {
   );
 }
 
-const monthAbbreviations = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const monthAbbreviations = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
 // Generate monthly expense data based on transactions
 const generateMonthlyExpenseData = (transactions: any[]) => {
@@ -327,7 +326,7 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
           <p className="font-medium text-foreground mb-1">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} className="text-xs" style={{ color: entry.color }}>
-              Despesas: {formatCurrency(entry.value)}
+              Gastos: {formatCurrency(entry.value)}
             </p>
           ))}
         </div>
@@ -354,7 +353,7 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
               verticalAlign="bottom" 
               height={36}
               iconType="square"
-              formatter={() => <span className="text-xs text-muted-foreground">Despesas</span>}
+              formatter={() => <span className="text-xs text-muted-foreground">Gastos</span>}
             />
             <Line type="monotone" dataKey="despesas" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={false} />
           </LineChart>
@@ -370,7 +369,7 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
               verticalAlign="bottom" 
               height={36}
               iconType="square"
-              formatter={() => <span className="text-xs text-muted-foreground">Despesas</span>}
+              formatter={() => <span className="text-xs text-muted-foreground">Gastos</span>}
             />
             <Bar dataKey="despesas" fill="hsl(0, 84%, 60%)" radius={[4, 4, 0, 0]} />
           </BarChart>
@@ -392,7 +391,7 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
               verticalAlign="bottom" 
               height={36}
               iconType="square"
-              formatter={() => <span className="text-xs text-muted-foreground">Despesas</span>}
+              formatter={() => <span className="text-xs text-muted-foreground">Gastos</span>}
             />
             <Area type="monotone" dataKey="despesas" stroke="hsl(0, 84%, 60%)" fillOpacity={1} fill="url(#colorDespesasCard)" />
           </AreaChart>
@@ -409,8 +408,8 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
               <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <ChevronDown className={cn("w-4 h-4 transition-transform", !chartOpen && "-rotate-90")} />
                 <div className="text-left">
-                  <h3 className="font-semibold text-sm">Despesas do Cartão</h3>
-                  <p className="text-xs text-muted-foreground">Visualize as despesas ao longo do tempo</p>
+                  <h3 className="font-semibold text-sm">Gastos de la Tarjeta</h3>
+                  <p className="text-xs text-muted-foreground">Visualiza los gastos a lo largo del tiempo</p>
                 </div>
               </button>
             </CollapsibleTrigger>
@@ -421,9 +420,9 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="bar">Coluna</SelectItem>
+                  <SelectItem value="bar">Columna</SelectItem>
                   <SelectItem value="area">Área</SelectItem>
-                  <SelectItem value="line">Linha</SelectItem>
+                  <SelectItem value="line">Línea</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={chartPeriod} onValueChange={(v) => setChartPeriod(v as any)}>
@@ -432,8 +431,8 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="monthly">Mensal</SelectItem>
-                  <SelectItem value="daily">Diário</SelectItem>
+                  <SelectItem value="monthly">Mensual</SelectItem>
+                  <SelectItem value="daily">Diario</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -487,7 +486,7 @@ export default function CreditCardInvoice() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
-          <p>Cartão não encontrado</p>
+          <p>Tarjeta no encontrada</p>
         </div>
       </Layout>
     );
@@ -677,14 +676,14 @@ export default function CreditCardInvoice() {
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold">Fatura {months[currentMonth]}</h2>
+                <h2 className="text-lg font-semibold">Factura {months[currentMonth]}</h2>
                 <p className="text-xs text-muted-foreground">
-                  {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: ptBR })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: ptBR })}
+                  {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: es })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: es })}
                 </p>
               </div>
               <Button className="gap-2 bg-destructive hover:bg-destructive/90">
                 <Plus className="w-4 h-4" />
-                Despesa Cartão
+                Gasto Tarjeta
               </Button>
             </div>
 
@@ -886,9 +885,9 @@ export default function CreditCardInvoice() {
                 </TabsList>
                 <TabsContent value="despesas" className="mt-4">
                   <div className="text-center">
-                    <p className="text-sm font-medium mb-1">Despesas por Categoria</p>
+                    <p className="text-sm font-medium mb-1">Gastos por Categoría</p>
                     <p className="text-xs text-muted-foreground mb-4">
-                      {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: ptBR })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: ptBR })}
+                      {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: es })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: es })}
                     </p>
                     <ExpensesPieChart transactions={filteredTransactions} />
                   </div>
