@@ -33,7 +33,7 @@ import { AddExpenseDialog } from "./AddExpenseDialog";
 import { FilterPopover } from "./FilterPopover";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { useFilters } from "@/contexts/FilterContext";
-import { transactions } from "@/data/mockData";
+import { useTransactions } from "@/contexts/TransactionsContext";
 import { format, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -58,6 +58,7 @@ export function TransactionList() {
 
   const { monthName, handlePrevMonth, handleNextMonth, effectiveDateRange } = usePeriod();
   const { filters } = useFilters();
+  const { transactions } = useTransactions();
 
   const filteredTransactions = useMemo(() => {
     let result = [...transactions];
