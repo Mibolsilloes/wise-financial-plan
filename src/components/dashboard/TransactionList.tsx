@@ -9,6 +9,9 @@ import {
   Filter,
   Check,
   Clock,
+  Pencil,
+  Trash2,
+  MoreHorizontal,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -27,15 +30,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { AddRevenueDialog } from "./AddRevenueDialog";
 import { AddExpenseDialog } from "./AddExpenseDialog";
+import { EditTransactionDialog } from "./EditTransactionDialog";
+import { DeleteTransactionDialog } from "./DeleteTransactionDialog";
 import { FilterPopover } from "./FilterPopover";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { useFilters } from "@/contexts/FilterContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
 import { format, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
+import { Transaction } from "@/data/mockData";
+import { toast } from "@/hooks/use-toast";
 
 const tableColumns = [
   "Responsable",
@@ -46,6 +60,7 @@ const tableColumns = [
   "Vencimiento",
   "Estado",
   "Tipo",
+  "Acciones",
 ];
 
 export function TransactionList() {
@@ -54,11 +69,14 @@ export function TransactionList() {
   const [itemsPerPage, setItemsPerPage] = useState("30");
   const [isRevenueDialogOpen, setIsRevenueDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   const { monthName, handlePrevMonth, handleNextMonth, effectiveDateRange } = usePeriod();
   const { filters } = useFilters();
-  const { transactions } = useTransactions();
+  const { transactions, updateTransaction } = useTransactions();
 
   const filteredTransactions = useMemo(() => {
     let result = [...transactions];
@@ -179,6 +197,39 @@ export function TransactionList() {
     );
   };
 
+  const handleEditClick = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleToggleStatus = (transaction: Transaction) => {
+    let newStatus: Transaction["status"];
+    if (transaction.type === "ingreso") {
+      newStatus = transaction.status === "cobrado" ? "por_cobrar" : "cobrado";
+    } else {
+      newStatus = transaction.status === "pagado" ? "pendiente" : "pagado";
+    }
+    
+    updateTransaction(transaction.id, { 
+      status: newStatus,
+      paymentDate: newStatus === "pagado" || newStatus === "cobrado" ? new Date() : undefined
+    });
+    
+    toast({
+      title: "Estado actualizado",
+      description: `"${transaction.description}" marcado como ${
+        newStatus === "pagado" || newStatus === "cobrado" 
+          ? (transaction.type === "ingreso" ? "cobrado" : "pagado")
+          : (transaction.type === "ingreso" ? "por cobrar" : "pendiente")
+      }.`,
+    });
+  };
+
   return (
     <div className="glass rounded-xl p-5 animate-slide-up">
       {/* Header with Month Navigation and Action Buttons */}
@@ -228,6 +279,16 @@ export function TransactionList() {
       {/* Dialogs */}
       <AddRevenueDialog open={isRevenueDialogOpen} onOpenChange={setIsRevenueDialogOpen} />
       <AddExpenseDialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen} />
+      <EditTransactionDialog 
+        open={isEditDialogOpen} 
+        onOpenChange={setIsEditDialogOpen} 
+        transaction={selectedTransaction}
+      />
+      <DeleteTransactionDialog 
+        open={isDeleteDialogOpen} 
+        onOpenChange={setIsDeleteDialogOpen} 
+        transaction={selectedTransaction}
+      />
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-1 mb-4 border-b border-border">
@@ -354,7 +415,12 @@ export function TransactionList() {
                   {format(transaction.dueDate, "dd/MM/yyyy", { locale: es })}
                 </TableCell>
                 <TableCell>
-                  {getStatusBadge(transaction.status, transaction.type)}
+                  <button
+                    onClick={() => handleToggleStatus(transaction)}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                  >
+                    {getStatusBadge(transaction.status, transaction.type)}
+                  </button>
                 </TableCell>
                 <TableCell>
                   <span className={cn(
@@ -365,6 +431,42 @@ export function TransactionList() {
                   )}>
                     {transaction.isFixed ? "Fijo" : "Variable"}
                   </span>
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-[160px]">
+                      <DropdownMenuItem onClick={() => handleEditClick(transaction)}>
+                        <Pencil className="w-4 h-4 mr-2" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleToggleStatus(transaction)}>
+                        {transaction.status === "pagado" || transaction.status === "cobrado" ? (
+                          <>
+                            <Clock className="w-4 h-4 mr-2" />
+                            Marcar pendiente
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4 mr-2" />
+                            Marcar {transaction.type === "ingreso" ? "cobrado" : "pagado"}
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => handleDeleteClick(transaction)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

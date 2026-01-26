@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { isWithinInterval, parseISO, startOfDay, endOfDay, format, subDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { es } from "date-fns/locale";
 import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { 
@@ -55,39 +55,39 @@ import { PeriodSelector } from "@/components/dashboard/PeriodSelector";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { cn } from "@/lib/utils";
 
-type GroupingOption = "none" | "categoria" | "vencimento" | "criacao" | "responsavel";
+type GroupingOption = "none" | "categoria" | "vencimiento" | "creacion" | "responsable";
 
 const groupingLabels: Record<GroupingOption, string> = {
-  none: "Sem agrupamento",
-  categoria: "Categoria",
-  vencimento: "Data de Vencimento",
-  criacao: "Data de Criação",
-  responsavel: "Responsável",
+  none: "Sin agrupación",
+  categoria: "Categoría",
+  vencimiento: "Fecha de vencimiento",
+  creacion: "Fecha de creación",
+  responsable: "Responsable",
 };
 
-type SortOption = "criacao" | "vencimento" | "pagamento" | "competencia" | "valor";
+type SortOption = "creacion" | "vencimiento" | "pago" | "competencia" | "valor";
 
 const sortLabels: Record<SortOption, string> = {
-  criacao: "Data de Criação",
-  vencimento: "Data de Vencimento",
-  pagamento: "Data de Pagamento",
-  competencia: "Data de Competência",
-  valor: "Valor",
+  creacion: "Fecha de creación",
+  vencimiento: "Fecha de vencimiento",
+  pago: "Fecha de pago",
+  competencia: "Fecha de competencia",
+  valor: "Importe",
 };
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("pt-BR", {
+  return new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "BRL",
+    currency: "EUR",
   }).format(value);
 };
 
 // Mock account data - would come from context/API
 const accountsData: Record<string, { name: string; color: string; balance: number; icon: string }> = {
-  "1": { name: "Nubank", color: "hsl(280, 100%, 50%)", balance: 5420.50, icon: "credit-card" },
-  "2": { name: "Itaú", color: "hsl(25, 95%, 53%)", balance: 12350.00, icon: "landmark" },
-  "3": { name: "Bradesco", color: "hsl(0, 84%, 60%)", balance: 890.25, icon: "building" },
-  "4": { name: "Carteira", color: "hsl(160, 84%, 39%)", balance: 150.00, icon: "wallet" },
+  "1": { name: "Santander", color: "hsl(0, 84%, 50%)", balance: 5420.50, icon: "landmark" },
+  "2": { name: "BBVA", color: "hsl(210, 100%, 40%)", balance: 12350.00, icon: "landmark" },
+  "3": { name: "CaixaBank", color: "hsl(200, 70%, 45%)", balance: 890.25, icon: "building" },
+  "4": { name: "Efectivo", color: "hsl(160, 84%, 39%)", balance: 150.00, icon: "wallet" },
 };
 
 const getAccountIcon = (iconType: string) => {
@@ -160,7 +160,7 @@ const FinancialCard = ({
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-3 transition-colors"
           >
-            {isExpanded ? "Ocultar detalhes" : "Ver detalhes"}
+            {isExpanded ? "Ocultar detalles" : "Ver detalles"}
             {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </button>
           
@@ -240,7 +240,7 @@ export default function AccountReport() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
-          <p>Conta não encontrada</p>
+          <p>Cuenta no encontrada</p>
         </div>
       </Layout>
     );
@@ -319,11 +319,11 @@ export default function AccountReport() {
         
         {/* Back Button */}
         <button 
-          onClick={() => navigate("/contas")}
+          onClick={() => navigate("/cuentas")}
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Voltar
+          Volver
         </button>
         
         {/* Account Badge */}
@@ -339,7 +339,7 @@ export default function AccountReport() {
             <AccountIcon className="w-4 h-4" />
             {account.name}
             <button 
-              onClick={() => navigate("/contas")}
+              onClick={() => navigate("/cuentas")}
               className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
             >
               <X className="w-3 h-3" />
@@ -352,47 +352,47 @@ export default function AccountReport() {
           <FinancialCard
             title="Saldo Anterior"
             value={financialData.previousBalance}
-            subtitle={`Até ${format(subDays(effectiveDateRange.from, 1), "d 'de' MMMM", { locale: ptBR })}`}
+            subtitle={`Hasta ${format(subDays(effectiveDateRange.from, 1), "d 'de' MMMM", { locale: es })}`}
             icon={<TrendingUp className="w-3.5 h-3.5" />}
             iconColor="text-primary"
             expandable
             details={[
-              { label: "Pendências", value: 0, color: "destructive" },
-              { label: "Disponível", value: financialData.previousBalance, color: "success" },
+              { label: "Pendientes", value: 0, color: "destructive" },
+              { label: "Disponible", value: financialData.previousBalance, color: "success" },
             ]}
           />
           
           <FinancialCard
-            title="Receitas"
+            title="Ingresos"
             value={financialData.income}
-            subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: ptBR })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })}`}
+            subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: es })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: es })}`}
             icon={<TrendingUp className="w-3.5 h-3.5" />}
             iconColor="text-success"
             showEye
             expandable
             details={[
-              { label: "Recebido", value: financialData.incomeDetails.received, color: "success" },
-              { label: "A receber", value: financialData.incomeDetails.toReceive, color: "default" },
+              { label: "Cobrado", value: financialData.incomeDetails.received, color: "success" },
+              { label: "Por cobrar", value: financialData.incomeDetails.toReceive, color: "default" },
             ]}
           />
           
           <FinancialCard
-            title="Despesas"
+            title="Gastos"
             value={financialData.expenses}
-            subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: ptBR })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })}`}
+            subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: es })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: es })}`}
             icon={<TrendingDown className="w-3.5 h-3.5" />}
             iconColor="text-destructive"
             expandable
             details={[
-              { label: "Pago", value: financialData.expenseDetails.paid, color: "success" },
-              { label: "A pagar", value: financialData.expenseDetails.toPay, color: "destructive" },
+              { label: "Pagado", value: financialData.expenseDetails.paid, color: "success" },
+              { label: "Por pagar", value: financialData.expenseDetails.toPay, color: "destructive" },
             ]}
           />
           
           <FinancialCard
-            title="Saldo Disponível"
+            title="Saldo Disponible"
             value={financialData.availableBalance}
-            subtitle={`Até ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })}`}
+            subtitle={`Hasta ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: es })}`}
             icon={<Wallet className="w-3.5 h-3.5" />}
             iconColor="text-primary"
           />
@@ -409,7 +409,7 @@ export default function AccountReport() {
             {formatCurrency(financialData.expectedBalance)}
           </div>
           <p className="text-[10px] text-muted-foreground mt-1">
-            Até {format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })} (Receita - Despesa + Saldo Anterior)
+            Hasta {format(effectiveDateRange.to, "d 'de' MMMM", { locale: es })} (Ingresos - Gastos + Saldo Anterior)
           </p>
         </div>
         
@@ -419,8 +419,8 @@ export default function AccountReport() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="bg-muted/50 p-1">
               <TabsTrigger value="todas" className="text-xs">Todas</TabsTrigger>
-              <TabsTrigger value="despesas" className="text-xs">Despesas</TabsTrigger>
-              <TabsTrigger value="receitas" className="text-xs">Receitas</TabsTrigger>
+              <TabsTrigger value="despesas" className="text-xs">Gastos</TabsTrigger>
+              <TabsTrigger value="receitas" className="text-xs">Ingresos</TabsTrigger>
             </TabsList>
           </Tabs>
           
@@ -454,9 +454,9 @@ export default function AccountReport() {
                   >
                     {option === "none" && <FileText className="w-4 h-4" />}
                     {option === "categoria" && <LayoutGrid className="w-4 h-4" />}
-                    {option === "vencimento" && <FileText className="w-4 h-4" />}
-                    {option === "criacao" && <FileText className="w-4 h-4" />}
-                    {option === "responsavel" && <FileText className="w-4 h-4" />}
+                    {option === "vencimiento" && <FileText className="w-4 h-4" />}
+                    {option === "creacion" && <FileText className="w-4 h-4" />}
+                    {option === "responsable" && <FileText className="w-4 h-4" />}
                     {groupingLabels[option]}
                     {grouping === option && <Check className="w-4 h-4 ml-auto" />}
                   </DropdownMenuItem>
