@@ -14,15 +14,15 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { es } from "date-fns/locale";
 import { usePeriod, PeriodType } from "@/contexts/PeriodContext";
 import { useState } from "react";
 
 const periods: { id: PeriodType; label: string }[] = [
-  { id: "today", label: "Hoje" },
-  { id: "7days", label: "7 dias atrás" },
-  { id: "month", label: "Esse mês" },
-  { id: "year", label: "Esse ano" },
+  { id: "today", label: "Hoy" },
+  { id: "7days", label: "7 días atrás" },
+  { id: "month", label: "Este mes" },
+  { id: "year", label: "Este año" },
 ];
 
 export function PeriodSelector() {
@@ -130,7 +130,7 @@ export function PeriodSelector() {
                 selected={dateRange}
                 onSelect={handleDateRangeSelect}
                 numberOfMonths={2}
-                locale={ptBR}
+                locale={es}
                 className="pointer-events-auto"
               />
             </PopoverContent>
@@ -144,7 +144,7 @@ export function PeriodSelector() {
             onClick={clearFilters}
           >
             <Trash2 className="w-4 h-4" />
-            Limpar filtro
+            Limpiar filtro
           </Button>
           <Button 
             variant="outline" 
@@ -153,7 +153,7 @@ export function PeriodSelector() {
             onClick={refresh}
           >
             <RefreshCw className="w-4 h-4" />
-            Atualizar
+            Actualizar
           </Button>
         </div>
       </div>
