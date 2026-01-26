@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { isWithinInterval, parseISO, startOfDay, endOfDay, format, subDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { es } from "date-fns/locale";
 import { useParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { 
@@ -20,7 +20,8 @@ import {
   FileText,
   LayoutGrid,
   TableIcon,
-  Check
+  Check,
+  MoreHorizontal
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,47 +53,47 @@ import { PeriodSelector } from "@/components/dashboard/PeriodSelector";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { cn } from "@/lib/utils";
 
-type GroupingOption = "none" | "categoria" | "vencimento" | "criacao" | "responsavel";
+type GroupingOption = "none" | "categoria" | "vencimiento" | "creacion" | "responsable";
 
 const groupingLabels: Record<GroupingOption, string> = {
-  none: "Sem agrupamento",
-  categoria: "Categoria",
-  vencimento: "Data de Vencimento",
-  criacao: "Data de Criação",
-  responsavel: "Responsável",
+  none: "Sin agrupar",
+  categoria: "Categoría",
+  vencimiento: "Fecha de Vencimiento",
+  creacion: "Fecha de Creación",
+  responsable: "Responsable",
 };
 
-type SortOption = "criacao" | "vencimento" | "pagamento" | "competencia" | "valor";
+type SortOption = "creacion" | "vencimiento" | "pago" | "competencia" | "valor";
 
 const sortLabels: Record<SortOption, string> = {
-  criacao: "Data de Criação",
-  vencimento: "Data de Vencimento",
-  pagamento: "Data de Pagamento",
-  competencia: "Data de Competência",
-  valor: "Valor",
+  creacion: "Fecha de Creación",
+  vencimiento: "Fecha de Vencimiento",
+  pago: "Fecha de Pago",
+  competencia: "Fecha de Competencia",
+  valor: "Importe",
 };
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("pt-BR", {
+  return new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "BRL",
+    currency: "EUR",
   }).format(value);
 };
 
 // Mock category data - would come from context/API
 const categoryData: Record<string, { name: string; color: string; type: string }> = {
-  "1": { name: "Alimentação", color: "hsl(25, 95%, 53%)", type: "despesa" },
-  "2": { name: "Transporte", color: "hsl(217, 91%, 60%)", type: "despesa" },
-  "3": { name: "Casa", color: "hsl(340, 82%, 52%)", type: "despesa" },
-  "4": { name: "Mercado", color: "hsl(45, 93%, 47%)", type: "despesa" },
-  "5": { name: "Salário", color: "hsl(160, 84%, 39%)", type: "receita" },
-  "6": { name: "Saúde", color: "hsl(280, 65%, 60%)", type: "despesa" },
-  "7": { name: "Lazer", color: "hsl(199, 89%, 48%)", type: "despesa" },
-  "8": { name: "Educação", color: "hsl(142, 76%, 36%)", type: "despesa" },
-  "9": { name: "Vestuário", color: "hsl(330, 81%, 60%)", type: "despesa" },
-  "10": { name: "Viagem", color: "hsl(199, 89%, 48%)", type: "despesa" },
-  "11": { name: "Pets", color: "hsl(35, 91%, 58%)", type: "despesa" },
-  "12": { name: "Doações", color: "hsl(172, 66%, 50%)", type: "despesa" },
+  "1": { name: "Salario", color: "hsl(142, 76%, 36%)", type: "ingreso" },
+  "2": { name: "Freelance", color: "hsl(200, 98%, 39%)", type: "ingreso" },
+  "3": { name: "Inversiones", color: "hsl(262, 83%, 58%)", type: "ingreso" },
+  "4": { name: "Vivienda", color: "hsl(340, 82%, 52%)", type: "gasto" },
+  "5": { name: "Alimentación", color: "hsl(25, 95%, 53%)", type: "gasto" },
+  "6": { name: "Transporte", color: "hsl(45, 93%, 47%)", type: "gasto" },
+  "7": { name: "Suministros", color: "hsl(190, 95%, 39%)", type: "gasto" },
+  "8": { name: "Ocio", color: "hsl(280, 87%, 54%)", type: "gasto" },
+  "9": { name: "Salud", color: "hsl(0, 84%, 60%)", type: "gasto" },
+  "10": { name: "Educación", color: "hsl(220, 90%, 56%)", type: "gasto" },
+  "11": { name: "Ropa", color: "hsl(320, 70%, 50%)", type: "gasto" },
+  "12": { name: "Mascotas", color: "hsl(30, 80%, 55%)", type: "gasto" },
 };
 
 // Modern gradient card component matching "Lançamentos pendentes" style
@@ -217,38 +218,39 @@ export default function CategoryReport() {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-6">
-          <p>Categoria não encontrada</p>
+          <p>Categoría no encontrada</p>
         </div>
       </Layout>
     );
   }
 
   const monthNames = [
-    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
   ];
 
-  // Mock transactions with dates - would come from API
+  // Mock transactions with dates - realistic Spanish data
   const allTransactions = useMemo(() => [
-    { id: 1, descricao: "Restaurante", responsavel: "João", valor: -85.50, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "Nubank Platinum", dataVencimento: "2026-01-15", dataCompetencia: "2026-01-15", dataPagamento: "2026-01-15", fixoVariavel: "Variável" },
-    { id: 2, descricao: "Supermercado", responsavel: "Maria", valor: -320.00, tipo: "despesa", status: "Pendente", conta: "Itaú", cartao: "", dataVencimento: "2026-01-20", dataCompetencia: "2026-01-20", dataPagamento: "", fixoVariavel: "Variável" },
-    { id: 3, descricao: "Delivery iFood", responsavel: "João", valor: -45.90, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "Nubank Platinum", dataVencimento: "2026-01-18", dataCompetencia: "2026-01-18", dataPagamento: "2026-01-18", fixoVariavel: "Variável" },
-    { id: 4, descricao: "Padaria", responsavel: "Maria", valor: -28.00, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "", dataVencimento: "2026-01-19", dataCompetencia: "2026-01-19", dataPagamento: "2026-01-19", fixoVariavel: "Variável" },
-    { id: 5, descricao: "Almoço trabalho", responsavel: "João", valor: -55.00, tipo: "despesa", status: "Pendente", conta: "Itaú", cartao: "", dataVencimento: "2026-01-22", dataCompetencia: "2026-01-22", dataPagamento: "", fixoVariavel: "Variável" },
-    { id: 6, descricao: "Mercado mensal", responsavel: "Maria", valor: -850.00, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "", dataVencimento: "2026-01-05", dataCompetencia: "2026-01-05", dataPagamento: "2026-01-05", fixoVariavel: "Fixo" },
-    { id: 7, descricao: "Lanche", responsavel: "João", valor: -22.50, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "Nubank Platinum", dataVencimento: "2026-01-12", dataCompetencia: "2026-01-12", dataPagamento: "2026-01-12", fixoVariavel: "Variável" },
-    { id: 8, descricao: "Feira orgânica", responsavel: "Maria", valor: -180.00, tipo: "despesa", status: "Pendente", conta: "Itaú", cartao: "", dataVencimento: "2026-01-25", dataCompetencia: "2026-01-25", dataPagamento: "", fixoVariavel: "Variável" },
-    // Transactions from December 2025
-    { id: 9, descricao: "Ceia de Natal", responsavel: "Maria", valor: -450.00, tipo: "despesa", status: "Pago", conta: "Nubank", cartao: "", dataVencimento: "2025-12-24", dataCompetencia: "2025-12-24", dataPagamento: "2025-12-24", fixoVariavel: "Variável" },
-    { id: 10, descricao: "Mercado dezembro", responsavel: "João", valor: -720.00, tipo: "despesa", status: "Pago", conta: "Itaú", cartao: "", dataVencimento: "2025-12-10", dataCompetencia: "2025-12-10", dataPagamento: "2025-12-10", fixoVariavel: "Fixo" },
-    // Transactions from February 2026
-    { id: 11, descricao: "Mercado fevereiro", responsavel: "Maria", valor: -380.00, tipo: "despesa", status: "Pendente", conta: "Nubank", cartao: "", dataVencimento: "2026-02-05", dataCompetencia: "2026-02-05", dataPagamento: "", fixoVariavel: "Fixo" },
+    // Alimentación transactions
+    { id: 1, descripcion: "Restaurante Osaka", responsable: "Juan García", valor: -52.80, tipo: "gasto", status: "Pagado", cuenta: "Santander", tarjeta: "Visa Gold", fechaVencimiento: "2026-01-15", fechaCompetencia: "2026-01-15", fechaPago: "2026-01-15", fijoVariable: "Variable" },
+    { id: 2, descripcion: "Supermercado Mercadona", responsable: "María López", valor: -125.40, tipo: "gasto", status: "Pagado", cuenta: "BBVA", tarjeta: "", fechaVencimiento: "2026-01-03", fechaCompetencia: "2026-01-03", fechaPago: "2026-01-03", fijoVariable: "Variable" },
+    { id: 3, descripcion: "Delivery Glovo", responsable: "Juan García", valor: -28.90, tipo: "gasto", status: "Pagado", cuenta: "Santander", tarjeta: "Visa Gold", fechaVencimiento: "2026-01-18", fechaCompetencia: "2026-01-18", fechaPago: "2026-01-18", fijoVariable: "Variable" },
+    { id: 4, descripcion: "Cafetería El Rincón", responsable: "María López", valor: -12.50, tipo: "gasto", status: "Pagado", cuenta: "CaixaBank", tarjeta: "", fechaVencimiento: "2026-01-10", fechaCompetencia: "2026-01-10", fechaPago: "2026-01-10", fijoVariable: "Variable" },
+    { id: 5, descripcion: "Carrefour compra semanal", responsable: "Juan García", valor: -98.00, tipo: "gasto", status: "Pendiente", cuenta: "BBVA", tarjeta: "", fechaVencimiento: "2026-01-22", fechaCompetencia: "2026-01-22", fechaPago: "", fijoVariable: "Variable" },
+    { id: 6, descripcion: "Panadería artesana", responsable: "María López", valor: -8.75, tipo: "gasto", status: "Pagado", cuenta: "Santander", tarjeta: "", fechaVencimiento: "2026-01-12", fechaCompetencia: "2026-01-12", fechaPago: "2026-01-12", fijoVariable: "Variable" },
+    { id: 7, descripcion: "Cena restaurante italiano", responsable: "Juan García", valor: -78.00, tipo: "gasto", status: "Pagado", cuenta: "Santander", tarjeta: "Mastercard", fechaVencimiento: "2026-01-08", fechaCompetencia: "2026-01-08", fechaPago: "2026-01-08", fijoVariable: "Variable" },
+    { id: 8, descripcion: "Frutería del barrio", responsable: "María López", valor: -22.30, tipo: "gasto", status: "Pendiente", cuenta: "CaixaBank", tarjeta: "", fechaVencimiento: "2026-01-25", fechaCompetencia: "2026-01-25", fechaPago: "", fijoVariable: "Variable" },
+    // December transactions
+    { id: 9, descripcion: "Cena de Navidad", responsable: "María López", valor: -185.00, tipo: "gasto", status: "Pagado", cuenta: "Santander", tarjeta: "", fechaVencimiento: "2025-12-24", fechaCompetencia: "2025-12-24", fechaPago: "2025-12-24", fijoVariable: "Variable" },
+    { id: 10, descripcion: "Compra navideña Mercadona", responsable: "Juan García", valor: -210.00, tipo: "gasto", status: "Pagado", cuenta: "BBVA", tarjeta: "", fechaVencimiento: "2025-12-22", fechaCompetencia: "2025-12-22", fechaPago: "2025-12-22", fijoVariable: "Variable" },
+    // February transactions
+    { id: 11, descripcion: "Supermercado febrero", responsable: "María López", valor: -135.00, tipo: "gasto", status: "Pendiente", cuenta: "Santander", tarjeta: "", fechaVencimiento: "2026-02-05", fechaCompetencia: "2026-02-05", fechaPago: "", fijoVariable: "Variable" },
   ], []);
 
   // Filter transactions based on effectiveDateRange
   const transactions = useMemo(() => {
     return allTransactions.filter(transaction => {
-      const transactionDate = parseISO(transaction.dataVencimento);
+      const transactionDate = parseISO(transaction.fechaVencimiento);
       return isWithinInterval(transactionDate, {
         start: startOfDay(effectiveDateRange.from),
         end: endOfDay(effectiveDateRange.to),
@@ -259,27 +261,27 @@ export default function CategoryReport() {
   // Calculate financial data based on filtered transactions
   const financialData = useMemo(() => {
     const income = transactions
-      .filter(t => t.tipo === "receita")
+      .filter(t => t.tipo === "ingreso")
       .reduce((sum, t) => sum + t.valor, 0);
     
     const expenses = transactions
-      .filter(t => t.tipo === "despesa")
+      .filter(t => t.tipo === "gasto")
       .reduce((sum, t) => sum + Math.abs(t.valor), 0);
     
     const incomeReceived = transactions
-      .filter(t => t.tipo === "receita" && t.status === "Pago")
+      .filter(t => t.tipo === "ingreso" && t.status === "Pagado")
       .reduce((sum, t) => sum + t.valor, 0);
     
     const incomeToReceive = transactions
-      .filter(t => t.tipo === "receita" && t.status === "Pendente")
+      .filter(t => t.tipo === "ingreso" && t.status === "Pendiente")
       .reduce((sum, t) => sum + t.valor, 0);
     
     const expensesPaid = transactions
-      .filter(t => t.tipo === "despesa" && t.status === "Pago")
+      .filter(t => t.tipo === "gasto" && t.status === "Pagado")
       .reduce((sum, t) => sum + Math.abs(t.valor), 0);
     
     const expensesToPay = transactions
-      .filter(t => t.tipo === "despesa" && t.status === "Pendente")
+      .filter(t => t.tipo === "gasto" && t.status === "Pendiente")
       .reduce((sum, t) => sum + Math.abs(t.valor), 0);
 
     return {
@@ -305,7 +307,7 @@ export default function CategoryReport() {
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Voltar
+          Volver
         </button>
         
         {/* Category Badge */}
@@ -333,29 +335,29 @@ export default function CategoryReport() {
           <GradientCard
             title="Saldo Anterior"
             value={financialData.previousBalance}
-            subtitle={`Até ${format(subDays(effectiveDateRange.from, 1), "d 'de' MMMM", { locale: ptBR })}`}
+            subtitle={`Hasta ${format(subDays(effectiveDateRange.from, 1), "d 'de' MMMM", { locale: es })}`}
             variant="balance"
           />
           
           <GradientCard
-            title="Receitas"
+            title="Ingresos"
             value={financialData.income}
-            subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: ptBR })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })}`}
+            subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: es })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: es })}`}
             variant="income"
             showEye
           />
           
           <GradientCard
-            title="Despesas"
+            title="Gastos"
             value={Math.abs(financialData.expenses)}
-            subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: ptBR })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })}`}
+            subtitle={`${format(effectiveDateRange.from, "d 'de' MMMM", { locale: es })} - ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: es })}`}
             variant="expense"
           />
           
           <GradientCard
-            title="Saldo Disponível"
+            title="Saldo Disponible"
             value={financialData.availableBalance}
-            subtitle={`Até ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })}`}
+            subtitle={`Hasta ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: es })}`}
             variant={financialData.availableBalance >= 0 ? "income" : "expense"}
           />
         </div>
@@ -365,7 +367,7 @@ export default function CategoryReport() {
           <GradientCard
             title="Saldo Previsto"
             value={financialData.expectedBalance}
-            subtitle={`Até ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: ptBR })} (Receita - Despesa + Saldo Bancário)`}
+            subtitle={`Hasta ${format(effectiveDateRange.to, "d 'de' MMMM", { locale: es })} (Ingreso - Gasto + Saldo Bancario)`}
             variant="predicted"
           />
         </div>
@@ -378,8 +380,8 @@ export default function CategoryReport() {
                 <FileText className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold">Transações</h3>
-                <p className="text-xs text-muted-foreground">Todas as movimentações da categoria</p>
+                <h3 className="font-semibold">Transacciones</h3>
+                <p className="text-xs text-muted-foreground">Todos los movimientos de la categoría</p>
               </div>
             </div>
           </div>
@@ -389,8 +391,8 @@ export default function CategoryReport() {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-muted/50 p-1 rounded-xl">
                 <TabsTrigger value="todas" className="text-xs rounded-lg">Todas</TabsTrigger>
-                <TabsTrigger value="despesas" className="text-xs rounded-lg">Despesas</TabsTrigger>
-                <TabsTrigger value="receitas" className="text-xs rounded-lg">Receitas</TabsTrigger>
+                <TabsTrigger value="gastos" className="text-xs rounded-lg">Gastos</TabsTrigger>
+                <TabsTrigger value="ingresos" className="text-xs rounded-lg">Ingresos</TabsTrigger>
               </TabsList>
             </Tabs>
           
@@ -425,9 +427,9 @@ export default function CategoryReport() {
                       >
                         {option === "none" && <FileText className="w-4 h-4" />}
                         {option === "categoria" && <LayoutGrid className="w-4 h-4" />}
-                        {option === "vencimento" && <FileText className="w-4 h-4" />}
-                        {option === "criacao" && <FileText className="w-4 h-4" />}
-                        {option === "responsavel" && <FileText className="w-4 h-4" />}
+                        {option === "vencimiento" && <FileText className="w-4 h-4" />}
+                        {option === "creacion" && <FileText className="w-4 h-4" />}
+                        {option === "responsable" && <FileText className="w-4 h-4" />}
                         {groupingLabels[option]}
                         {grouping === option && <Check className="w-4 h-4 ml-auto" />}
                       </DropdownMenuItem>
@@ -439,7 +441,7 @@ export default function CategoryReport() {
               <div className="relative flex-1 min-w-[180px]">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input 
-                  placeholder="Pesquisar transações..."
+                  placeholder="Buscar transacciones..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-8 h-8 text-xs rounded-lg bg-muted/30 border-0 focus-visible:ring-1"
@@ -486,16 +488,16 @@ export default function CategoryReport() {
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle className="text-lg font-semibold">Personalize sua visualização</DialogTitle>
+                  <DialogTitle className="text-lg font-semibold">Personaliza tu visualización</DialogTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Configure como você quer ver suas transações de forma mais clara e organizada
+                    Configura cómo quieres ver tus transacciones de forma más clara y organizada
                   </p>
                 </DialogHeader>
                 
                 <div className="space-y-6 py-4">
                   {/* View Mode Selection */}
                   <div className="space-y-3">
-                    <h4 className="text-sm font-medium">Como você quer ver suas transações?</h4>
+                    <h4 className="text-sm font-medium">¿Cómo quieres ver tus transacciones?</h4>
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => setViewMode("cards")}
@@ -508,8 +510,8 @@ export default function CategoryReport() {
                       >
                         <LayoutGrid className="w-5 h-5 text-muted-foreground" />
                         <div className="text-center">
-                          <p className="text-sm font-medium">Cards</p>
-                          <p className="text-[10px] text-muted-foreground">Visual e organizado</p>
+                          <p className="text-sm font-medium">Tarjetas</p>
+                          <p className="text-[10px] text-muted-foreground">Visual y organizado</p>
                         </div>
                       </button>
                       <button
@@ -523,8 +525,8 @@ export default function CategoryReport() {
                       >
                         <TableIcon className="w-5 h-5 text-muted-foreground" />
                         <div className="text-center">
-                          <p className="text-sm font-medium">Tabela</p>
-                          <p className="text-[10px] text-muted-foreground">Compacto e detalhado</p>
+                          <p className="text-sm font-medium">Tabla</p>
+                          <p className="text-[10px] text-muted-foreground">Compacto y detallado</p>
                         </div>
                       </button>
                     </div>
@@ -532,21 +534,21 @@ export default function CategoryReport() {
                   
                   {/* Column Visibility */}
                   <div className="space-y-3">
-                    <h4 className="text-sm font-medium">Quais informações mostrar?</h4>
+                    <h4 className="text-sm font-medium">¿Qué información mostrar?</h4>
                     <div className="grid grid-cols-2 gap-x-6 gap-y-2">
                       {[
-                        { key: "descricao", label: "Descrição" },
-                        { key: "responsavel", label: "Responsável" },
-                        { key: "valor", label: "Valor" },
-                        { key: "categoria", label: "Categoria" },
+                        { key: "descricao", label: "Descripción" },
+                        { key: "responsavel", label: "Responsable" },
+                        { key: "valor", label: "Importe" },
+                        { key: "categoria", label: "Categoría" },
                         { key: "tipo", label: "Tipo" },
-                        { key: "status", label: "Status" },
-                        { key: "conta", label: "Conta" },
-                        { key: "cartao", label: "Cartão" },
-                        { key: "dataVencimento", label: "Data de Vencimento" },
-                        { key: "dataCompetencia", label: "Data de Competência" },
-                        { key: "dataPagamento", label: "Data de Pagamento" },
-                        { key: "fixoVariavel", label: "Fixo/Variável" },
+                        { key: "status", label: "Estado" },
+                        { key: "conta", label: "Cuenta" },
+                        { key: "cartao", label: "Tarjeta" },
+                        { key: "dataVencimento", label: "Vencimiento" },
+                        { key: "dataCompetencia", label: "Competencia" },
+                        { key: "dataPagamento", label: "Pago" },
+                        { key: "fixoVariavel", label: "Fijo/Variable" },
                       ].map(({ key, label }) => (
                         <button
                           key={key}
@@ -577,7 +579,7 @@ export default function CategoryReport() {
                   
                   <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <span className="text-amber-500">⚡</span>
-                    Escolha apenas o que você usa mais
+                    Elige solo lo que más usas
                   </p>
                 </div>
                 
@@ -593,7 +595,7 @@ export default function CategoryReport() {
                     onClick={() => setIsSettingsOpen(false)}
                     className="flex-1"
                   >
-                    Salvar Preferências
+                    Guardar preferencias
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -604,19 +606,19 @@ export default function CategoryReport() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted/50 hover:bg-muted/50">
-                    {visibleColumns.responsavel && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Responsável</TableHead>}
-                    {visibleColumns.descricao && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Descrição</TableHead>}
-                    {visibleColumns.valor && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Valor</TableHead>}
-                    {visibleColumns.categoria && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Categoria</TableHead>}
+                    {visibleColumns.responsavel && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Responsable</TableHead>}
+                    {visibleColumns.descricao && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Descripción</TableHead>}
+                    {visibleColumns.valor && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Importe</TableHead>}
+                    {visibleColumns.categoria && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Categoría</TableHead>}
                     {visibleColumns.tipo && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Tipo</TableHead>}
-                    {visibleColumns.status && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Status</TableHead>}
-                    {visibleColumns.conta && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Conta</TableHead>}
-                    {visibleColumns.cartao && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Cartão</TableHead>}
-                    {visibleColumns.dataVencimento && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Vencimento</TableHead>}
-                    {visibleColumns.dataCompetencia && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Competência</TableHead>}
-                    {visibleColumns.dataPagamento && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Pagamento</TableHead>}
-                    {visibleColumns.fixoVariavel && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Fixo/Variável</TableHead>}
-                    <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Ação</TableHead>
+                    {visibleColumns.status && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Estado</TableHead>}
+                    {visibleColumns.conta && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Cuenta</TableHead>}
+                    {visibleColumns.cartao && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Tarjeta</TableHead>}
+                    {visibleColumns.dataVencimento && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Vencimiento</TableHead>}
+                    {visibleColumns.dataCompetencia && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Competencia</TableHead>}
+                    {visibleColumns.dataPagamento && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Pago</TableHead>}
+                    {visibleColumns.fixoVariavel && <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Fijo/Variable</TableHead>}
+                    <TableHead className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap h-9 px-3">Acción</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -628,15 +630,60 @@ export default function CategoryReport() {
                             <FileText className="h-6 w-6 text-muted-foreground/40" />
                           </div>
                           <p className="text-sm font-medium text-muted-foreground">
-                            Nenhuma transação encontrada
+                            No se encontraron transacciones
                           </p>
                           <p className="text-xs text-muted-foreground/60">
-                            Não há transações para exibir no período selecionado.
+                            No hay transacciones para mostrar en el período seleccionado.
                           </p>
                         </div>
                       </TableCell>
                     </TableRow>
-                  ) : null}
+                  ) : (
+                    transactions.map((t) => (
+                      <TableRow key={t.id} className="hover:bg-muted/30">
+                        {visibleColumns.responsavel && <TableCell className="text-xs px-3">{t.responsable}</TableCell>}
+                        {visibleColumns.descricao && <TableCell className="text-xs font-medium px-3">{t.descripcion}</TableCell>}
+                        {visibleColumns.valor && (
+                          <TableCell className={cn("text-xs font-semibold px-3", t.valor < 0 ? "text-destructive" : "text-success")}>
+                            {formatCurrency(t.valor)}
+                          </TableCell>
+                        )}
+                        {visibleColumns.categoria && (
+                          <TableCell className="px-3">
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: category.color }} />
+                              <span className="text-xs">{category.name}</span>
+                            </div>
+                          </TableCell>
+                        )}
+                        {visibleColumns.tipo && (
+                          <TableCell className="px-3">
+                            <Badge variant="outline" className={cn("text-[10px]", t.tipo === "ingreso" ? "border-success/50 text-success" : "border-destructive/50 text-destructive")}>
+                              {t.tipo === "ingreso" ? "Ingreso" : "Gasto"}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        {visibleColumns.status && (
+                          <TableCell className="px-3">
+                            <Badge variant="outline" className={cn("text-[10px]", t.status === "Pagado" ? "border-success/50 text-success" : "border-warning/50 text-warning")}>
+                              {t.status}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        {visibleColumns.conta && <TableCell className="text-xs px-3">{t.cuenta}</TableCell>}
+                        {visibleColumns.cartao && <TableCell className="text-xs px-3">{t.tarjeta || "-"}</TableCell>}
+                        {visibleColumns.dataVencimento && <TableCell className="text-xs px-3">{format(parseISO(t.fechaVencimiento), "dd/MM/yyyy")}</TableCell>}
+                        {visibleColumns.dataCompetencia && <TableCell className="text-xs px-3">{format(parseISO(t.fechaCompetencia), "dd/MM/yyyy")}</TableCell>}
+                        {visibleColumns.dataPagamento && <TableCell className="text-xs px-3">{t.fechaPago ? format(parseISO(t.fechaPago), "dd/MM/yyyy") : "-"}</TableCell>}
+                        {visibleColumns.fixoVariavel && <TableCell className="text-xs px-3">{t.fijoVariable}</TableCell>}
+                        <TableCell className="px-3">
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>
@@ -667,7 +714,7 @@ export default function CategoryReport() {
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <span>Total: 0</span>
+                <span>Total: {transactions.length}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled>
@@ -675,7 +722,7 @@ export default function CategoryReport() {
                   Anterior
                 </Button>
                 <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled>
-                  Próximo
+                  Siguiente
                   <ChevronDown className="h-3 w-3 ml-1 -rotate-90" />
                 </Button>
               </div>
