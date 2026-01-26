@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   Search, 
   ChevronLeft,
@@ -7,7 +7,8 @@ import {
   Settings,
   ArrowUpDown,
   Filter,
-  FileText,
+  Check,
+  Clock,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,20 +32,19 @@ import { AddRevenueDialog } from "./AddRevenueDialog";
 import { AddExpenseDialog } from "./AddExpenseDialog";
 import { FilterPopover } from "./FilterPopover";
 import { usePeriod } from "@/contexts/PeriodContext";
+import { transactions } from "@/data/mockData";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const tableColumns = [
   "Responsable",
   "Descripción",
   "Importe",
   "Categoría",
-  "Tipo",
   "Cuenta",
-  "Tarjeta",
   "Vencimiento",
-  "Competencia",
-  "Pago",
-  "Fijo/Variable",
-  "Acción",
+  "Estado",
+  "Tipo",
 ];
 
 export function TransactionList() {
@@ -53,8 +53,65 @@ export function TransactionList() {
   const [itemsPerPage, setItemsPerPage] = useState("30");
   const [isRevenueDialogOpen, setIsRevenueDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { monthName, handlePrevMonth, handleNextMonth } = usePeriod();
+
+  const filteredTransactions = useMemo(() => {
+    let result = [...transactions];
+
+    // Filter by type
+    if (filter === "ingresos") {
+      result = result.filter(t => t.type === "ingreso");
+    } else if (filter === "gastos") {
+      result = result.filter(t => t.type === "gasto");
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(t => 
+        t.description.toLowerCase().includes(query) ||
+        t.category.toLowerCase().includes(query) ||
+        t.responsible.toLowerCase().includes(query)
+      );
+    }
+
+    // Sort by due date
+    result.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+
+    return result;
+  }, [filter, searchQuery]);
+
+  const totalItems = filteredTransactions.length;
+  const totalPages = Math.ceil(totalItems / parseInt(itemsPerPage));
+  const startIndex = (currentPage - 1) * parseInt(itemsPerPage);
+  const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + parseInt(itemsPerPage));
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("es-ES", {
+      style: "currency",
+      currency: "EUR",
+    }).format(value);
+  };
+
+  const getStatusBadge = (status: string, type: string) => {
+    const isPaid = status === "pagado" || status === "cobrado";
+    return (
+      <div className={cn(
+        "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium",
+        isPaid 
+          ? "bg-success/10 text-success" 
+          : "bg-warning/10 text-warning"
+      )}>
+        {isPaid ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+        {type === "ingreso" 
+          ? (isPaid ? "Cobrado" : "Por cobrar")
+          : (isPaid ? "Pagado" : "Pendiente")
+        }
+      </div>
+    );
+  };
 
   return (
     <div className="glass rounded-xl p-5 animate-slide-up">
@@ -192,22 +249,59 @@ export function TransactionList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {/* Empty State */}
-            <TableRow>
-              <TableCell colSpan={tableColumns.length} className="h-[300px]">
-                <div className="flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <FileText className="w-8 h-8 text-muted-foreground" />
+            {paginatedTransactions.map((transaction) => (
+              <TableRow 
+                key={transaction.id}
+                className="hover:bg-muted/30 transition-colors"
+              >
+                <TableCell className="text-sm">{transaction.responsible}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full" 
+                      style={{ backgroundColor: transaction.color }}
+                    />
+                    <span className="text-sm font-medium">{transaction.description}</span>
                   </div>
-                  <p className="text-muted-foreground font-medium">
-                    No se encontraron transacciones
-                  </p>
-                  <p className="text-sm text-muted-foreground/70 mt-1">
-                    Añade un ingreso o gasto para empezar
-                  </p>
-                </div>
-              </TableCell>
-            </TableRow>
+                </TableCell>
+                <TableCell className={cn(
+                  "text-sm font-semibold",
+                  transaction.type === "ingreso" ? "text-success" : "text-destructive"
+                )}>
+                  {transaction.type === "ingreso" ? "+" : "-"}{formatCurrency(transaction.amount)}
+                </TableCell>
+                <TableCell>
+                  <span 
+                    className="px-2 py-1 rounded text-xs font-medium"
+                    style={{ 
+                      backgroundColor: `${transaction.color}20`,
+                      color: transaction.color
+                    }}
+                  >
+                    {transaction.category}
+                  </span>
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {transaction.account}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {format(transaction.dueDate, "dd/MM/yyyy", { locale: es })}
+                </TableCell>
+                <TableCell>
+                  {getStatusBadge(transaction.status, transaction.type)}
+                </TableCell>
+                <TableCell>
+                  <span className={cn(
+                    "px-2 py-1 rounded text-xs font-medium",
+                    transaction.isFixed 
+                      ? "bg-primary/10 text-primary" 
+                      : "bg-muted text-muted-foreground"
+                  )}>
+                    {transaction.isFixed ? "Fijo" : "Variable"}
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
@@ -229,13 +323,26 @@ export function TransactionList() {
           </Select>
         </div>
 
-        <span className="text-sm text-muted-foreground">Total: 0</span>
+        <span className="text-sm text-muted-foreground">Total: {totalItems}</span>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+          >
             Anterior
           </Button>
-          <Button variant="outline" size="sm" disabled>
+          <span className="text-sm text-muted-foreground">
+            {currentPage} / {totalPages || 1}
+          </span>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            disabled={currentPage >= totalPages}
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          >
             Siguiente
           </Button>
         </div>

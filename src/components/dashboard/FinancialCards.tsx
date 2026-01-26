@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { format, subMonths } from "date-fns";
 import { es } from "date-fns/locale";
+import { transactions, calculateTotals, previousPeriodBalance } from "@/data/mockData";
 
 interface DetailBadge {
   label: string;
@@ -142,6 +143,9 @@ function FinancialCard({
 export function FinancialCards() {
   const { effectiveDateRange, monthName, selectedPeriod } = usePeriod();
   
+  // Calculate totals from mock data
+  const totals = calculateTotals(transactions);
+  
   // Get previous month name for the "Saldo Del Período Anterior" card
   const previousMonthDate = subMonths(effectiveDateRange.from, 1);
   const previousMonthName = format(previousMonthDate, "MMMM", { locale: es });
@@ -172,46 +176,46 @@ export function FinancialCards() {
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       <FinancialCard
         title="Saldo del período anterior"
-        mainValue={0}
+        mainValue={previousPeriodBalance.total}
         subtitle={`Hasta ${previousMonthEndDate}`}
         formula="Ingresos - Gastos + Saldo bancario"
         details={[
-          { label: "Pendiente", value: 0, variant: "danger" },
-          { label: "Disponible", value: 0, variant: "success" },
+          { label: "Pendiente", value: previousPeriodBalance.pending, variant: "danger" },
+          { label: "Disponible", value: previousPeriodBalance.available, variant: "success" },
         ]}
         icon={Wallet}
         variant="neutral"
       />
       <FinancialCard
         title="Ingresos"
-        mainValue={0}
+        mainValue={totals.totalIngresos}
         subtitle={`Total en ${periodLabel}`}
         details={[
-          { label: "Cobrado", value: 0, variant: "success" },
-          { label: "Por cobrar", value: 0, variant: "warning" },
+          { label: "Cobrado", value: totals.ingresosCobrados, variant: "success" },
+          { label: "Por cobrar", value: totals.ingresosPorCobrar, variant: "warning" },
         ]}
         icon={TrendingUp}
         variant="success"
       />
       <FinancialCard
         title="Gastos"
-        mainValue={0}
+        mainValue={totals.totalGastos}
         subtitle={`Total en ${periodLabel}`}
         details={[
-          { label: "Pagado", value: 0, variant: "danger" },
-          { label: "Por pagar", value: 0, variant: "warning" },
+          { label: "Pagado", value: totals.gastosPagados, variant: "danger" },
+          { label: "Por pagar", value: totals.gastosPendientes, variant: "warning" },
         ]}
         icon={TrendingDown}
         variant="danger"
       />
       <FinancialCard
         title="Saldo previsto"
-        mainValue={0}
+        mainValue={previousPeriodBalance.total + totals.saldoPrevisto}
         subtitle={`Previsión para ${periodLabel}`}
         formula="Ingresos - Gastos + Saldo bancario"
         details={[
-          { label: "Disponible", value: 0, variant: "success" },
-          { label: "Previsto", value: 0, variant: "neutral" },
+          { label: "Disponible", value: previousPeriodBalance.available + totals.saldoDisponible, variant: "success" },
+          { label: "Previsto", value: totals.ingresosPorCobrar - totals.gastosPendientes, variant: "neutral" },
         ]}
         icon={PiggyBank}
         variant="info"
