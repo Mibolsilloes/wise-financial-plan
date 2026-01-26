@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { 
   PieChart, 
@@ -74,26 +74,13 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, isWithinInterval, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
 import { es } from "date-fns/locale";
 import { FilterPopover } from "@/components/dashboard/FilterPopover";
 import { AddRevenueDialog } from "@/components/dashboard/AddRevenueDialog";
 import { AddExpenseDialog } from "@/components/dashboard/AddExpenseDialog";
 import { usePeriod, PeriodType } from "@/contexts/PeriodContext";
-
-const expenseData = [
-  { name: "Hogar", value: 1800, color: "hsl(340, 82%, 52%)" },
-  { name: "Supermercado", value: 650, color: "hsl(25, 95%, 53%)" },
-  { name: "Transporte", value: 320, color: "hsl(45, 93%, 47%)" },
-  { name: "Salud", value: 450, color: "hsl(160, 84%, 39%)" },
-  { name: "Ocio", value: 280, color: "hsl(217, 91%, 60%)" },
-];
-
-const incomeData = [
-  { name: "Salario", value: 8500, color: "hsl(160, 84%, 39%)" },
-  { name: "Freelance", value: 1200, color: "hsl(160, 84%, 50%)" },
-  { name: "Inversiones", value: 350, color: "hsl(160, 84%, 60%)" },
-];
+import { transactions, Transaction } from "@/data/mockData";
 
 const frequencyDataMonthly = [
   { period: "Ene", ingresos: 8500, gastos: 4200 },
@@ -286,8 +273,192 @@ export default function Reports() {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
+  // Filter transactions based on selected period
+  const filteredTransactions = useMemo(() => {
+    const now = new Date();
+    let startDate: Date;
+    let endDate: Date;
+
+    switch (selectedPeriod) {
+      case "today":
+        startDate = startOfDay(now);
+        endDate = endOfDay(now);
+        break;
+      case "7days":
+        startDate = startOfDay(subDays(now, 6));
+        endDate = endOfDay(now);
+        break;
+      case "month":
+        startDate = startOfMonth(new Date(currentYear, currentMonth));
+        endDate = endOfMonth(new Date(currentYear, currentMonth));
+        break;
+      case "year":
+        startDate = startOfYear(new Date(currentYear, 0));
+        endDate = endOfYear(new Date(currentYear, 11));
+        break;
+      case "custom":
+        startDate = dateRange?.from || startOfMonth(now);
+        endDate = dateRange?.to || endOfMonth(now);
+        break;
+      default:
+        startDate = startOfMonth(new Date(currentYear, currentMonth));
+        endDate = endOfMonth(new Date(currentYear, currentMonth));
+    }
+
+    return transactions.filter(t => 
+      isWithinInterval(t.dueDate, { start: startDate, end: endDate })
+    );
+  }, [selectedPeriod, currentMonth, currentYear, dateRange]);
+
+  // Generate chart data from filtered transactions
+  const expenseData = useMemo(() => {
+    const expenses = filteredTransactions.filter(t => t.type === "gasto");
+    const categoryMap = new Map<string, { name: string; value: number; color: string }>();
+    
+    expenses.forEach(t => {
+      const existing = categoryMap.get(t.category);
+      if (existing) {
+        existing.value += t.amount;
+      } else {
+        categoryMap.set(t.category, { name: t.category, value: t.amount, color: t.color });
+      }
+    });
+
+    return Array.from(categoryMap.values()).sort((a, b) => b.value - a.value);
+  }, [filteredTransactions]);
+
+  const incomeData = useMemo(() => {
+    const income = filteredTransactions.filter(t => t.type === "ingreso");
+    const categoryMap = new Map<string, { name: string; value: number; color: string }>();
+    
+    income.forEach(t => {
+      const existing = categoryMap.get(t.category);
+      if (existing) {
+        existing.value += t.amount;
+      } else {
+        categoryMap.set(t.category, { name: t.category, value: t.amount, color: t.color });
+      }
+    });
+
+    return Array.from(categoryMap.values()).sort((a, b) => b.value - a.value);
+  }, [filteredTransactions]);
+
+  const expenseDataPaid = useMemo(() => {
+    const expenses = filteredTransactions.filter(t => t.type === "gasto" && t.status === "pagado");
+    const categoryMap = new Map<string, { name: string; value: number; color: string }>();
+    
+    expenses.forEach(t => {
+      const existing = categoryMap.get(t.category);
+      if (existing) {
+        existing.value += t.amount;
+      } else {
+        categoryMap.set(t.category, { name: t.category, value: t.amount, color: t.color });
+      }
+    });
+
+    return Array.from(categoryMap.values()).sort((a, b) => b.value - a.value);
+  }, [filteredTransactions]);
+
+  const expenseDataUnpaid = useMemo(() => {
+    const expenses = filteredTransactions.filter(t => t.type === "gasto" && t.status === "pendiente");
+    const categoryMap = new Map<string, { name: string; value: number; color: string }>();
+    
+    expenses.forEach(t => {
+      const existing = categoryMap.get(t.category);
+      if (existing) {
+        existing.value += t.amount;
+      } else {
+        categoryMap.set(t.category, { name: t.category, value: t.amount, color: t.color });
+      }
+    });
+
+    return Array.from(categoryMap.values()).sort((a, b) => b.value - a.value);
+  }, [filteredTransactions]);
+
+  const incomeDataPaid = useMemo(() => {
+    const income = filteredTransactions.filter(t => t.type === "ingreso" && t.status === "cobrado");
+    const categoryMap = new Map<string, { name: string; value: number; color: string }>();
+    
+    income.forEach(t => {
+      const existing = categoryMap.get(t.category);
+      if (existing) {
+        existing.value += t.amount;
+      } else {
+        categoryMap.set(t.category, { name: t.category, value: t.amount, color: t.color });
+      }
+    });
+
+    return Array.from(categoryMap.values()).sort((a, b) => b.value - a.value);
+  }, [filteredTransactions]);
+
+  const incomeDataUnpaid = useMemo(() => {
+    const income = filteredTransactions.filter(t => t.type === "ingreso" && t.status === "por_cobrar");
+    const categoryMap = new Map<string, { name: string; value: number; color: string }>();
+    
+    income.forEach(t => {
+      const existing = categoryMap.get(t.category);
+      if (existing) {
+        existing.value += t.amount;
+      } else {
+        categoryMap.set(t.category, { name: t.category, value: t.amount, color: t.color });
+      }
+    });
+
+    return Array.from(categoryMap.values()).sort((a, b) => b.value - a.value);
+  }, [filteredTransactions]);
+
+  // Generate frequency data for charts
+  const frequencyDataDaily = useMemo(() => {
+    const days: { period: string; ingresos: number; gastos: number }[] = [];
+    const dayMap = new Map<number, { ingresos: number; gastos: number }>();
+
+    filteredTransactions.forEach(t => {
+      const day = t.dueDate.getDate();
+      const existing = dayMap.get(day) || { ingresos: 0, gastos: 0 };
+      if (t.type === "ingreso") {
+        existing.ingresos += t.amount;
+      } else {
+        existing.gastos += t.amount;
+      }
+      dayMap.set(day, existing);
+    });
+
+    Array.from(dayMap.entries())
+      .sort(([a], [b]) => a - b)
+      .forEach(([day, data]) => {
+        days.push({ period: `${day}`, ingresos: data.ingresos, gastos: data.gastos });
+      });
+
+    return days;
+  }, [filteredTransactions]);
+
+  const frequencyDataMonthly = useMemo(() => {
+    const monthAbbr = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    const monthMap = new Map<number, { ingresos: number; gastos: number }>();
+
+    filteredTransactions.forEach(t => {
+      const month = t.dueDate.getMonth();
+      const existing = monthMap.get(month) || { ingresos: 0, gastos: 0 };
+      if (t.type === "ingreso") {
+        existing.ingresos += t.amount;
+      } else {
+        existing.gastos += t.amount;
+      }
+      monthMap.set(month, existing);
+    });
+
+    return monthAbbr.map((abbr, idx) => {
+      const data = monthMap.get(idx) || { ingresos: 0, gastos: 0 };
+      return { period: abbr, ingresos: data.ingresos, gastos: data.gastos };
+    });
+  }, [filteredTransactions]);
+
   const totalExpenses = expenseData.reduce((acc, item) => acc + item.value, 0);
   const totalIncome = incomeData.reduce((acc, item) => acc + item.value, 0);
+  const totalExpensesPaid = expenseDataPaid.reduce((acc, item) => acc + item.value, 0);
+  const totalExpensesUnpaid = expenseDataUnpaid.reduce((acc, item) => acc + item.value, 0);
+  const totalIncomePaid = incomeDataPaid.reduce((acc, item) => acc + item.value, 0);
+  const totalIncomeUnpaid = incomeDataUnpaid.reduce((acc, item) => acc + item.value, 0);
 
   // Sync frequency chart period with selected period
   useEffect(() => {
@@ -671,33 +842,41 @@ export default function Reports() {
               {charts.expenses && (
                 <div className="glass rounded-xl p-5 animate-scale-in">
                   <h3 className="text-lg font-semibold mb-2">Gastos por categoría</h3>
-                  <p className="text-xs text-muted-foreground mb-4">Diciembre 2024</p>
+                  <p className="text-xs text-muted-foreground mb-4">{periodLabel}</p>
                   <div className="h-[200px] relative">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={expenseData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={50}
-                          outerRadius={80}
-                          paddingAngle={3}
-                          dataKey="value"
-                          strokeWidth={0}
-                        >
-                          {expenseData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                      <p className="text-xs text-muted-foreground">Total</p>
-                      <p className="text-sm font-bold text-destructive">{formatCurrency(totalExpenses)}</p>
-                    </div>
+                    {expenseData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={expenseData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={80}
+                            paddingAngle={3}
+                            dataKey="value"
+                            strokeWidth={0}
+                          >
+                            {expenseData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip content={<CustomTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-sm text-muted-foreground">Sin datos en este período</p>
+                      </div>
+                    )}
+                    {expenseData.length > 0 && (
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                        <p className="text-xs text-muted-foreground">Total</p>
+                        <p className="text-sm font-bold text-destructive">{formatCurrency(totalExpenses)}</p>
+                      </div>
+                    )}
                   </div>
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-4 space-y-2 max-h-[120px] overflow-y-auto">
                     {expenseData.map((item) => (
                       <div key={item.name} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
@@ -715,33 +894,41 @@ export default function Reports() {
               {charts.income && (
                 <div className="glass rounded-xl p-5 animate-scale-in" style={{ animationDelay: "100ms" }}>
                   <h3 className="text-lg font-semibold mb-2">Ingresos por categoría</h3>
-                  <p className="text-xs text-muted-foreground mb-4">Diciembre 2024</p>
+                  <p className="text-xs text-muted-foreground mb-4">{periodLabel}</p>
                   <div className="h-[200px] relative">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={incomeData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={50}
-                          outerRadius={80}
-                          paddingAngle={3}
-                          dataKey="value"
-                          strokeWidth={0}
-                        >
-                          {incomeData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                      <p className="text-xs text-muted-foreground">Total</p>
-                      <p className="text-sm font-bold text-success">{formatCurrency(totalIncome)}</p>
-                    </div>
+                    {incomeData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={incomeData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={80}
+                            paddingAngle={3}
+                            dataKey="value"
+                            strokeWidth={0}
+                          >
+                            {incomeData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip content={<CustomTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-sm text-muted-foreground">Sin datos en este período</p>
+                      </div>
+                    )}
+                    {incomeData.length > 0 && (
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                        <p className="text-xs text-muted-foreground">Total</p>
+                        <p className="text-sm font-bold text-success">{formatCurrency(totalIncome)}</p>
+                      </div>
+                    )}
                   </div>
-                  <div className="mt-4 space-y-2">
+                  <div className="mt-4 space-y-2 max-h-[120px] overflow-y-auto">
                     {incomeData.map((item) => (
                       <div key={item.name} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
@@ -761,7 +948,7 @@ export default function Reports() {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-semibold">Frecuencia</h3>
-                      <p className="text-xs text-muted-foreground">Ingresos x Gastos</p>
+                      <p className="text-xs text-muted-foreground">{periodLabel}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       {/* Period Toggle - Diario / Mensual */}
@@ -811,6 +998,214 @@ export default function Reports() {
                     <ResponsiveContainer width="100%" height="100%">
                       {renderFrequencyChart()}
                     </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+
+              {/* Expenses Paid Pie */}
+              {charts.expensesPaid && (
+                <div className="glass rounded-xl p-5 animate-scale-in">
+                  <h3 className="text-lg font-semibold mb-2">Gastos pagados</h3>
+                  <p className="text-xs text-muted-foreground mb-4">{periodLabel}</p>
+                  <div className="h-[200px] relative">
+                    {expenseDataPaid.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={expenseDataPaid}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={80}
+                            paddingAngle={3}
+                            dataKey="value"
+                            strokeWidth={0}
+                          >
+                            {expenseDataPaid.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip content={<CustomTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-sm text-muted-foreground">Sin datos en este período</p>
+                      </div>
+                    )}
+                    {expenseDataPaid.length > 0 && (
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                        <p className="text-xs text-muted-foreground">Total</p>
+                        <p className="text-sm font-bold text-destructive">{formatCurrency(totalExpensesPaid)}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4 space-y-2 max-h-[120px] overflow-y-auto">
+                    {expenseDataPaid.map((item) => (
+                      <div key={item.name} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                          <span className="text-muted-foreground">{item.name}</span>
+                        </div>
+                        <span>{formatCurrency(item.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Expenses Unpaid Pie */}
+              {charts.expensesUnpaid && (
+                <div className="glass rounded-xl p-5 animate-scale-in">
+                  <h3 className="text-lg font-semibold mb-2">Gastos no pagados</h3>
+                  <p className="text-xs text-muted-foreground mb-4">{periodLabel}</p>
+                  <div className="h-[200px] relative">
+                    {expenseDataUnpaid.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={expenseDataUnpaid}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={80}
+                            paddingAngle={3}
+                            dataKey="value"
+                            strokeWidth={0}
+                          >
+                            {expenseDataUnpaid.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip content={<CustomTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-sm text-muted-foreground">Sin datos en este período</p>
+                      </div>
+                    )}
+                    {expenseDataUnpaid.length > 0 && (
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                        <p className="text-xs text-muted-foreground">Total</p>
+                        <p className="text-sm font-bold text-warning">{formatCurrency(totalExpensesUnpaid)}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4 space-y-2 max-h-[120px] overflow-y-auto">
+                    {expenseDataUnpaid.map((item) => (
+                      <div key={item.name} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                          <span className="text-muted-foreground">{item.name}</span>
+                        </div>
+                        <span>{formatCurrency(item.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Income Paid Pie */}
+              {charts.incomePaid && (
+                <div className="glass rounded-xl p-5 animate-scale-in">
+                  <h3 className="text-lg font-semibold mb-2">Ingresos cobrados</h3>
+                  <p className="text-xs text-muted-foreground mb-4">{periodLabel}</p>
+                  <div className="h-[200px] relative">
+                    {incomeDataPaid.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={incomeDataPaid}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={80}
+                            paddingAngle={3}
+                            dataKey="value"
+                            strokeWidth={0}
+                          >
+                            {incomeDataPaid.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip content={<CustomTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-sm text-muted-foreground">Sin datos en este período</p>
+                      </div>
+                    )}
+                    {incomeDataPaid.length > 0 && (
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                        <p className="text-xs text-muted-foreground">Total</p>
+                        <p className="text-sm font-bold text-success">{formatCurrency(totalIncomePaid)}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4 space-y-2 max-h-[120px] overflow-y-auto">
+                    {incomeDataPaid.map((item) => (
+                      <div key={item.name} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                          <span className="text-muted-foreground">{item.name}</span>
+                        </div>
+                        <span>{formatCurrency(item.value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Income Unpaid Pie */}
+              {charts.incomeUnpaid && (
+                <div className="glass rounded-xl p-5 animate-scale-in">
+                  <h3 className="text-lg font-semibold mb-2">Ingresos no cobrados</h3>
+                  <p className="text-xs text-muted-foreground mb-4">{periodLabel}</p>
+                  <div className="h-[200px] relative">
+                    {incomeDataUnpaid.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={incomeDataUnpaid}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={80}
+                            paddingAngle={3}
+                            dataKey="value"
+                            strokeWidth={0}
+                          >
+                            {incomeDataUnpaid.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip content={<CustomTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <p className="text-sm text-muted-foreground">Sin datos en este período</p>
+                      </div>
+                    )}
+                    {incomeDataUnpaid.length > 0 && (
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                        <p className="text-xs text-muted-foreground">Total</p>
+                        <p className="text-sm font-bold text-warning">{formatCurrency(totalIncomeUnpaid)}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-4 space-y-2 max-h-[120px] overflow-y-auto">
+                    {incomeDataUnpaid.map((item) => (
+                      <div key={item.name} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                          <span className="text-muted-foreground">{item.name}</span>
+                        </div>
+                        <span>{formatCurrency(item.value)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
