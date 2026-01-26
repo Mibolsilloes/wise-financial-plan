@@ -14,7 +14,246 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bank_accounts: {
+        Row: {
+          balance: number
+          bank: string
+          color: string
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          bank: string
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          bank?: string
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          keywords: string[] | null
+          name: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          keywords?: string[] | null
+          name: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          keywords?: string[] | null
+          name?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      credit_cards: {
+        Row: {
+          brand: string
+          closing_day: number
+          color: string
+          created_at: string
+          credit_limit: number
+          due_day: number
+          id: string
+          last_digits: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          brand: string
+          closing_day?: number
+          color?: string
+          created_at?: string
+          credit_limit?: number
+          due_day?: number
+          id?: string
+          last_digits: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          brand?: string
+          closing_day?: number
+          color?: string
+          created_at?: string
+          credit_limit?: number
+          due_day?: number
+          id?: string
+          last_digits?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          currency: string | null
+          full_name: string | null
+          id: string
+          language: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          currency?: string | null
+          full_name?: string | null
+          id?: string
+          language?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          currency?: string | null
+          full_name?: string | null
+          id?: string
+          language?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subcategories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          account_id: string | null
+          amount: number
+          category_id: string | null
+          created_at: string
+          credit_card_id: string | null
+          description: string
+          due_date: string
+          id: string
+          payment_date: string | null
+          status: string
+          subcategory: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          credit_card_id?: string | null
+          description: string
+          due_date: string
+          id?: string
+          payment_date?: string | null
+          status?: string
+          subcategory?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          credit_card_id?: string | null
+          description?: string
+          due_date?: string
+          id?: string
+          payment_date?: string | null
+          status?: string
+          subcategory?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_credit_card_id_fkey"
+            columns: ["credit_card_id"]
+            isOneToOne: false
+            referencedRelation: "credit_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
