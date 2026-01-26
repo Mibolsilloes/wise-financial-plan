@@ -23,7 +23,11 @@ import {
   Wallet,
   Search,
   X,
-  FileBarChart
+  FileBarChart,
+  TrendingUp,
+  Laptop,
+  Zap,
+  Cat
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +48,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { HexColorPicker } from "react-colorful";
+import { categories as mockDataCategories } from "@/data/mockData";
 
 // Helper functions for color conversion
 const hslToHex = (hslString: string): string => {
@@ -119,11 +124,15 @@ const categoryIcons: Record<string, React.ElementType> = {
   "Educación": GraduationCap,
   "Ropa": Shirt,
   "Viajes": Plane,
-  "Mascotas": PawPrint,
+  "Mascotas": Cat,
   "Donaciones": Gift,
   "Suscripciones": Tv,
   "Servicios": Wrench,
   "Otros": Wallet,
+  "Freelance": Laptop,
+  "Inversiones": TrendingUp,
+  "Vivienda": Home,
+  "Suministros": Zap,
 };
 
 const colorPalette = [
@@ -141,20 +150,16 @@ const colorPalette = [
   "hsl(340, 82%, 52%)",
 ];
 
-const defaultCategories = [
-  { id: 1, name: "Alimentación", color: "hsl(25, 95%, 53%)", subcategories: 3, total: 1250.00, type: "gasto", keywords: ["restaurante", "comida"] },
-  { id: 2, name: "Transporte", color: "hsl(217, 91%, 60%)", subcategories: 2, total: 450.00, type: "gasto", keywords: ["uber", "gasolina"] },
-  { id: 3, name: "Hogar", color: "hsl(340, 82%, 52%)", subcategories: 4, total: 2100.00, type: "gasto", keywords: ["alquiler", "luz"] },
-  { id: 4, name: "Supermercado", color: "hsl(45, 93%, 47%)", subcategories: 0, total: 680.00, type: "gasto", keywords: [] },
-  { id: 5, name: "Salario", color: "hsl(160, 84%, 39%)", subcategories: 2, total: 9700.00, type: "ingreso", keywords: ["nómina"] },
-  { id: 6, name: "Salud", color: "hsl(280, 65%, 60%)", subcategories: 3, total: 520.00, type: "gasto", keywords: ["farmacia", "consulta"] },
-  { id: 7, name: "Ocio", color: "hsl(199, 89%, 48%)", subcategories: 5, total: 380.00, type: "gasto", keywords: ["cine", "juegos"] },
-  { id: 8, name: "Educación", color: "hsl(142, 76%, 36%)", subcategories: 2, total: 850.00, type: "gasto", keywords: ["curso", "libros"] },
-  { id: 9, name: "Ropa", color: "hsl(330, 81%, 60%)", subcategories: 0, total: 320.00, type: "gasto", keywords: [] },
-  { id: 10, name: "Viajes", color: "hsl(199, 89%, 48%)", subcategories: 1, total: 0.00, type: "gasto", keywords: [] },
-  { id: 11, name: "Mascotas", color: "hsl(35, 91%, 58%)", subcategories: 2, total: 180.00, type: "gasto", keywords: ["pienso", "veterinario"] },
-  { id: 12, name: "Donaciones", color: "hsl(172, 66%, 50%)", subcategories: 0, total: 100.00, type: "gasto", keywords: [] },
-];
+// Transform mockData categories to match the expected format
+const defaultCategories = mockDataCategories.map(cat => ({
+  id: parseInt(cat.id),
+  name: cat.name,
+  color: cat.color,
+  subcategories: cat.subcategories?.length || 0,
+  total: cat.totalAmount,
+  type: cat.type,
+  keywords: [] as string[],
+}));
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("es-ES", {
