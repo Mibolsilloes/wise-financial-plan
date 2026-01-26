@@ -460,6 +460,19 @@ export default function Reports() {
   const totalIncomePaid = incomeDataPaid.reduce((acc, item) => acc + item.value, 0);
   const totalIncomeUnpaid = incomeDataUnpaid.reduce((acc, item) => acc + item.value, 0);
 
+  // Pending transactions for the movimientos pendientes tab
+  const pendingIncomeTransactions = useMemo(() => {
+    return filteredTransactions.filter(t => t.type === "ingreso" && t.status === "por_cobrar");
+  }, [filteredTransactions]);
+
+  const pendingExpenseTransactions = useMemo(() => {
+    return filteredTransactions.filter(t => t.type === "gasto" && t.status === "pendiente");
+  }, [filteredTransactions]);
+
+  const totalPendingIncome = pendingIncomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const totalPendingExpenses = pendingExpenseTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const pendingBalance = totalPendingIncome - totalPendingExpenses;
+
   // Sync frequency chart period with selected period
   useEffect(() => {
     if (selectedPeriod === "today" || selectedPeriod === "7days") {
@@ -557,122 +570,152 @@ export default function Reports() {
     }
   };
 
-  const renderPendingTransactionsTable = (type: "ingresos" | "gastos") => (
-    <div className="space-y-4">
-      {/* Controls Row - Dashboard style */}
-      <div className="flex flex-col lg:flex-row gap-3">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-9 w-9">
-            <Settings className="w-4 h-4" />
-          </Button>
-          
-          <Select defaultValue="none">
-            <SelectTrigger className="w-[160px] h-9">
-              <SelectValue placeholder="Sin agrupar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Sin agrupar</SelectItem>
-              <SelectItem value="category">Categoría</SelectItem>
-              <SelectItem value="date">Fecha de vencimiento</SelectItem>
-              <SelectItem value="responsible">Responsable</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder={type === "ingresos" ? "Buscar ingresos..." : "Buscar gastos..."}
-            className="pl-10 h-9"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 lg:ml-auto">
-          <Select defaultValue="vencimiento">
-            <SelectTrigger className="w-[160px] h-9">
-              <SelectValue placeholder="Fecha de vencimiento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="vencimiento">Fecha de vencimiento</SelectItem>
-              <SelectItem value="aplicacion">Fecha de aplicación</SelectItem>
-              <SelectItem value="pago">Fecha de pago</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button variant="outline" size="sm" className="h-9">
-            <ArrowUpDown className="w-4 h-4" />
-          </Button>
-
-          <FilterPopover>
-            <Button variant="outline" size="sm" className="h-9">
-              <Filter className="w-4 h-4" />
+  const renderPendingTransactionsTable = (type: "ingresos" | "gastos") => {
+    const transactionsToShow = type === "ingresos" ? pendingIncomeTransactions : pendingExpenseTransactions;
+    
+    return (
+      <div className="space-y-4">
+        {/* Controls Row - Dashboard style */}
+        <div className="flex flex-col lg:flex-row gap-3">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <Settings className="w-4 h-4" />
             </Button>
-          </FilterPopover>
-        </div>
-      </div>
+            
+            <Select defaultValue="none">
+              <SelectTrigger className="w-[160px] h-9">
+                <SelectValue placeholder="Sin agrupar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sin agrupar</SelectItem>
+                <SelectItem value="category">Categoría</SelectItem>
+                <SelectItem value="date">Fecha de vencimiento</SelectItem>
+                <SelectItem value="responsible">Responsable</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-      {/* Table - Dashboard style */}
-      <div className="border border-border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50">
-              {tableColumns.map((col) => (
-                <TableHead key={col} className="text-xs font-medium whitespace-nowrap">
-                  {col}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell colSpan={tableColumns.length} className="h-[200px]">
-                <div className="flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <FileText className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <p className="text-muted-foreground font-medium">
-                    No se encontraron movimientos
-                  </p>
-                  <p className="text-sm text-muted-foreground/70 mt-1">
-                    {type === "ingresos" ? "Añade un ingreso para comenzar" : "Añade un gasto para comenzar"}
-                  </p>
-                </div>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </div>
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder={type === "ingresos" ? "Buscar ingresos..." : "Buscar gastos..."}
+              className="pl-10 h-9"
+            />
+          </div>
 
-      {/* Pagination - Dashboard style */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Mostrar</span>
-          <Select defaultValue="30">
-            <SelectTrigger className="w-[80px] h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="30">30</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-              <SelectItem value="100">100</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2 lg:ml-auto">
+            <Select defaultValue="vencimiento">
+              <SelectTrigger className="w-[160px] h-9">
+                <SelectValue placeholder="Fecha de vencimiento" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="vencimiento">Fecha de vencimiento</SelectItem>
+                <SelectItem value="aplicacion">Fecha de aplicación</SelectItem>
+                <SelectItem value="pago">Fecha de pago</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button variant="outline" size="sm" className="h-9">
+              <ArrowUpDown className="w-4 h-4" />
+            </Button>
+
+            <FilterPopover>
+              <Button variant="outline" size="sm" className="h-9">
+                <Filter className="w-4 h-4" />
+              </Button>
+            </FilterPopover>
+          </div>
         </div>
 
-        <span className="text-sm text-muted-foreground">Total: 0</span>
+        {/* Table - Dashboard style */}
+        <div className="border border-border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead className="text-xs font-medium whitespace-nowrap">Responsable</TableHead>
+                <TableHead className="text-xs font-medium whitespace-nowrap">Descripción</TableHead>
+                <TableHead className="text-xs font-medium whitespace-nowrap">Importe</TableHead>
+                <TableHead className="text-xs font-medium whitespace-nowrap">Categoría</TableHead>
+                <TableHead className="text-xs font-medium whitespace-nowrap">Vencimiento</TableHead>
+                <TableHead className="text-xs font-medium whitespace-nowrap">Cuenta</TableHead>
+                <TableHead className="text-xs font-medium whitespace-nowrap">Fijo/Variable</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {transactionsToShow.length > 0 ? (
+                transactionsToShow.map((t) => (
+                  <TableRow key={t.id} className="hover:bg-muted/30">
+                    <TableCell className="text-sm">{t.responsible}</TableCell>
+                    <TableCell className="text-sm font-medium">{t.description}</TableCell>
+                    <TableCell className={cn(
+                      "text-sm font-semibold",
+                      type === "ingresos" ? "text-success" : "text-destructive"
+                    )}>
+                      {formatCurrency(t.amount)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.color }} />
+                        <span className="text-sm">{t.category}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm">{format(t.dueDate, "dd/MM/yyyy", { locale: es })}</TableCell>
+                    <TableCell className="text-sm">{t.account}</TableCell>
+                    <TableCell className="text-sm">{t.isFixed ? "Fijo" : "Variable"}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-[200px]">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                        <FileText className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <p className="text-muted-foreground font-medium">
+                        No se encontraron movimientos pendientes
+                      </p>
+                      <p className="text-sm text-muted-foreground/70 mt-1">
+                        {type === "ingresos" ? "No hay ingresos por cobrar" : "No hay gastos por pagar"}
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled>
-            Anterior
-          </Button>
-          <Button variant="outline" size="sm" disabled>
-            Siguiente
-          </Button>
+        {/* Pagination - Dashboard style */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Mostrar</span>
+            <Select defaultValue="30">
+              <SelectTrigger className="w-[80px] h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <span className="text-sm text-muted-foreground">Total: {transactionsToShow.length}</span>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" disabled={transactionsToShow.length === 0}>
+              Anterior
+            </Button>
+            <Button variant="outline" size="sm" disabled={transactionsToShow.length === 0}>
+              Siguiente
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <Layout>
@@ -1268,7 +1311,7 @@ export default function Reports() {
                     <span className="text-sm text-muted-foreground">Por Cobrar</span>
                     <TrendingUp className="h-4 w-4 text-success" />
                   </div>
-                  <span className="text-2xl font-bold text-success">€ 0,00</span>
+                  <span className="text-2xl font-bold text-success">{formatCurrency(totalPendingIncome)}</span>
                   <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
                 </div>
 
@@ -1278,7 +1321,7 @@ export default function Reports() {
                     <span className="text-sm text-muted-foreground">Por Pagar</span>
                     <TrendingDown className="h-4 w-4 text-destructive" />
                   </div>
-                  <span className="text-2xl font-bold text-destructive">€ 0,00</span>
+                  <span className="text-2xl font-bold text-destructive">{formatCurrency(totalPendingExpenses)}</span>
                   <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
                 </div>
 
@@ -1288,7 +1331,10 @@ export default function Reports() {
                     <span className="text-sm text-muted-foreground">Saldo Previsto</span>
                     <Eye className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="text-2xl font-bold text-primary">€ 0,00</span>
+                  <span className={cn(
+                    "text-2xl font-bold",
+                    pendingBalance >= 0 ? "text-success" : "text-destructive"
+                  )}>{formatCurrency(pendingBalance)}</span>
                   <p className="text-xs text-muted-foreground mt-1">{periodLabel}</p>
                 </div>
               </div>
