@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   User, 
   Share2, 
@@ -15,7 +17,8 @@ import {
   Crown,
   Download,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +40,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const themes = [
   { id: "dark", name: "Predeterminado", colors: ["hsl(222, 47%, 6%)", "hsl(217, 91%, 60%)"] },
@@ -46,6 +50,8 @@ const themes = [
 ];
 
 export default function Settings() {
+  const navigate = useNavigate();
+  const { profile, signOut, updateProfile } = useAuth();
   const [activeTheme, setActiveTheme] = useState("dark");
   const [notifications, setNotifications] = useState({
     enabled: true,
@@ -54,6 +60,39 @@ export default function Settings() {
     dayBefore: true,
     dueDate: true,
   });
+  const [fullName, setFullName] = useState(profile?.full_name || "");
+  const [phone, setPhone] = useState(profile?.phone || "");
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Sesión cerrada correctamente");
+    navigate("/auth");
+  };
+
+  const handleSaveProfile = async () => {
+    const { error } = await updateProfile({
+      full_name: fullName,
+      phone: phone,
+    });
+
+    if (error) {
+      toast.error("Error al guardar los cambios");
+    } else {
+      toast.success("Perfil actualizado correctamente");
+    }
+  };
+
+  const getInitials = () => {
+    if (profile?.full_name) {
+      return profile.full_name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+    }
+    return "U";
+  };
 
   return (
     <Layout>
@@ -101,15 +140,21 @@ export default function Settings() {
           {/* Profile Tab */}
           <TabsContent value="profile" className="animate-fade-in">
             <div className="glass rounded-xl p-6 max-w-2xl">
-              <h2 className="text-lg font-semibold mb-6">Información personal</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold">Información personal</h2>
+                <Button variant="destructive" size="sm" onClick={handleSignOut} className="gap-2">
+                  <LogOut className="w-4 h-4" />
+                  Cerrar sesión
+                </Button>
+              </div>
               
               {/* Avatar */}
               <div className="flex items-center gap-6 mb-8">
                 <div className="relative">
                   <Avatar className="w-24 h-24 border-4 border-primary/30">
-                    <AvatarImage src="" />
+                    <AvatarImage src={profile?.avatar_url || ""} />
                     <AvatarFallback className="bg-primary/20 text-primary text-2xl font-bold">
-                      JG
+                      {getInitials()}
                     </AvatarFallback>
                   </Avatar>
                   <button className="absolute bottom-0 right-0 p-2 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors">
@@ -117,7 +162,7 @@ export default function Settings() {
                   </button>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Juan García</h3>
+                  <h3 className="font-semibold text-lg">{profile?.full_name || "Usuario"}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <Crown className="w-4 h-4 text-warning" />
                     <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
@@ -132,13 +177,23 @@ export default function Settings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="name">Nombre completo</Label>
-                    <Input id="name" defaultValue="Juan García" className="mt-1.5" />
+                    <Input 
+                      id="name" 
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="mt-1.5" 
+                    />
                   </div>
                   <div>
                     <Label htmlFor="email">Correo electrónico</Label>
                     <div className="relative mt-1.5">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input id="email" defaultValue="juan@email.com" className="pl-10" />
+                      <Input 
+                        id="email" 
+                        value={profile?.user_id ? "***@***.com" : ""} 
+                        className="pl-10" 
+                        disabled 
+                      />
                     </div>
                   </div>
                 </div>
@@ -146,10 +201,16 @@ export default function Settings() {
                   <Label htmlFor="phone">Teléfono</Label>
                   <div className="relative mt-1.5">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="phone" defaultValue="+34 612 345 678" className="pl-10" />
+                    <Input 
+                      id="phone" 
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+34 612 345 678"
+                      className="pl-10" 
+                    />
                   </div>
                 </div>
-                <Button className="gap-2">
+                <Button className="gap-2" onClick={handleSaveProfile}>
                   <Edit2 className="w-4 h-4" />
                   Guardar cambios
                 </Button>

@@ -3,13 +3,16 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import { PeriodProvider } from "./contexts/PeriodContext";
 import { FilterProvider } from "./contexts/FilterContext";
 import { TransactionsProvider } from "./contexts/TransactionsContext";
 import { CategoriesProvider } from "./contexts/CategoriesContext";
 import { AccountsProvider } from "./contexts/AccountsContext";
 import { CreditCardsProvider } from "./contexts/CreditCardsContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Reports from "./pages/Reports";
 import Categories from "./pages/Categories";
 import CategoryReport from "./pages/CategoryReport";
@@ -25,34 +28,37 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <TransactionsProvider>
-        <CategoriesProvider>
-          <AccountsProvider>
-            <CreditCardsProvider>
-              <PeriodProvider>
-                <FilterProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/relatorios" element={<Reports />} />
-                      <Route path="/categorias" element={<Categories />} />
-                      <Route path="/categorias/:id/relatorio" element={<CategoryReport />} />
-                      <Route path="/contas" element={<BankAccounts />} />
-                      <Route path="/contas/:id/extrato" element={<AccountReport />} />
-                      <Route path="/cartoes" element={<CreditCards />} />
-                      <Route path="/cartoes/:id/fatura" element={<CreditCardInvoice />} />
-                      <Route path="/configuracoes" element={<Settings />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </BrowserRouter>
-                </FilterProvider>
-              </PeriodProvider>
-            </CreditCardsProvider>
-          </AccountsProvider>
-        </CategoriesProvider>
-      </TransactionsProvider>
+      <AuthProvider>
+        <TransactionsProvider>
+          <CategoriesProvider>
+            <AccountsProvider>
+              <CreditCardsProvider>
+                <PeriodProvider>
+                  <FilterProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
+                      <Routes>
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                        <Route path="/relatorios" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+                        <Route path="/categorias" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
+                        <Route path="/categorias/:id/relatorio" element={<ProtectedRoute><CategoryReport /></ProtectedRoute>} />
+                        <Route path="/contas" element={<ProtectedRoute><BankAccounts /></ProtectedRoute>} />
+                        <Route path="/contas/:id/extrato" element={<ProtectedRoute><AccountReport /></ProtectedRoute>} />
+                        <Route path="/cartoes" element={<ProtectedRoute><CreditCards /></ProtectedRoute>} />
+                        <Route path="/cartoes/:id/fatura" element={<ProtectedRoute><CreditCardInvoice /></ProtectedRoute>} />
+                        <Route path="/configuracoes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </BrowserRouter>
+                  </FilterProvider>
+                </PeriodProvider>
+              </CreditCardsProvider>
+            </AccountsProvider>
+          </CategoriesProvider>
+        </TransactionsProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
