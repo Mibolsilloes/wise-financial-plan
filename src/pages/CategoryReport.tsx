@@ -52,6 +52,7 @@ import { FilterPopover } from "@/components/dashboard/FilterPopover";
 import { PeriodSelector } from "@/components/dashboard/PeriodSelector";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { cn } from "@/lib/utils";
+import { categories as mockCategories } from "@/data/mockData";
 
 type GroupingOption = "none" | "categoria" | "vencimiento" | "creacion" | "responsable";
 
@@ -80,20 +81,17 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-// Mock category data - would come from context/API
+// Extended category data - merging mockData with additional categories from Categories page
 const categoryData: Record<string, { name: string; color: string; type: string }> = {
-  "1": { name: "Salario", color: "hsl(142, 76%, 36%)", type: "ingreso" },
-  "2": { name: "Freelance", color: "hsl(200, 98%, 39%)", type: "ingreso" },
-  "3": { name: "Inversiones", color: "hsl(262, 83%, 58%)", type: "ingreso" },
-  "4": { name: "Vivienda", color: "hsl(340, 82%, 52%)", type: "gasto" },
-  "5": { name: "Alimentación", color: "hsl(25, 95%, 53%)", type: "gasto" },
-  "6": { name: "Transporte", color: "hsl(45, 93%, 47%)", type: "gasto" },
-  "7": { name: "Suministros", color: "hsl(190, 95%, 39%)", type: "gasto" },
-  "8": { name: "Ocio", color: "hsl(280, 87%, 54%)", type: "gasto" },
-  "9": { name: "Salud", color: "hsl(0, 84%, 60%)", type: "gasto" },
-  "10": { name: "Educación", color: "hsl(220, 90%, 56%)", type: "gasto" },
-  "11": { name: "Ropa", color: "hsl(320, 70%, 50%)", type: "gasto" },
-  "12": { name: "Mascotas", color: "hsl(30, 80%, 55%)", type: "gasto" },
+  // From mockData.ts
+  ...Object.fromEntries(mockCategories.map(c => [c.id, { name: c.name, color: c.color, type: c.type }])),
+  // Additional categories from Categories.tsx (different IDs)
+  "13": { name: "Hogar", color: "hsl(340, 82%, 52%)", type: "gasto" },
+  "14": { name: "Supermercado", color: "hsl(45, 93%, 47%)", type: "gasto" },
+  "15": { name: "Viajes", color: "hsl(199, 89%, 48%)", type: "gasto" },
+  "16": { name: "Donaciones", color: "hsl(172, 66%, 50%)", type: "gasto" },
+  "17": { name: "Suscripciones", color: "hsl(280, 70%, 60%)", type: "gasto" },
+  "18": { name: "Servicios", color: "hsl(200, 80%, 50%)", type: "gasto" },
 };
 
 // Modern gradient card component matching "Lançamentos pendentes" style
