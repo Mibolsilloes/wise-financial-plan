@@ -26,25 +26,15 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useTransactions } from "@/contexts/TransactionsContext";
+import { useCategories } from "@/contexts/CategoriesContext";
+import { useAccounts } from "@/contexts/AccountsContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddRevenueDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const categories = [
-  { id: "salario", label: "Salario" },
-  { id: "freelance", label: "Freelance" },
-  { id: "inversiones", label: "Inversiones" },
-  { id: "ventas", label: "Ventas" },
-  { id: "otros", label: "Otros" },
-];
-
-const accounts = [
-  { id: "santander", label: "Cuenta Santander" },
-  { id: "bbva", label: "BBVA" },
-  { id: "caixabank", label: "CaixaBank" },
-];
 
 const responsibles = [
   { id: "juan", label: "Juan García" },
@@ -52,6 +42,11 @@ const responsibles = [
 ];
 
 export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) {
+  const { addTransaction } = useTransactions();
+  const { categories } = useCategories();
+  const { accounts } = useAccounts();
+  const { toast } = useToast();
+
   const [valor, setValor] = useState("");
   const [descricao, setDescricao] = useState("");
   const [categoria, setCategoria] = useState("");
@@ -65,22 +60,79 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
   const [responsavel, setResponsavel] = useState("");
   const [dataCompetencia, setDataCompetencia] = useState<Date>(new Date());
 
+  const incomeCategories = categories.filter((c) => c.type === "ingreso");
+  const selectedCategory = categories.find((c) => c.name === categoria);
+
+  const resetForm = () => {
+    setValor("");
+    setDescricao("");
+    setCategoria("");
+    setSubcategoria("");
+    setFoiRecebida(true);
+    setDataRecebimento(new Date());
+    setDataVencimento(new Date());
+    setConta("");
+    setReceitaFixa(false);
+    setRepetirTransacao(false);
+    setResponsavel("");
+    setDataCompetencia(new Date());
+  };
+
   const handleSave = () => {
-    // TODO: Implement save logic
-    console.log({
-      valor,
-      descricao,
-      categoria,
-      subcategoria,
-      foiRecebida,
-      dataRecebimento,
-      dataVencimento,
-      conta,
-      receitaFixa,
-      repetirTransacao,
-      responsavel,
-      dataCompetencia,
+    // Validation
+    const amount = parseFloat(valor);
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: "Error",
+        description: "Por favor, introduce un importe válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!descricao.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor, introduce una descripción",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!categoria) {
+      toast({
+        title: "Error",
+        description: "Por favor, selecciona una categoría",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedAcc = accounts.find((a) => a.id === conta);
+    const responsibleName = responsibles.find((r) => r.id === responsavel)?.label || "Juan García";
+
+    addTransaction({
+      type: "ingreso",
+      description: descricao.trim(),
+      amount,
+      category: categoria,
+      subcategory: subcategoria || undefined,
+      account: selectedAcc?.name || "Cuenta Principal",
+      responsible: responsibleName,
+      dueDate: dataVencimento,
+      paymentDate: foiRecebida ? dataRecebimento : undefined,
+      competenceDate: dataCompetencia,
+      status: foiRecebida ? "cobrado" : "por_cobrar",
+      isFixed: receitaFixa,
+      color: selectedCategory?.color || "hsl(142, 76%, 36%)",
     });
+
+    toast({
+      title: "Ingreso añadido",
+      description: `Se ha registrado "${descricao}" por ${amount.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}`,
+    });
+
+    resetForm();
     onOpenChange(false);
   };
 
@@ -129,9 +181,9 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                   <SelectValue placeholder="Elige una categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.label}
+                  {incomeCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      {cat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -140,13 +192,16 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
 
             <div className="space-y-2">
               <Label>Subcategoría</Label>
-              <Select value={subcategoria} onValueChange={setSubcategoria} disabled={!categoria}>
+              <Select value={subcategoria} onValueChange={setSubcategoria} disabled={!selectedCategory}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona una categoría primero" />
+                  <SelectValue placeholder={selectedCategory ? "Selecciona una subcategoría" : "Selecciona una categoría primero"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sub1">Subcategoría 1</SelectItem>
-                  <SelectItem value="sub2">Subcategoría 2</SelectItem>
+                  {selectedCategory?.subcategories.map((sub) => (
+                    <SelectItem key={sub} value={sub}>
+                      {sub}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -270,7 +325,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                 <SelectContent>
                   {accounts.map((acc) => (
                     <SelectItem key={acc.id} value={acc.id}>
-                      {acc.label}
+                      {acc.name} - {acc.bank}
                     </SelectItem>
                   ))}
                 </SelectContent>

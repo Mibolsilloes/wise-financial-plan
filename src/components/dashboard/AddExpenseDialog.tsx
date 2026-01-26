@@ -26,42 +26,16 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useTransactions } from "@/contexts/TransactionsContext";
+import { useCategories } from "@/contexts/CategoriesContext";
+import { useAccounts } from "@/contexts/AccountsContext";
+import { useCreditCards } from "@/contexts/CreditCardsContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface AddExpenseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const categories = [
-  { id: "alimentacion", label: "Alimentación" },
-  { id: "suscripcion", label: "Suscripción" },
-  { id: "hogar", label: "Hogar" },
-  { id: "cuidado-personal", label: "Cuidado personal" },
-  { id: "donaciones", label: "Donaciones" },
-  { id: "educacion", label: "Educación" },
-  { id: "impuestos", label: "Impuestos" },
-  { id: "ocio", label: "Ocio y entretenimiento" },
-  { id: "supermercado", label: "Supermercado" },
-  { id: "otros", label: "Otros" },
-  { id: "mascotas", label: "Mascotas" },
-  { id: "salario", label: "Salario" },
-  { id: "salud", label: "Salud" },
-  { id: "transporte", label: "Transporte" },
-  { id: "servicios", label: "Servicios" },
-  { id: "ropa", label: "Ropa" },
-  { id: "viaje", label: "Viaje" },
-];
-
-const accounts = [
-  { id: "santander", label: "Cuenta Santander" },
-  { id: "bbva", label: "BBVA" },
-  { id: "caixabank", label: "CaixaBank" },
-];
-
-const cards = [
-  { id: "visa", label: "Visa Santander" },
-  { id: "mastercard", label: "Mastercard BBVA" },
-];
 
 const responsibles = [
   { id: "juan", label: "Juan García" },
@@ -69,6 +43,12 @@ const responsibles = [
 ];
 
 export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) {
+  const { addTransaction } = useTransactions();
+  const { categories } = useCategories();
+  const { accounts } = useAccounts();
+  const { creditCards } = useCreditCards();
+  const { toast } = useToast();
+
   const [valor, setValor] = useState("");
   const [descricao, setDescricao] = useState("");
   const [categoria, setCategoria] = useState("");
@@ -83,23 +63,82 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
   const [responsavel, setResponsavel] = useState("");
   const [dataCompetencia, setDataCompetencia] = useState<Date>(new Date());
 
+  const expenseCategories = categories.filter((c) => c.type === "gasto");
+  const selectedCategory = categories.find((c) => c.name === categoria);
+
+  const resetForm = () => {
+    setValor("");
+    setDescricao("");
+    setCategoria("");
+    setSubcategoria("");
+    setFoiPaga(true);
+    setDataPagamento(new Date());
+    setDataVencimento(new Date());
+    setConta("");
+    setCartao("");
+    setDespesaFixa(false);
+    setRepetirTransacao(false);
+    setResponsavel("");
+    setDataCompetencia(new Date());
+  };
+
   const handleSave = () => {
-    // TODO: Implement save logic
-    console.log({
-      valor,
-      descricao,
-      categoria,
-      subcategoria,
-      foiPaga,
-      dataPagamento,
-      dataVencimento,
-      conta,
-      cartao,
-      despesaFixa,
-      repetirTransacao,
-      responsavel,
-      dataCompetencia,
+    // Validation
+    const amount = parseFloat(valor);
+    if (isNaN(amount) || amount <= 0) {
+      toast({
+        title: "Error",
+        description: "Por favor, introduce un importe válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!descricao.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor, introduce una descripción",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!categoria) {
+      toast({
+        title: "Error",
+        description: "Por favor, selecciona una categoría",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedAcc = accounts.find((a) => a.id === conta);
+    const selectedCard = creditCards.find((c) => c.id === cartao);
+    const responsibleName = responsibles.find((r) => r.id === responsavel)?.label || "Juan García";
+
+    addTransaction({
+      type: "gasto",
+      description: descricao.trim(),
+      amount,
+      category: categoria,
+      subcategory: subcategoria || undefined,
+      account: selectedAcc?.name || "Cuenta Principal",
+      creditCard: selectedCard?.name,
+      responsible: responsibleName,
+      dueDate: dataVencimento,
+      paymentDate: foiPaga ? dataPagamento : undefined,
+      competenceDate: dataCompetencia,
+      status: foiPaga ? "pagado" : "pendiente",
+      isFixed: despesaFixa,
+      color: selectedCategory?.color || "hsl(340, 82%, 52%)",
     });
+
+    toast({
+      title: "Gasto añadido",
+      description: `Se ha registrado "${descricao}" por ${amount.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}`,
+    });
+
+    resetForm();
     onOpenChange(false);
   };
 
@@ -148,9 +187,9 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                   <SelectValue placeholder="Elige una categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.label}
+                  {expenseCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      {cat.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -159,13 +198,16 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
 
             <div className="space-y-2">
               <Label>Subcategoría</Label>
-              <Select value={subcategoria} onValueChange={setSubcategoria} disabled={!categoria}>
+              <Select value={subcategoria} onValueChange={setSubcategoria} disabled={!selectedCategory}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona una categoría primero" />
+                  <SelectValue placeholder={selectedCategory ? "Selecciona una subcategoría" : "Selecciona una categoría primero"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sub1">Subcategoría 1</SelectItem>
-                  <SelectItem value="sub2">Subcategoría 2</SelectItem>
+                  {selectedCategory?.subcategories.map((sub) => (
+                    <SelectItem key={sub} value={sub}>
+                      {sub}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -289,7 +331,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                 <SelectContent>
                   {accounts.map((acc) => (
                     <SelectItem key={acc.id} value={acc.id}>
-                      {acc.label}
+                      {acc.name} - {acc.bank}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -312,9 +354,9 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                   <SelectValue placeholder="Selecciona una tarjeta" />
                 </SelectTrigger>
                 <SelectContent>
-                  {cards.map((card) => (
+                  {creditCards.map((card) => (
                     <SelectItem key={card.id} value={card.id}>
-                      {card.label}
+                      {card.name} - {card.bank}
                     </SelectItem>
                   ))}
                 </SelectContent>
