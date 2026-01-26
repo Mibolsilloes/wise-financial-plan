@@ -33,7 +33,7 @@ import { AddExpenseDialog } from "./AddExpenseDialog";
 import { FilterPopover } from "./FilterPopover";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { transactions } from "@/data/mockData";
-import { format } from "date-fns";
+import { format, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
 
 const tableColumns = [
@@ -55,10 +55,18 @@ export function TransactionList() {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { monthName, handlePrevMonth, handleNextMonth } = usePeriod();
+  const { monthName, handlePrevMonth, handleNextMonth, effectiveDateRange } = usePeriod();
 
   const filteredTransactions = useMemo(() => {
     let result = [...transactions];
+
+    // Filter by date range from period context
+    result = result.filter(t => 
+      isWithinInterval(t.dueDate, {
+        start: effectiveDateRange.from,
+        end: effectiveDateRange.to,
+      })
+    );
 
     // Filter by type
     if (filter === "ingresos") {
@@ -81,7 +89,7 @@ export function TransactionList() {
     result.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
 
     return result;
-  }, [filter, searchQuery]);
+  }, [filter, searchQuery, effectiveDateRange]);
 
   const totalItems = filteredTransactions.length;
   const totalPages = Math.ceil(totalItems / parseInt(itemsPerPage));
