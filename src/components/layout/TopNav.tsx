@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import logoIcon from "@/assets/logo-icon.png";
 
 
 const navItems = [
@@ -44,10 +45,13 @@ export function TopNav() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
-              <span className="text-white font-bold text-sm">MB</span>
-            </div>
+          <Link to="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
+            <img 
+              src={logoIcon} 
+              alt="MiBolsillo" 
+              className="h-8 w-auto brightness-0 invert"
+            />
+            <span className="text-white font-bold text-lg hidden sm:block">MiBolsillo</span>
           </Link>
 
           {/* Navigation */}
