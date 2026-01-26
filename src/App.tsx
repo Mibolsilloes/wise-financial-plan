@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PeriodProvider } from "./contexts/PeriodContext";
+import { FilterProvider } from "./contexts/FilterContext";
 import Index from "./pages/Index";
 import Reports from "./pages/Reports";
 import Categories from "./pages/Categories";
@@ -21,22 +22,24 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <PeriodProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/relatorios" element={<Reports />} />
-            <Route path="/categorias" element={<Categories />} />
-            <Route path="/categorias/:id/relatorio" element={<CategoryReport />} />
-            <Route path="/contas" element={<BankAccounts />} />
-            <Route path="/contas/:id/extrato" element={<AccountReport />} />
-            <Route path="/cartoes" element={<CreditCards />} />
-            <Route path="/cartoes/:id/fatura" element={<CreditCardInvoice />} />
-            <Route path="/configuracoes" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <FilterProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/relatorios" element={<Reports />} />
+              <Route path="/categorias" element={<Categories />} />
+              <Route path="/categorias/:id/relatorio" element={<CategoryReport />} />
+              <Route path="/contas" element={<BankAccounts />} />
+              <Route path="/contas/:id/extrato" element={<AccountReport />} />
+              <Route path="/cartoes" element={<CreditCards />} />
+              <Route path="/cartoes/:id/fatura" element={<CreditCardInvoice />} />
+              <Route path="/configuracoes" element={<Settings />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </FilterProvider>
       </PeriodProvider>
     </TooltipProvider>
   </QueryClientProvider>
