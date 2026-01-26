@@ -46,11 +46,13 @@ export function TopNav() {
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
-            <img 
-              src={logoIcon} 
-              alt="MiBolsillo" 
-              className="h-8 w-auto brightness-0 invert"
-            />
+            <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
+              <img 
+                src={logoIcon} 
+                alt="MiBolsillo" 
+                className="h-6 w-auto"
+              />
+            </div>
             <span className="text-white font-bold text-lg hidden sm:block">MiBolsillo</span>
           </Link>
 
