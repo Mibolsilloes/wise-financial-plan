@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePeriod } from "@/contexts/PeriodContext";
+import { transactions, getExpensesByCategory, getIncomeByCategory } from "@/data/mockData";
 
 const chartTabs = [
   { id: "all", label: "Todas" },
@@ -14,24 +15,21 @@ const chartTabs = [
   { id: "ingresos-cobrados", label: "Ingresos Cobrados" },
 ];
 
-const sampleData = [
-  { name: "Casa", value: 1800, color: "hsl(340, 82%, 52%)" },
-  { name: "Mercado", value: 650, color: "hsl(25, 95%, 53%)" },
-  { name: "Transporte", value: 320, color: "hsl(45, 93%, 47%)" },
-];
-
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0];
+    const total = payload[0].payload.total || 0;
+    const percentage = total > 0 ? ((data.value / total) * 100).toFixed(1) : 0;
     return (
       <div className="glass rounded-lg p-3 shadow-lg">
         <p className="font-medium text-foreground">{data.name}</p>
         <p className="text-sm" style={{ color: data.payload.color }}>
-          {new Intl.NumberFormat("pt-BR", {
+          {new Intl.NumberFormat("es-ES", {
             style: "currency",
-            currency: "BRL",
+            currency: "EUR",
           }).format(data.value)}
         </p>
+        <p className="text-xs text-muted-foreground">{percentage}%</p>
       </div>
     );
   }
@@ -39,21 +37,67 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 export function ChartPanel() {
-  const [selectedTab, setSelectedTab] = useState("ingresos-cobrados");
+  const [selectedTab, setSelectedTab] = useState("gastos-pagados");
   const { periodLabel } = usePeriod();
-  
-  const hasData = false; // Set to true when there's actual data
+
+  const chartData = useMemo(() => {
+    let filteredTransactions = [...transactions];
+
+    switch (selectedTab) {
+      case "ingresos":
+        filteredTransactions = transactions.filter(t => t.type === "ingreso");
+        break;
+      case "gastos":
+        filteredTransactions = transactions.filter(t => t.type === "gasto");
+        break;
+      case "gastos-no-pagados":
+        filteredTransactions = transactions.filter(t => t.type === "gasto" && t.status === "pendiente");
+        break;
+      case "gastos-pagados":
+        filteredTransactions = transactions.filter(t => t.type === "gasto" && t.status === "pagado");
+        break;
+      case "ingresos-no-cobrados":
+        filteredTransactions = transactions.filter(t => t.type === "ingreso" && t.status === "por_cobrar");
+        break;
+      case "ingresos-cobrados":
+        filteredTransactions = transactions.filter(t => t.type === "ingreso" && t.status === "cobrado");
+        break;
+      default:
+        // all - show expenses by default for pie chart
+        filteredTransactions = transactions.filter(t => t.type === "gasto");
+    }
+
+    // Group by category
+    const categoryMap = new Map<string, { name: string; value: number; color: string }>();
+    filteredTransactions.forEach(t => {
+      const existing = categoryMap.get(t.category);
+      if (existing) {
+        existing.value += t.amount;
+      } else {
+        categoryMap.set(t.category, { name: t.category, value: t.amount, color: t.color });
+      }
+    });
+
+    const data = Array.from(categoryMap.values()).sort((a, b) => b.value - a.value);
+    const total = data.reduce((sum, item) => sum + item.value, 0);
+    
+    return data.map(item => ({ ...item, total }));
+  }, [selectedTab]);
+
+  const hasData = chartData.length > 0;
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
+    return new Intl.NumberFormat("es-ES", {
       style: "currency",
-      currency: "BRL",
+      currency: "EUR",
     }).format(value);
   };
 
   const getTabLabel = () => {
-    return chartTabs.find(t => t.id === selectedTab)?.label || "Ingresos Cobrados";
+    return chartTabs.find(t => t.id === selectedTab)?.label || "Gastos Pagados";
   };
+
+  const totalAmount = chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="glass rounded-xl p-5 animate-slide-up h-full" style={{ animationDelay: "100ms" }}>
@@ -82,6 +126,9 @@ export function ChartPanel() {
       <div className="text-center mb-4">
         <h3 className="font-medium text-foreground">{getTabLabel()}</h3>
         <p className="text-xs text-muted-foreground">{periodLabel}</p>
+        {hasData && (
+          <p className="text-lg font-bold mt-1 text-primary">{formatCurrency(totalAmount)}</p>
+        )}
       </div>
 
       {/* Chart or Empty State */}
@@ -90,7 +137,7 @@ export function ChartPanel() {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={sampleData}
+                data={chartData}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
@@ -99,7 +146,7 @@ export function ChartPanel() {
                 dataKey="value"
                 strokeWidth={0}
               >
-                {sampleData.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -124,21 +171,25 @@ export function ChartPanel() {
         
         {hasData ? (
           <div className="space-y-2 max-h-[150px] overflow-y-auto">
-            {sampleData.map((item) => (
-              <div 
-                key={item.name}
-                className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50"
-              >
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="text-sm">{item.name}</span>
+            {chartData.map((item) => {
+              const percentage = totalAmount > 0 ? ((item.value / totalAmount) * 100).toFixed(1) : 0;
+              return (
+                <div 
+                  key={item.name}
+                  className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50"
+                >
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span className="text-sm">{item.name}</span>
+                    <span className="text-xs text-muted-foreground">({percentage}%)</span>
+                  </div>
+                  <span className="text-sm font-medium">{formatCurrency(item.value)}</span>
                 </div>
-                <span className="text-sm font-medium">{formatCurrency(item.value)}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground text-center py-4">
