@@ -32,6 +32,7 @@ import { AddRevenueDialog } from "./AddRevenueDialog";
 import { AddExpenseDialog } from "./AddExpenseDialog";
 import { FilterPopover } from "./FilterPopover";
 import { usePeriod } from "@/contexts/PeriodContext";
+import { useFilters } from "@/contexts/FilterContext";
 import { transactions } from "@/data/mockData";
 import { format, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
@@ -56,19 +57,31 @@ export function TransactionList() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { monthName, handlePrevMonth, handleNextMonth, effectiveDateRange } = usePeriod();
+  const { filters } = useFilters();
 
   const filteredTransactions = useMemo(() => {
     let result = [...transactions];
 
-    // Filter by date range from period context
-    result = result.filter(t => 
-      isWithinInterval(t.dueDate, {
+    // Filter by date range from period context based on date type
+    result = result.filter(t => {
+      let dateToCheck: Date;
+      switch (filters.dateType) {
+        case "pago":
+          dateToCheck = t.paymentDate || t.dueDate;
+          break;
+        case "competencia":
+          dateToCheck = t.competenceDate;
+          break;
+        default:
+          dateToCheck = t.dueDate;
+      }
+      return isWithinInterval(dateToCheck, {
         start: effectiveDateRange.from,
         end: effectiveDateRange.to,
-      })
-    );
+      });
+    });
 
-    // Filter by type
+    // Filter by type (tabs)
     if (filter === "ingresos") {
       result = result.filter(t => t.type === "ingreso");
     } else if (filter === "gastos") {
@@ -85,11 +98,55 @@ export function TransactionList() {
       );
     }
 
+    // Filter by account
+    if (filters.account !== "todas") {
+      result = result.filter(t => t.account === filters.account);
+    }
+
+    // Filter by category
+    if (filters.category !== "todas") {
+      result = result.filter(t => t.category === filters.category);
+    }
+
+    // Filter by subcategory
+    if (filters.subcategory) {
+      const sub = filters.subcategory.toLowerCase();
+      result = result.filter(t => t.subcategory?.toLowerCase().includes(sub));
+    }
+
+    // Filter by payment status
+    if (filters.paymentStatus !== "todos") {
+      if (filters.paymentStatus === "pago") {
+        result = result.filter(t => t.status === "pagado" || t.status === "cobrado");
+      } else {
+        result = result.filter(t => t.status === "pendiente" || t.status === "por_cobrar");
+      }
+    }
+
+    // Filter by responsible
+    if (filters.responsible) {
+      result = result.filter(t => t.responsible === filters.responsible);
+    }
+
+    // Filter by transaction type (fixed/variable)
+    if (filters.transactionType !== "todos") {
+      if (filters.transactionType === "fijas") {
+        result = result.filter(t => t.isFixed === true);
+      } else {
+        result = result.filter(t => t.isFixed === false);
+      }
+    }
+
+    // Filter by credit card
+    if (filters.creditCard) {
+      result = result.filter(t => t.creditCard === filters.creditCard);
+    }
+
     // Sort by due date
     result.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
 
     return result;
-  }, [filter, searchQuery, effectiveDateRange]);
+  }, [filter, searchQuery, effectiveDateRange, filters]);
 
   const totalItems = filteredTransactions.length;
   const totalPages = Math.ceil(totalItems / parseInt(itemsPerPage));

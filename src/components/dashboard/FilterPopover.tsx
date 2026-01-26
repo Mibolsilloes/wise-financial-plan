@@ -7,7 +7,8 @@ import {
   Users, 
   Repeat, 
   CreditCard, 
-  Calendar 
+  Calendar,
+  Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,209 +20,220 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-
-const categories = [
-  "Alimentação",
-  "Assinatura", 
-  "Casa",
-  "Cuidados pessoais",
-  "Doações",
-  "Educação",
-  "Impostos",
-  "Lazer",
-  "Mercado",
-  "Pets",
-  "Saúde",
-  "Transporte",
-  "Salário",
-  "Utilidades",
-  "Vestuário",
-  "Viagem",
-  "Outros",
-];
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useFilters } from "@/contexts/FilterContext";
+import { categories, bankAccounts, creditCards } from "@/data/mockData";
 
 interface FilterPopoverContentProps {
   onApply: () => void;
   onClear: () => void;
 }
 
-export function FilterPopoverContent({ onApply, onClear }: FilterPopoverContentProps) {
-  const [contaBancaria, setContaBancaria] = useState("todas");
-  const [categoriaPrincipal, setCategoriaPrincipal] = useState("todas");
-  const [subcategorias, setSubcategorias] = useState("");
-  const [statusPagamento, setStatusPagamento] = useState<"todos" | "pago" | "pendente">("todos");
-  const [pessoa, setPessoa] = useState("");
-  const [tipoTransacao, setTipoTransacao] = useState<"todos" | "fixas" | "variaveis">("todos");
-  const [cartaoCredito, setCartaoCredito] = useState("");
-  const [tipoData, setTipoData] = useState<"venc" | "pago" | "comp">("venc");
+function FilterPopoverContent({ onApply, onClear }: FilterPopoverContentProps) {
+  const { filters, updateFilter, clearFilters } = useFilters();
+
+  const handleClear = () => {
+    clearFilters();
+    onClear();
+  };
+
+  const handleApply = () => {
+    onApply();
+  };
+
+  // Get unique responsibles from transactions
+  const responsibles = ["Juan García", "María López"];
 
   return (
     <div className="flex flex-col gap-4 p-4 w-[300px]">
-      {/* Conta Bancária */}
+      {/* Cuenta Bancaria */}
       <div className="bg-muted/30 rounded-lg p-3 space-y-2">
         <div className="flex items-center gap-2">
           <Building2 className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-primary">Conta Bancária</span>
+          <span className="text-sm font-medium text-primary">Cuenta Bancaria</span>
         </div>
-        <p className="text-xs text-muted-foreground">Filtre por uma conta específica</p>
-        <Select value={contaBancaria} onValueChange={setContaBancaria}>
+        <p className="text-xs text-muted-foreground">Filtre por una cuenta específica</p>
+        <Select value={filters.account} onValueChange={(v) => updateFilter("account", v)}>
           <SelectTrigger className="h-9 bg-background">
-            <SelectValue placeholder="Todas as contas" />
+            <SelectValue placeholder="Todas las cuentas" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="todas">Todas as contas</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Categoria Principal */}
-      <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-        <div className="flex items-center gap-2">
-          <Tag className="w-4 h-4 text-purple-500" />
-          <span className="text-sm font-medium text-purple-500">Categoria Principal</span>
-        </div>
-        <p className="text-xs text-muted-foreground">Escolha uma categoria para filtrar</p>
-        <Select value={categoriaPrincipal} onValueChange={setCategoriaPrincipal}>
-          <SelectTrigger className="h-9 bg-background">
-            <SelectValue placeholder="Todas as categorias" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todas">Todas as categorias</SelectItem>
-            {categories.map((cat) => (
-              <SelectItem key={cat} value={cat.toLowerCase()}>
-                {cat}
+            <SelectItem value="todas">Todas las cuentas</SelectItem>
+            {bankAccounts.map((acc) => (
+              <SelectItem key={acc.id} value={acc.name}>
+                {acc.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Subcategorias */}
+      {/* Categoría Principal */}
+      <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+        <div className="flex items-center gap-2">
+          <Tag className="w-4 h-4 text-purple-500" />
+          <span className="text-sm font-medium text-purple-500">Categoría Principal</span>
+        </div>
+        <p className="text-xs text-muted-foreground">Elija una categoría para filtrar</p>
+        <Select value={filters.category} onValueChange={(v) => updateFilter("category", v)}>
+          <SelectTrigger className="h-9 bg-background">
+            <SelectValue placeholder="Todas las categorías" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todas">Todas las categorías</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat.id} value={cat.name}>
+                {cat.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Subcategorías */}
       <div className="bg-muted/30 rounded-lg p-3 space-y-2">
         <div className="flex items-center gap-2">
           <Layers className="w-4 h-4 text-blue-500" />
-          <span className="text-sm font-medium text-blue-500">Subcategorias</span>
+          <span className="text-sm font-medium text-blue-500">Subcategorías</span>
         </div>
-        <p className="text-xs text-muted-foreground">Selecione múltiplas subcategorias</p>
+        <p className="text-xs text-muted-foreground">Seleccione múltiples subcategorías</p>
         <Input
-          placeholder="Escolher subcategorias..."
-          value={subcategorias}
-          onChange={(e) => setSubcategorias(e.target.value)}
+          placeholder="Elegir subcategorías..."
+          value={filters.subcategory}
+          onChange={(e) => updateFilter("subcategory", e.target.value)}
           className="h-9 bg-background"
         />
       </div>
 
-      {/* Status do Pagamento */}
+      {/* Estado del Pago */}
       <div className="bg-muted/30 rounded-lg p-3 space-y-2">
         <div className="flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-success" />
-          <span className="text-sm font-medium text-success">Status do Pagamento</span>
+          <span className="text-sm font-medium text-success">Estado del Pago</span>
         </div>
-        <p className="text-xs text-muted-foreground">Filtre por status de pagamento</p>
+        <p className="text-xs text-muted-foreground">Filtre por estado de pago</p>
         <div className="flex gap-2">
-          {(["todos", "pago", "pendente"] as const).map((status) => (
+          {(["todos", "pago", "pendiente"] as const).map((status) => (
             <Button
               key={status}
               variant="outline"
               size="sm"
-              onClick={() => setStatusPagamento(status)}
+              onClick={() => updateFilter("paymentStatus", status)}
               className={cn(
                 "flex-1 h-9 gap-1.5",
-                statusPagamento === status 
+                filters.paymentStatus === status 
                   ? "bg-primary text-primary-foreground hover:bg-primary/90" 
                   : "bg-background"
               )}
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              {status === "todos" ? "Todos" : status === "pago" ? "Pagado" : "Pendiente"}
             </Button>
           ))}
         </div>
       </div>
 
-      {/* Pessoas */}
+      {/* Responsable */}
       <div className="bg-muted/30 rounded-lg p-3 space-y-2">
         <div className="flex items-center gap-2">
           <Users className="w-4 h-4 text-orange-500" />
-          <span className="text-sm font-medium text-orange-500">Pessoas</span>
+          <span className="text-sm font-medium text-orange-500">Responsable</span>
         </div>
-        <p className="text-xs text-muted-foreground">Filtre por pessoa responsável</p>
-        <div className="flex items-center gap-2 p-2 bg-background rounded-md border">
-          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-            R
-          </div>
-          <span className="text-sm">Renan Gomes Jardon</span>
-        </div>
+        <p className="text-xs text-muted-foreground">Filtre por persona responsable</p>
+        <Select value={filters.responsible || "todos"} onValueChange={(v) => updateFilter("responsible", v === "todos" ? "" : v)}>
+          <SelectTrigger className="h-9 bg-background">
+            <SelectValue placeholder="Todos los responsables" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos los responsables</SelectItem>
+            {responsibles.map((r) => (
+              <SelectItem key={r} value={r}>
+                {r}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Tipo de Transação */}
+      {/* Tipo de Transacción */}
       <div className="bg-muted/30 rounded-lg p-3 space-y-2">
         <div className="flex items-center gap-2">
           <Repeat className="w-4 h-4 text-blue-600" />
-          <span className="text-sm font-medium text-blue-600">Tipo de Transação</span>
+          <span className="text-sm font-medium text-blue-600">Tipo de Transacción</span>
         </div>
-        <p className="text-xs text-muted-foreground">Filtre por tipo fixo ou variável</p>
+        <p className="text-xs text-muted-foreground">Filtre por tipo fijo o variable</p>
         <div className="flex gap-2">
           {([
-            { value: "todos", icon: Repeat, label: "Todos" },
-            { value: "fixas", icon: Repeat, label: "Fixas" },
-            { value: "variaveis", icon: Repeat, label: "Variáveis" },
+            { value: "todos", label: "Todos" },
+            { value: "fijas", label: "Fijas" },
+            { value: "variables", label: "Variables" },
           ] as const).map((item) => (
             <Button
               key={item.value}
               variant="outline"
               size="sm"
-              onClick={() => setTipoTransacao(item.value)}
+              onClick={() => updateFilter("transactionType", item.value)}
               className={cn(
                 "flex-1 h-9 gap-1.5",
-                tipoTransacao === item.value 
+                filters.transactionType === item.value 
                   ? "bg-primary text-primary-foreground hover:bg-primary/90" 
                   : "bg-background"
               )}
             >
-              <item.icon className="w-3.5 h-3.5" />
+              <Repeat className="w-3.5 h-3.5" />
               {item.label}
             </Button>
           ))}
         </div>
       </div>
 
-      {/* Cartões de Crédito */}
+      {/* Tarjetas de Crédito */}
       <div className="bg-muted/30 rounded-lg p-3 space-y-2">
         <div className="flex items-center gap-2">
           <CreditCard className="w-4 h-4 text-gray-600" />
-          <span className="text-sm font-medium text-gray-600">Cartões de Crédito</span>
+          <span className="text-sm font-medium text-gray-600">Tarjetas de Crédito</span>
         </div>
-        <p className="text-xs text-muted-foreground">Filtre por cartão específico</p>
-        <div className="flex items-center gap-2 p-2 bg-background rounded-md border">
-          <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-            R
-          </div>
-          <span className="text-sm">Itau</span>
-        </div>
+        <p className="text-xs text-muted-foreground">Filtre por tarjeta específica</p>
+        <Select value={filters.creditCard || "todas"} onValueChange={(v) => updateFilter("creditCard", v === "todas" ? "" : v)}>
+          <SelectTrigger className="h-9 bg-background">
+            <SelectValue placeholder="Todas las tarjetas" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todas">Todas las tarjetas</SelectItem>
+            {creditCards.map((card) => (
+              <SelectItem key={card.id} value={card.name}>
+                {card.name} - {card.bank}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Tipo de Data */}
+      {/* Tipo de Fecha */}
       <div className="bg-muted/30 rounded-lg p-3 space-y-2">
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-purple-600" />
-          <span className="text-sm font-medium text-purple-600">Tipo de Data</span>
+          <span className="text-sm font-medium text-purple-600">Tipo de Fecha</span>
         </div>
-        <p className="text-xs text-muted-foreground">Escolha qual data usar para filtrar</p>
+        <p className="text-xs text-muted-foreground">Elija qué fecha usar para filtrar</p>
         <div className="flex gap-2">
           {([
-            { value: "venc", label: "Venc." },
+            { value: "vencimiento", label: "Venc." },
             { value: "pago", label: "Pago" },
-            { value: "comp", label: "Comp." },
+            { value: "competencia", label: "Comp." },
           ] as const).map((item) => (
             <Button
               key={item.value}
               variant="outline"
               size="sm"
-              onClick={() => setTipoData(item.value)}
+              onClick={() => updateFilter("dateType", item.value)}
               className={cn(
                 "flex-1 h-9 gap-1.5",
-                tipoData === item.value 
+                filters.dateType === item.value 
                   ? "bg-primary text-primary-foreground hover:bg-primary/90" 
                   : "bg-background"
               )}
@@ -237,7 +249,7 @@ export function FilterPopoverContent({ onApply, onClear }: FilterPopoverContentP
       <div className="space-y-2 pt-2">
         <Button 
           className="w-full gap-2" 
-          onClick={onApply}
+          onClick={handleApply}
         >
           <Filter className="w-4 h-4" />
           Aplicar Filtros
@@ -245,22 +257,15 @@ export function FilterPopoverContent({ onApply, onClear }: FilterPopoverContentP
         <Button 
           variant="ghost" 
           className="w-full gap-2 text-muted-foreground" 
-          onClick={onClear}
+          onClick={handleClear}
         >
           <Filter className="w-4 h-4" />
-          Limpar Tudo
+          Limpiar Todo
         </Button>
       </div>
     </div>
   );
 }
-
-import { Filter } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 interface FilterPopoverProps {
   children: React.ReactNode;
@@ -268,11 +273,17 @@ interface FilterPopoverProps {
 
 export function FilterPopover({ children }: FilterPopoverProps) {
   const [open, setOpen] = useState(false);
+  const { hasActiveFilters } = useFilters();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        {children}
+        <div className="relative">
+          {children}
+          {hasActiveFilters && (
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
+          )}
+        </div>
       </PopoverTrigger>
       <PopoverContent 
         className="w-auto p-0 max-h-[80vh] overflow-y-auto" 
