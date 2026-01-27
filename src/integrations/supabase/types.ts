@@ -52,6 +52,7 @@ export type Database = {
           id: string
           keywords: string[] | null
           name: string
+          position: number | null
           type: string
           user_id: string
         }
@@ -62,6 +63,7 @@ export type Database = {
           id?: string
           keywords?: string[] | null
           name: string
+          position?: number | null
           type: string
           user_id: string
         }
@@ -72,6 +74,7 @@ export type Database = {
           id?: string
           keywords?: string[] | null
           name?: string
+          position?: number | null
           type?: string
           user_id?: string
         }
