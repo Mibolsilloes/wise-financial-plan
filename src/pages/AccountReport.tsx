@@ -445,7 +445,7 @@ export default function AccountReport() {
         
         {/* Back Button */}
         <button 
-          onClick={() => navigate("/cuentas")}
+          onClick={() => navigate("/contas")}
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -465,7 +465,7 @@ export default function AccountReport() {
             <AccountIcon className="w-4 h-4" />
             {account.name}
             <button 
-              onClick={() => navigate("/cuentas")}
+              onClick={() => navigate("/contas")}
               className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
             >
               <X className="w-3 h-3" />
