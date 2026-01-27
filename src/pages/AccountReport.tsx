@@ -23,8 +23,15 @@ import {
   Check,
   Building2,
   Landmark,
-  CreditCard as CreditCardIcon
+  CreditCard as CreditCardIcon,
+  MoreHorizontal,
+  Pencil,
+  Trash2
 } from "lucide-react";
+import { EditTransactionDialog } from "@/components/dashboard/EditTransactionDialog";
+import { DeleteTransactionDialog } from "@/components/dashboard/DeleteTransactionDialog";
+import { Transaction } from "@/data/mockData";
+import { useTransactions } from "@/contexts/TransactionsContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -226,14 +233,48 @@ export default function AccountReport() {
     status: true,
     conta: true,
     cartao: true,
-    dataVencimento: true,
+    dataVencimiento: true,
     dataCompetencia: false,
     dataPagamento: false,
     fixoVariavel: true,
   });
   
+  // Action dialogs state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  
   const toggleColumn = (column: keyof typeof visibleColumns) => {
     setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
+  };
+
+  // Convert local transaction to Transaction type for dialogs
+  const convertToTransaction = (t: typeof allTransactions[0]): Transaction => ({
+    id: t.id.toString(),
+    type: t.tipo === "ingreso" ? "ingreso" : "gasto",
+    description: t.descripcion,
+    amount: Math.abs(t.valor),
+    category: t.categoria,
+    subcategory: t.categoria,
+    account: t.cuenta,
+    creditCard: t.tarjeta || undefined,
+    responsible: t.responsable,
+    dueDate: new Date(t.fechaVencimiento),
+    paymentDate: t.fechaPago ? new Date(t.fechaPago) : undefined,
+    competenceDate: new Date(t.fechaCompetencia),
+    status: t.status as Transaction["status"],
+    isFixed: t.fijoVariable === "Fijo",
+    color: t.tipo === "ingreso" ? "hsl(142, 76%, 36%)" : "hsl(340, 82%, 52%)",
+  });
+
+  const handleEditClick = (t: typeof allTransactions[0]) => {
+    setSelectedTransaction(convertToTransaction(t));
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (t: typeof allTransactions[0]) => {
+    setSelectedTransaction(convertToTransaction(t));
+    setDeleteDialogOpen(true);
   };
   
   const account = id ? accountsData[id] : null;
@@ -615,7 +656,7 @@ export default function AccountReport() {
                       { key: "status", label: "Estado" },
                       { key: "conta", label: "Cuenta" },
                       { key: "cartao", label: "Tarjeta" },
-                      { key: "dataVencimento", label: "Fecha de Vencimiento" },
+                      { key: "dataVencimiento", label: "Fecha de Vencimiento" },
                       { key: "dataCompetencia", label: "Fecha de Competencia" },
                       { key: "dataPagamento", label: "Fecha de Pago" },
                       { key: "fixoVariavel", label: "Fijo/Variable" },
@@ -734,7 +775,7 @@ export default function AccountReport() {
                   {visibleColumns.status && <TableHead className="text-xs font-medium">Estado</TableHead>}
                   {visibleColumns.conta && <TableHead className="text-xs font-medium">Cuenta</TableHead>}
                   {visibleColumns.cartao && <TableHead className="text-xs font-medium">Tarjeta</TableHead>}
-                  {visibleColumns.dataVencimento && <TableHead className="text-xs font-medium">Vencimiento</TableHead>}
+                  {visibleColumns.dataVencimiento && <TableHead className="text-xs font-medium">Vencimiento</TableHead>}
                   {visibleColumns.dataCompetencia && <TableHead className="text-xs font-medium">Competencia</TableHead>}
                   {visibleColumns.dataPagamento && <TableHead className="text-xs font-medium">Pago</TableHead>}
                   {visibleColumns.fixoVariavel && <TableHead className="text-xs font-medium">Fijo/Variable</TableHead>}
@@ -793,7 +834,7 @@ export default function AccountReport() {
                       )}
                       {visibleColumns.conta && <TableCell className="text-xs">{transaction.cuenta}</TableCell>}
                       {visibleColumns.cartao && <TableCell className="text-xs">{transaction.tarjeta || "-"}</TableCell>}
-                      {visibleColumns.dataVencimento && (
+                      {visibleColumns.dataVencimiento && (
                         <TableCell className="text-xs">
                           {format(parseISO(transaction.fechaVencimiento), "dd/MM/yyyy")}
                         </TableCell>
@@ -816,9 +857,29 @@ export default function AccountReport() {
                         </TableCell>
                       )}
                       <TableCell>
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                          <Settings className="w-3.5 h-3.5" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                              <MoreHorizontal className="w-3.5 h-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-background border shadow-lg z-50 min-w-[140px]">
+                            <DropdownMenuItem
+                              onClick={() => handleEditClick(transaction)}
+                              className="flex items-center gap-2 cursor-pointer"
+                            >
+                              <Pencil className="w-4 h-4" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteClick(transaction)}
+                              className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))
@@ -867,6 +928,20 @@ export default function AccountReport() {
           </div>
         </div>
       </div>
+
+      {/* Edit Transaction Dialog */}
+      <EditTransactionDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        transaction={selectedTransaction}
+      />
+
+      {/* Delete Transaction Dialog */}
+      <DeleteTransactionDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        transaction={selectedTransaction}
+      />
     </Layout>
   );
 }
