@@ -53,6 +53,7 @@ import {
 import { FilterPopover } from "@/components/dashboard/FilterPopover";
 import { PeriodSelector } from "@/components/dashboard/PeriodSelector";
 import { usePeriod } from "@/contexts/PeriodContext";
+import { useFilters } from "@/contexts/FilterContext";
 import { cn } from "@/lib/utils";
 
 type GroupingOption = "none" | "categoria" | "vencimiento" | "creacion" | "responsable";
@@ -206,6 +207,7 @@ export default function AccountReport() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentMonth, currentYear, effectiveDateRange } = usePeriod();
+  const { filters } = useFilters();
   const [activeTab, setActiveTab] = useState("todas");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -235,6 +237,156 @@ export default function AccountReport() {
   };
   
   const account = id ? accountsData[id] : null;
+  const accountName = account?.name || "";
+
+  // Mock transactions for this account - would come from API filtered by account
+  const allTransactions = useMemo(() => [
+    { id: 1, descripcion: "Restaurante", responsable: "Juan", valor: -85.50, tipo: "gasto", status: "pagado", cuenta: accountName, tarjeta: "", categoria: "Alimentación", fechaVencimiento: "2026-01-15", fechaCompetencia: "2026-01-15", fechaPago: "2026-01-15", fijoVariable: "Variable" },
+    { id: 2, descripcion: "Salario", responsable: "Juan", valor: 5000.00, tipo: "ingreso", status: "cobrado", cuenta: accountName, tarjeta: "", categoria: "Salario", fechaVencimiento: "2026-01-05", fechaCompetencia: "2026-01-05", fechaPago: "2026-01-05", fijoVariable: "Fijo" },
+    { id: 3, descripcion: "Supermercado", responsable: "María", valor: -320.00, tipo: "gasto", status: "pendiente", cuenta: accountName, tarjeta: "", categoria: "Mercado", fechaVencimiento: "2026-01-20", fechaCompetencia: "2026-01-20", fechaPago: "", fijoVariable: "Variable" },
+    { id: 4, descripcion: "Factura de luz", responsable: "Juan", valor: -180.00, tipo: "gasto", status: "pagado", cuenta: accountName, tarjeta: "", categoria: "Hogar", fechaVencimiento: "2026-01-10", fechaCompetencia: "2026-01-10", fechaPago: "2026-01-10", fijoVariable: "Fijo" },
+    { id: 5, descripcion: "Freelance", responsable: "Juan", valor: 1500.00, tipo: "ingreso", status: "pendiente", cuenta: accountName, tarjeta: "", categoria: "Trabajo", fechaVencimiento: "2026-01-25", fechaCompetencia: "2026-01-25", fechaPago: "", fijoVariable: "Variable" },
+    { id: 6, descripcion: "Internet", responsable: "María", valor: -120.00, tipo: "gasto", status: "pagado", cuenta: accountName, tarjeta: "", categoria: "Hogar", fechaVencimiento: "2026-01-15", fechaCompetencia: "2026-01-15", fechaPago: "2026-01-15", fijoVariable: "Fijo" },
+    // Transactions from December 2025
+    { id: 7, descripcion: "Bonus", responsable: "Juan", valor: 2000.00, tipo: "ingreso", status: "cobrado", cuenta: accountName, tarjeta: "", categoria: "Salario", fechaVencimiento: "2025-12-20", fechaCompetencia: "2025-12-20", fechaPago: "2025-12-20", fijoVariable: "Variable" },
+    { id: 8, descripcion: "Regalo Navidad", responsable: "María", valor: -350.00, tipo: "gasto", status: "pagado", cuenta: accountName, tarjeta: "", categoria: "Ocio", fechaVencimiento: "2025-12-24", fechaCompetencia: "2025-12-24", fechaPago: "2025-12-24", fijoVariable: "Variable" },
+    // Transactions from February 2026
+    { id: 9, descripcion: "Alquiler", responsable: "Juan", valor: -1500.00, tipo: "gasto", status: "pendiente", cuenta: accountName, tarjeta: "", categoria: "Hogar", fechaVencimiento: "2026-02-05", fechaCompetencia: "2026-02-05", fechaPago: "", fijoVariable: "Fijo" },
+  ], [accountName]);
+
+  // Filter transactions based on effectiveDateRange, filters, tab, and search
+  const filteredTransactions = useMemo(() => {
+    let result = allTransactions.filter(transaction => {
+      // Filter by date range
+      let dateToCheck: string;
+      switch (filters.dateType) {
+        case "pago":
+          dateToCheck = transaction.fechaPago || transaction.fechaVencimiento;
+          break;
+        case "competencia":
+          dateToCheck = transaction.fechaCompetencia;
+          break;
+        default:
+          dateToCheck = transaction.fechaVencimiento;
+      }
+      const transactionDate = parseISO(dateToCheck);
+      return isWithinInterval(transactionDate, {
+        start: startOfDay(effectiveDateRange.from),
+        end: endOfDay(effectiveDateRange.to),
+      });
+    });
+
+    // Filter by tab
+    if (activeTab === "despesas") {
+      result = result.filter(t => t.tipo === "gasto");
+    } else if (activeTab === "receitas") {
+      result = result.filter(t => t.tipo === "ingreso");
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(t => 
+        t.descripcion.toLowerCase().includes(query) ||
+        t.categoria.toLowerCase().includes(query) ||
+        t.responsable.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by category from FilterContext
+    if (filters.category !== "todas") {
+      result = result.filter(t => t.categoria === filters.category);
+    }
+
+    // Filter by payment status from FilterContext
+    if (filters.paymentStatus !== "todos") {
+      if (filters.paymentStatus === "pago") {
+        result = result.filter(t => t.status === "pagado" || t.status === "cobrado");
+      } else {
+        result = result.filter(t => t.status === "pendiente");
+      }
+    }
+
+    // Filter by responsible from FilterContext
+    if (filters.responsible) {
+      result = result.filter(t => t.responsable === filters.responsible);
+    }
+
+    // Filter by transaction type (fixed/variable) from FilterContext
+    if (filters.transactionType !== "todos") {
+      if (filters.transactionType === "fijas") {
+        result = result.filter(t => t.fijoVariable === "Fijo");
+      } else {
+        result = result.filter(t => t.fijoVariable === "Variable");
+      }
+    }
+
+    // Sort transactions
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case "valor":
+          return b.valor - a.valor;
+        case "vencimiento":
+          return parseISO(b.fechaVencimiento).getTime() - parseISO(a.fechaVencimiento).getTime();
+        case "pago":
+          return (parseISO(b.fechaPago || b.fechaVencimiento).getTime()) - (parseISO(a.fechaPago || a.fechaVencimiento).getTime());
+        case "competencia":
+          return parseISO(b.fechaCompetencia).getTime() - parseISO(a.fechaCompetencia).getTime();
+        default:
+          return parseISO(b.fechaVencimiento).getTime() - parseISO(a.fechaVencimiento).getTime();
+      }
+    });
+
+    return result;
+  }, [allTransactions, effectiveDateRange, activeTab, searchQuery, filters, sortBy]);
+
+  // Calculate financial data based on all transactions in period (not filtered by tab/search)
+  const financialData = useMemo(() => {
+    // Use allTransactions filtered only by date for financial summary
+    const periodTransactions = allTransactions.filter(transaction => {
+      const transactionDate = parseISO(transaction.fechaVencimiento);
+      return isWithinInterval(transactionDate, {
+        start: startOfDay(effectiveDateRange.from),
+        end: endOfDay(effectiveDateRange.to),
+      });
+    });
+
+    const accountBalance = account?.balance || 0;
+
+    const income = periodTransactions
+      .filter(t => t.tipo === "ingreso")
+      .reduce((sum, t) => sum + t.valor, 0);
+    
+    const expenses = periodTransactions
+      .filter(t => t.tipo === "gasto")
+      .reduce((sum, t) => sum + Math.abs(t.valor), 0);
+    
+    const incomeReceived = periodTransactions
+      .filter(t => t.tipo === "ingreso" && t.status === "cobrado")
+      .reduce((sum, t) => sum + t.valor, 0);
+    
+    const incomeToReceive = periodTransactions
+      .filter(t => t.tipo === "ingreso" && t.status === "pendiente")
+      .reduce((sum, t) => sum + t.valor, 0);
+    
+    const expensesPaid = periodTransactions
+      .filter(t => t.tipo === "gasto" && t.status === "pagado")
+      .reduce((sum, t) => sum + Math.abs(t.valor), 0);
+    
+    const expensesToPay = periodTransactions
+      .filter(t => t.tipo === "gasto" && t.status === "pendiente")
+      .reduce((sum, t) => sum + Math.abs(t.valor), 0);
+
+    return {
+      previousBalance: accountBalance,
+      income: income,
+      expenses: -expenses,
+      availableBalance: accountBalance + income - expenses,
+      expectedBalance: accountBalance + income - expenses,
+      incomeDetails: { received: incomeReceived, toReceive: incomeToReceive },
+      expenseDetails: { paid: expensesPaid, toPay: expensesToPay },
+    };
+  }, [allTransactions, effectiveDateRange, account?.balance]);
   
   if (!account) {
     return (
@@ -248,69 +400,6 @@ export default function AccountReport() {
 
   const AccountIcon = getAccountIcon(account.icon);
 
-  // Mock transactions for this account - would come from API filtered by account
-  const allTransactions = useMemo(() => [
-    { id: 1, descricao: "Restaurante", responsavel: "João", valor: -85.50, tipo: "despesa", status: "Pago", conta: account.name, cartao: "", categoria: "Alimentação", dataVencimento: "2026-01-15", dataCompetencia: "2026-01-15", dataPagamento: "2026-01-15", fixoVariavel: "Variável" },
-    { id: 2, descricao: "Salário", responsavel: "João", valor: 5000.00, tipo: "receita", status: "Pago", conta: account.name, cartao: "", categoria: "Salário", dataVencimento: "2026-01-05", dataCompetencia: "2026-01-05", dataPagamento: "2026-01-05", fixoVariavel: "Fixo" },
-    { id: 3, descricao: "Supermercado", responsavel: "Maria", valor: -320.00, tipo: "despesa", status: "Pendente", conta: account.name, cartao: "", categoria: "Mercado", dataVencimento: "2026-01-20", dataCompetencia: "2026-01-20", dataPagamento: "", fixoVariavel: "Variável" },
-    { id: 4, descricao: "Conta de luz", responsavel: "João", valor: -180.00, tipo: "despesa", status: "Pago", conta: account.name, cartao: "", categoria: "Casa", dataVencimento: "2026-01-10", dataCompetencia: "2026-01-10", dataPagamento: "2026-01-10", fixoVariavel: "Fixo" },
-    { id: 5, descricao: "Freelance", responsavel: "João", valor: 1500.00, tipo: "receita", status: "Pendente", conta: account.name, cartao: "", categoria: "Trabalho", dataVencimento: "2026-01-25", dataCompetencia: "2026-01-25", dataPagamento: "", fixoVariavel: "Variável" },
-    { id: 6, descricao: "Internet", responsavel: "Maria", valor: -120.00, tipo: "despesa", status: "Pago", conta: account.name, cartao: "", categoria: "Casa", dataVencimento: "2026-01-15", dataCompetencia: "2026-01-15", dataPagamento: "2026-01-15", fixoVariavel: "Fixo" },
-    // Transactions from December 2025
-    { id: 7, descricao: "Bônus", responsavel: "João", valor: 2000.00, tipo: "receita", status: "Pago", conta: account.name, cartao: "", categoria: "Salário", dataVencimento: "2025-12-20", dataCompetencia: "2025-12-20", dataPagamento: "2025-12-20", fixoVariavel: "Variável" },
-    { id: 8, descricao: "Presente Natal", responsavel: "Maria", valor: -350.00, tipo: "despesa", status: "Pago", conta: account.name, cartao: "", categoria: "Lazer", dataVencimento: "2025-12-24", dataCompetencia: "2025-12-24", dataPagamento: "2025-12-24", fixoVariavel: "Variável" },
-    // Transactions from February 2026
-    { id: 9, descricao: "Aluguel", responsavel: "João", valor: -1500.00, tipo: "despesa", status: "Pendente", conta: account.name, cartao: "", categoria: "Casa", dataVencimento: "2026-02-05", dataCompetencia: "2026-02-05", dataPagamento: "", fixoVariavel: "Fixo" },
-  ], [account.name]);
-
-  // Filter transactions based on effectiveDateRange
-  const transactions = useMemo(() => {
-    return allTransactions.filter(transaction => {
-      const transactionDate = parseISO(transaction.dataVencimento);
-      return isWithinInterval(transactionDate, {
-        start: startOfDay(effectiveDateRange.from),
-        end: endOfDay(effectiveDateRange.to),
-      });
-    });
-  }, [allTransactions, effectiveDateRange]);
-
-  // Calculate financial data based on filtered transactions
-  const financialData = useMemo(() => {
-    const income = transactions
-      .filter(t => t.tipo === "receita")
-      .reduce((sum, t) => sum + t.valor, 0);
-    
-    const expenses = transactions
-      .filter(t => t.tipo === "despesa")
-      .reduce((sum, t) => sum + Math.abs(t.valor), 0);
-    
-    const incomeReceived = transactions
-      .filter(t => t.tipo === "receita" && t.status === "Pago")
-      .reduce((sum, t) => sum + t.valor, 0);
-    
-    const incomeToReceive = transactions
-      .filter(t => t.tipo === "receita" && t.status === "Pendente")
-      .reduce((sum, t) => sum + t.valor, 0);
-    
-    const expensesPaid = transactions
-      .filter(t => t.tipo === "despesa" && t.status === "Pago")
-      .reduce((sum, t) => sum + Math.abs(t.valor), 0);
-    
-    const expensesToPay = transactions
-      .filter(t => t.tipo === "despesa" && t.status === "Pendente")
-      .reduce((sum, t) => sum + Math.abs(t.valor), 0);
-
-    return {
-      previousBalance: account.balance,
-      income: income,
-      expenses: -expenses,
-      availableBalance: account.balance + income - expenses,
-      expectedBalance: account.balance + income - expenses,
-      incomeDetails: { received: incomeReceived, toReceive: incomeToReceive },
-      expenseDetails: { paid: expensesPaid, toPay: expensesToPay },
-    };
-  }, [transactions, account.balance]);
-  
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 space-y-6">
@@ -469,16 +558,16 @@ export default function AccountReport() {
           <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle className="text-lg font-semibold">Personalize sua visualização</DialogTitle>
+                <DialogTitle className="text-lg font-semibold">Personaliza tu visualización</DialogTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Configure como você quer ver suas transações de forma mais clara e organizada
+                  Configura cómo quieres ver tus transacciones de forma más clara y organizada
                 </p>
               </DialogHeader>
               
               <div className="space-y-6 py-4">
                 {/* View Mode Selection */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium">Como você quer ver suas transações?</h4>
+                  <h4 className="text-sm font-medium">¿Cómo quieres ver tus transacciones?</h4>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => setViewMode("cards")}
@@ -491,8 +580,8 @@ export default function AccountReport() {
                     >
                       <LayoutGrid className="w-5 h-5 text-muted-foreground" />
                       <div className="text-center">
-                        <p className="text-sm font-medium">Cards</p>
-                        <p className="text-[10px] text-muted-foreground">Visual e organizado</p>
+                        <p className="text-sm font-medium">Tarjetas</p>
+                        <p className="text-[10px] text-muted-foreground">Visual y organizado</p>
                       </div>
                     </button>
                     <button
@@ -506,8 +595,8 @@ export default function AccountReport() {
                     >
                       <TableIcon className="w-5 h-5 text-muted-foreground" />
                       <div className="text-center">
-                        <p className="text-sm font-medium">Tabela</p>
-                        <p className="text-[10px] text-muted-foreground">Compacto e detalhado</p>
+                        <p className="text-sm font-medium">Tabla</p>
+                        <p className="text-[10px] text-muted-foreground">Compacto y detallado</p>
                       </div>
                     </button>
                   </div>
@@ -515,21 +604,21 @@ export default function AccountReport() {
                 
                 {/* Column Visibility */}
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium">Quais informações mostrar?</h4>
+                  <h4 className="text-sm font-medium">¿Qué información mostrar?</h4>
                   <div className="grid grid-cols-2 gap-x-6 gap-y-2">
                     {[
-                      { key: "descricao", label: "Descrição" },
-                      { key: "responsavel", label: "Responsável" },
-                      { key: "valor", label: "Valor" },
-                      { key: "categoria", label: "Categoria" },
+                      { key: "descricao", label: "Descripción" },
+                      { key: "responsavel", label: "Responsable" },
+                      { key: "valor", label: "Importe" },
+                      { key: "categoria", label: "Categoría" },
                       { key: "tipo", label: "Tipo" },
-                      { key: "status", label: "Status" },
-                      { key: "conta", label: "Conta" },
-                      { key: "cartao", label: "Cartão" },
-                      { key: "dataVencimento", label: "Data de Vencimento" },
-                      { key: "dataCompetencia", label: "Data de Competência" },
-                      { key: "dataPagamento", label: "Data de Pagamento" },
-                      { key: "fixoVariavel", label: "Fixo/Variável" },
+                      { key: "status", label: "Estado" },
+                      { key: "conta", label: "Cuenta" },
+                      { key: "cartao", label: "Tarjeta" },
+                      { key: "dataVencimento", label: "Fecha de Vencimiento" },
+                      { key: "dataCompetencia", label: "Fecha de Competencia" },
+                      { key: "dataPagamento", label: "Fecha de Pago" },
+                      { key: "fixoVariavel", label: "Fijo/Variable" },
                     ].map(({ key, label }) => (
                       <button
                         key={key}
@@ -560,7 +649,7 @@ export default function AccountReport() {
                 
                 <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                   <span className="text-amber-500">⚡</span>
-                  Escolha apenas o que você usa mais
+                  Elige solo lo que más usas
                 </p>
               </div>
               
@@ -576,7 +665,7 @@ export default function AccountReport() {
                   onClick={() => setIsSettingsOpen(false)}
                   className="flex-1"
                 >
-                  Salvar Preferências
+                  Guardar Preferencias
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -587,7 +676,7 @@ export default function AccountReport() {
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Pesquisar transações..."
+                placeholder="Buscar transacciones..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 h-9"
@@ -637,41 +726,41 @@ export default function AccountReport() {
             <Table>
               <TableHeader>
                 <TableRow className="border-border/50 hover:bg-transparent">
-                  {visibleColumns.responsavel && <TableHead className="text-xs font-medium">Responsável</TableHead>}
-                  {visibleColumns.descricao && <TableHead className="text-xs font-medium">Descrição</TableHead>}
-                  {visibleColumns.valor && <TableHead className="text-xs font-medium">Valor</TableHead>}
-                  {visibleColumns.categoria && <TableHead className="text-xs font-medium">Categoria</TableHead>}
+                  {visibleColumns.responsavel && <TableHead className="text-xs font-medium">Responsable</TableHead>}
+                  {visibleColumns.descricao && <TableHead className="text-xs font-medium">Descripción</TableHead>}
+                  {visibleColumns.valor && <TableHead className="text-xs font-medium">Importe</TableHead>}
+                  {visibleColumns.categoria && <TableHead className="text-xs font-medium">Categoría</TableHead>}
                   {visibleColumns.tipo && <TableHead className="text-xs font-medium">Tipo</TableHead>}
-                  {visibleColumns.status && <TableHead className="text-xs font-medium">Status</TableHead>}
-                  {visibleColumns.conta && <TableHead className="text-xs font-medium">Conta</TableHead>}
-                  {visibleColumns.cartao && <TableHead className="text-xs font-medium">Cartão</TableHead>}
-                  {visibleColumns.dataVencimento && <TableHead className="text-xs font-medium">Vencimento</TableHead>}
-                  {visibleColumns.dataCompetencia && <TableHead className="text-xs font-medium">Competência</TableHead>}
-                  {visibleColumns.dataPagamento && <TableHead className="text-xs font-medium">Pagamento</TableHead>}
-                  {visibleColumns.fixoVariavel && <TableHead className="text-xs font-medium">Fixo/Variável</TableHead>}
-                  <TableHead className="text-xs font-medium">Ação</TableHead>
+                  {visibleColumns.status && <TableHead className="text-xs font-medium">Estado</TableHead>}
+                  {visibleColumns.conta && <TableHead className="text-xs font-medium">Cuenta</TableHead>}
+                  {visibleColumns.cartao && <TableHead className="text-xs font-medium">Tarjeta</TableHead>}
+                  {visibleColumns.dataVencimento && <TableHead className="text-xs font-medium">Vencimiento</TableHead>}
+                  {visibleColumns.dataCompetencia && <TableHead className="text-xs font-medium">Competencia</TableHead>}
+                  {visibleColumns.dataPagamento && <TableHead className="text-xs font-medium">Pago</TableHead>}
+                  {visibleColumns.fixoVariavel && <TableHead className="text-xs font-medium">Fijo/Variable</TableHead>}
+                  <TableHead className="text-xs font-medium">Acción</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {transactions.length === 0 ? (
+                {filteredTransactions.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={Object.values(visibleColumns).filter(Boolean).length + 1} className="h-40">
                       <div className="flex flex-col items-center justify-center text-center">
                         <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
                           <FileText className="w-6 h-6 text-muted-foreground" />
                         </div>
-                        <p className="font-medium text-sm">Nenhuma transação encontrada</p>
+                        <p className="font-medium text-sm">No se encontraron transacciones</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Não há transações para exibir no período selecionado.
+                          No hay transacciones para mostrar en el período seleccionado.
                         </p>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  transactions.map((transaction) => (
+                  filteredTransactions.map((transaction) => (
                     <TableRow key={transaction.id} className="border-border/50">
-                      {visibleColumns.responsavel && <TableCell className="text-xs">{transaction.responsavel}</TableCell>}
-                      {visibleColumns.descricao && <TableCell className="text-xs font-medium">{transaction.descricao}</TableCell>}
+                      {visibleColumns.responsavel && <TableCell className="text-xs">{transaction.responsable}</TableCell>}
+                      {visibleColumns.descricao && <TableCell className="text-xs font-medium">{transaction.descripcion}</TableCell>}
                       {visibleColumns.valor && (
                         <TableCell className={cn("text-xs font-medium", transaction.valor < 0 ? "text-destructive" : "text-success")}>
                           {formatCurrency(transaction.valor)}
@@ -680,8 +769,8 @@ export default function AccountReport() {
                       {visibleColumns.categoria && <TableCell className="text-xs">{transaction.categoria}</TableCell>}
                       {visibleColumns.tipo && (
                         <TableCell>
-                          <Badge variant={transaction.tipo === "receita" ? "default" : "secondary"} className="text-[10px]">
-                            {transaction.tipo === "receita" ? "Receita" : "Despesa"}
+                          <Badge variant={transaction.tipo === "ingreso" ? "default" : "secondary"} className="text-[10px]">
+                            {transaction.tipo === "ingreso" ? "Ingreso" : "Gasto"}
                           </Badge>
                         </TableCell>
                       )}
@@ -691,36 +780,38 @@ export default function AccountReport() {
                             variant="outline" 
                             className={cn(
                               "text-[10px]",
-                              transaction.status === "Pago" 
+                              transaction.status === "pagado" || transaction.status === "cobrado"
                                 ? "border-success/30 bg-success/10 text-success" 
                                 : "border-warning/30 bg-warning/10 text-warning"
                             )}
                           >
-                            {transaction.status}
+                            {transaction.status === "pagado" ? "Pagado" : 
+                             transaction.status === "cobrado" ? "Cobrado" : 
+                             transaction.tipo === "ingreso" ? "Por cobrar" : "Pendiente"}
                           </Badge>
                         </TableCell>
                       )}
-                      {visibleColumns.conta && <TableCell className="text-xs">{transaction.conta}</TableCell>}
-                      {visibleColumns.cartao && <TableCell className="text-xs">{transaction.cartao || "-"}</TableCell>}
+                      {visibleColumns.conta && <TableCell className="text-xs">{transaction.cuenta}</TableCell>}
+                      {visibleColumns.cartao && <TableCell className="text-xs">{transaction.tarjeta || "-"}</TableCell>}
                       {visibleColumns.dataVencimento && (
                         <TableCell className="text-xs">
-                          {format(parseISO(transaction.dataVencimento), "dd/MM/yyyy")}
+                          {format(parseISO(transaction.fechaVencimiento), "dd/MM/yyyy")}
                         </TableCell>
                       )}
                       {visibleColumns.dataCompetencia && (
                         <TableCell className="text-xs">
-                          {format(parseISO(transaction.dataCompetencia), "dd/MM/yyyy")}
+                          {format(parseISO(transaction.fechaCompetencia), "dd/MM/yyyy")}
                         </TableCell>
                       )}
                       {visibleColumns.dataPagamento && (
                         <TableCell className="text-xs">
-                          {transaction.dataPagamento ? format(parseISO(transaction.dataPagamento), "dd/MM/yyyy") : "-"}
+                          {transaction.fechaPago ? format(parseISO(transaction.fechaPago), "dd/MM/yyyy") : "-"}
                         </TableCell>
                       )}
                       {visibleColumns.fixoVariavel && (
                         <TableCell>
                           <Badge variant="outline" className="text-[10px]">
-                            {transaction.fixoVariavel}
+                            {transaction.fijoVariable}
                           </Badge>
                         </TableCell>
                       )}
@@ -763,14 +854,14 @@ export default function AccountReport() {
                 </DropdownMenuContent>
               </DropdownMenu>
               <span>|</span>
-              <span>Total: {transactions.length}</span>
+              <span>Total: {filteredTransactions.length}</span>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="h-7 text-xs" disabled>
-                Voltar
+                Anterior
               </Button>
               <Button variant="outline" size="sm" className="h-7 text-xs" disabled>
-                Próximo
+                Siguiente
               </Button>
             </div>
           </div>
