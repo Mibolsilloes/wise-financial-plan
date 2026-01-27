@@ -24,7 +24,8 @@ import {
   BarChart3,
   PieChart as PieChartIcon,
   Plus,
-  TrendingDown
+  TrendingDown,
+  Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +65,11 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { FilterPopover } from "@/components/dashboard/FilterPopover";
+import { EditTransactionDialog } from "@/components/dashboard/EditTransactionDialog";
+import { DeleteTransactionDialog } from "@/components/dashboard/DeleteTransactionDialog";
+import { useFilters } from "@/contexts/FilterContext";
+import { useTransactions } from "@/contexts/TransactionsContext";
+import { Transaction } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { 
   PieChart, 
@@ -143,13 +149,21 @@ const categoryColors: Record<string, string> = {
   "Otros": "hsl(220, 15%, 55%)",
 };
 
+// Local transaction type for this page
+interface LocalTransaction {
+  id: string;
+  descripcion: string;
+  responsable: string;
+  valor: number;
+  categoria: string;
+  parcela: string;
+  dataCompra: string;
+  fixoVariavel: string;
+  status: string;
+}
+
 interface ExpensesPieChartProps {
-  transactions: Array<{
-    id: number;
-    descricao: string;
-    valor: number;
-    categoria: string;
-  }>;
+  transactions: LocalTransaction[];
 }
 
 function ExpensesPieChart({ transactions }: ExpensesPieChartProps) {
@@ -455,6 +469,7 @@ function CreditCardExpenseCharts({ transactions, currentMonth, currentYear }: Cr
 export default function CreditCardInvoice() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { filters, clearFilters, hasActiveFilters } = useFilters();
   
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
@@ -466,9 +481,14 @@ export default function CreditCardInvoice() {
   const [sortBy, setSortBy] = useState<SortOption>("valor");
   const [itemsPerPage, setItemsPerPage] = useState<30 | 50 | 100>(30);
   
+  // Dialog states for edit/delete
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  
   const [visibleColumns, setVisibleColumns] = useState({
-    descricao: true,
-    responsavel: true,
+    descripcion: true,
+    responsable: true,
     valor: true,
     categoria: true,
     parcela: true,
@@ -481,6 +501,58 @@ export default function CreditCardInvoice() {
   };
   
   const card = id ? cardsData[id] : null;
+
+  // Mock transactions with UUID IDs - must be before early return for hooks rules
+  const transactions: LocalTransaction[] = useMemo(() => [
+    { id: "cc-txn-001", descripcion: "Netflix", responsable: "Carlos", valor: -55.90, categoria: "Streaming", parcela: "1/1", dataCompra: "2026-01-05", fixoVariavel: "Fijo", status: "pendiente" },
+    { id: "cc-txn-002", descripcion: "Supermercado Mercadona", responsable: "María", valor: -320.00, categoria: "Supermercado", parcela: "1/1", dataCompra: "2026-01-10", fixoVariavel: "Variable", status: "pendiente" },
+    { id: "cc-txn-003", descripcion: "iPhone 15 Pro", responsable: "Carlos", valor: -899.90, categoria: "Electrónica", parcela: "3/12", dataCompra: "2025-11-15", fixoVariavel: "Variable", status: "pendiente" },
+    { id: "cc-txn-004", descripcion: "Spotify Family", responsable: "María", valor: -34.90, categoria: "Streaming", parcela: "1/1", dataCompra: "2026-01-08", fixoVariavel: "Fijo", status: "pendiente" },
+    { id: "cc-txn-005", descripcion: "Restaurante Lateral", responsable: "Carlos", valor: -189.00, categoria: "Alimentación", parcela: "1/1", dataCompra: "2026-01-12", fixoVariavel: "Variable", status: "pendiente" },
+  ], []);
+
+  // Filtered transactions based on filters and search - must be before early return
+  const filteredTransactions = useMemo(() => {
+    let result = transactions;
+
+    // Filter by category
+    if (filters.category && filters.category !== "todas") {
+      result = result.filter((t) => t.categoria === filters.category);
+    }
+
+    // Filter by payment status
+    if (filters.paymentStatus !== "todos") {
+      result = result.filter((t) => {
+        if (filters.paymentStatus === "pago") {
+          return t.status === "pagado";
+        }
+        return t.status === "pendiente";
+      });
+    }
+
+    // Filter by responsible
+    if (filters.responsible) {
+      result = result.filter((t) => t.responsable === filters.responsible);
+    }
+
+    // Filter by transaction type (fixed/variable)
+    if (filters.transactionType !== "todos") {
+      const expectedType = filters.transactionType === "fijas" ? "Fijo" : "Variable";
+      result = result.filter((t) => t.fixoVariavel === expectedType);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((t) =>
+        t.descripcion.toLowerCase().includes(query) ||
+        t.responsable.toLowerCase().includes(query) ||
+        t.categoria.toLowerCase().includes(query)
+      );
+    }
+
+    return result;
+  }, [transactions, filters, searchQuery]);
   
   if (!card) {
     return (
@@ -514,44 +586,51 @@ export default function CreditCardInvoice() {
 
   // Mock invoice data
   const invoiceData = {
-    status: "Aberta",
+    status: "Abierta",
     statusColor: "warning",
     total: 2450.75,
     closingDate: card.closingDay,
     dueDate: card.dueDay,
   };
+  // Convert local transaction to global Transaction format for dialogs
+  const convertToGlobalTransaction = (t: LocalTransaction): Transaction => ({
+    id: t.id,
+    type: "gasto",
+    description: t.descripcion,
+    amount: Math.abs(t.valor),
+    category: t.categoria,
+    subcategory: t.categoria,
+    account: card.account,
+    creditCard: card.name,
+    responsible: t.responsable,
+    dueDate: parseISO(t.dataCompra),
+    paymentDate: undefined,
+    competenceDate: parseISO(t.dataCompra),
+    status: t.status === "pagado" ? "pagado" : "pendiente",
+    isFixed: t.fixoVariavel === "Fijo",
+    color: "hsl(340, 82%, 52%)",
+  });
 
-  // Mock transactions
-  const transactions = useMemo(() => [
-    { id: 1, descricao: "Netflix", responsavel: "João", valor: -55.90, categoria: "Streaming", parcela: "1/1", dataCompra: "2026-01-05", fixoVariavel: "Fixo" },
-    { id: 2, descricao: "Supermercado Extra", responsavel: "Maria", valor: -320.00, categoria: "Mercado", parcela: "1/1", dataCompra: "2026-01-10", fixoVariavel: "Variável" },
-    { id: 3, descricao: "iPhone 15 Pro", responsavel: "João", valor: -899.90, categoria: "Eletrônicos", parcela: "3/12", dataCompra: "2025-11-15", fixoVariavel: "Variável" },
-    { id: 4, descricao: "Spotify Family", responsavel: "Maria", valor: -34.90, categoria: "Streaming", parcela: "1/1", dataCompra: "2026-01-08", fixoVariavel: "Fixo" },
-    { id: 5, descricao: "Restaurante Outback", responsavel: "João", valor: -189.00, categoria: "Alimentação", parcela: "1/1", dataCompra: "2026-01-12", fixoVariavel: "Variável" },
-  ], []);
+  const handleEdit = (transaction: LocalTransaction) => {
+    setSelectedTransaction(convertToGlobalTransaction(transaction));
+    setEditDialogOpen(true);
+  };
 
-  // Filtered transactions based on search - used by both table and chart
-  const filteredTransactions = useMemo(() => {
-    if (!searchQuery.trim()) return transactions;
-    
-    const query = searchQuery.toLowerCase();
-    return transactions.filter((t) =>
-      t.descricao.toLowerCase().includes(query) ||
-      t.responsavel.toLowerCase().includes(query) ||
-      t.categoria.toLowerCase().includes(query)
-    );
-  }, [transactions, searchQuery]);
+  const handleDelete = (transaction: LocalTransaction) => {
+    setSelectedTransaction(convertToGlobalTransaction(transaction));
+    setDeleteDialogOpen(true);
+  };
 
   const getStatusBadge = () => {
     switch (invoiceData.status) {
-      case "Fechada":
-        return <Badge className="bg-success/10 text-success border-success/20">Fechada</Badge>;
-      case "Paga":
-        return <Badge className="bg-primary/10 text-primary border-primary/20">Paga</Badge>;
+      case "Cerrada":
+        return <Badge className="bg-success/10 text-success border-success/20">Cerrada</Badge>;
+      case "Pagada":
+        return <Badge className="bg-primary/10 text-primary border-primary/20">Pagada</Badge>;
       case "Parcial":
         return <Badge className="bg-warning/10 text-warning border-warning/20">Parcial</Badge>;
       default:
-        return <Badge className="bg-muted text-muted-foreground border-border">Aberta</Badge>;
+        return <Badge className="bg-muted text-muted-foreground border-border">Abierta</Badge>;
     }
   };
   
@@ -565,7 +644,7 @@ export default function CreditCardInvoice() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors self-start"
           >
             <ArrowLeft className="w-4 h-4" />
-            Voltar
+            Volver
           </button>
 
           <div className="flex items-center gap-4">
@@ -573,7 +652,7 @@ export default function CreditCardInvoice() {
               <ChevronLeft className="w-5 h-5" />
             </Button>
             <h1 className="text-xl font-bold">
-              Fatura {months[currentMonth]} {currentYear}
+              Factura {months[currentMonth]} {currentYear}
             </h1>
             <Button variant="ghost" size="icon" onClick={handleNextMonth}>
               <ChevronRight className="w-5 h-5" />
@@ -581,9 +660,15 @@ export default function CreditCardInvoice() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-1.5 text-xs"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+            >
               <Trash2 className="w-3.5 h-3.5" />
-              Limpar filtro
+              Limpiar filtro
             </Button>
             <FilterPopover>
               <Button variant="outline" size="icon" className="h-8 w-8">
@@ -592,7 +677,7 @@ export default function CreditCardInvoice() {
             </FilterPopover>
             <Button variant="outline" size="sm" className="gap-1.5 text-xs">
               <RefreshCw className="w-3.5 h-3.5" />
-              Atualizar
+              Actualizar
             </Button>
           </div>
         </div>
@@ -619,9 +704,9 @@ export default function CreditCardInvoice() {
           <div className="glass rounded-xl p-5 border border-border/50">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Status da Fatura</p>
+                <p className="text-xs text-muted-foreground mb-2">Estado de la Factura</p>
                 <p className="text-2xl font-bold text-warning">{invoiceData.status}</p>
-                <p className="text-xs text-muted-foreground mt-1">Fatura {invoiceData.status.toLowerCase()}</p>
+                <p className="text-xs text-muted-foreground mt-1">Factura {invoiceData.status.toLowerCase()}</p>
               </div>
               <div className="p-2.5 rounded-xl bg-warning/10">
                 <FileText className="w-5 h-5 text-warning" />
@@ -636,9 +721,9 @@ export default function CreditCardInvoice() {
           <div className="glass rounded-xl p-5 border border-border/50">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Valor da fatura</p>
+                <p className="text-xs text-muted-foreground mb-2">Importe de la factura</p>
                 <p className="text-2xl font-bold text-destructive">{formatCurrency(invoiceData.total)}</p>
-                <p className="text-xs text-muted-foreground mt-1">Valor total da fatura</p>
+                <p className="text-xs text-muted-foreground mt-1">Valor total de la factura</p>
               </div>
               <div className="p-2.5 rounded-xl bg-destructive/10">
                 <DollarSign className="w-5 h-5 text-destructive" />
@@ -650,16 +735,16 @@ export default function CreditCardInvoice() {
           <div className="glass rounded-xl p-5 border border-border/50">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Datas da fatura</p>
+                <p className="text-xs text-muted-foreground mb-2">Fechas de la factura</p>
                 <div className="flex items-center gap-6">
                   <div>
-                    <p className="text-2xl font-bold">Dia {invoiceData.closingDate}</p>
-                    <p className="text-xs text-muted-foreground">Fechamento</p>
+                    <p className="text-2xl font-bold">Día {invoiceData.closingDate}</p>
+                    <p className="text-xs text-muted-foreground">Cierre</p>
                   </div>
                   <div className="h-10 w-px bg-border" />
                   <div>
-                    <p className="text-2xl font-bold">Dia {invoiceData.dueDate}</p>
-                    <p className="text-xs text-muted-foreground">Vencimento</p>
+                    <p className="text-2xl font-bold">Día {invoiceData.dueDate}</p>
+                    <p className="text-xs text-muted-foreground">Vencimiento</p>
                   </div>
                 </div>
               </div>
@@ -723,7 +808,7 @@ export default function CreditCardInvoice() {
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar transações..."
+                  placeholder="Buscar transacciones..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 h-8 text-xs bg-muted/30 border-0"
@@ -756,8 +841,18 @@ export default function CreditCardInvoice() {
                 <ArrowUpDown className="w-3.5 h-3.5" />
               </Button>
               <FilterPopover>
-                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs relative">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className={cn(
+                    "h-8 gap-1.5 text-xs relative",
+                    hasActiveFilters && "border-primary"
+                  )}
+                >
                   <Filter className="w-3.5 h-3.5" />
+                  {hasActiveFilters && (
+                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
+                  )}
                 </Button>
               </FilterPopover>
             </div>
@@ -767,14 +862,14 @@ export default function CreditCardInvoice() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-border/50 hover:bg-transparent">
-                    {visibleColumns.responsavel && <TableHead className="text-xs font-medium">Responsável</TableHead>}
-                    {visibleColumns.descricao && <TableHead className="text-xs font-medium">Descrição</TableHead>}
-                    {visibleColumns.valor && <TableHead className="text-xs font-medium">Valor</TableHead>}
-                    {visibleColumns.categoria && <TableHead className="text-xs font-medium">Categoria</TableHead>}
-                    {visibleColumns.parcela && <TableHead className="text-xs font-medium">Parcela</TableHead>}
-                    {visibleColumns.dataCompra && <TableHead className="text-xs font-medium">Data Compra</TableHead>}
-                    {visibleColumns.fixoVariavel && <TableHead className="text-xs font-medium">Fixo/Variável</TableHead>}
-                    <TableHead className="text-xs font-medium">Ação</TableHead>
+                    {visibleColumns.responsable && <TableHead className="text-xs font-medium">Responsable</TableHead>}
+                    {visibleColumns.descripcion && <TableHead className="text-xs font-medium">Descripción</TableHead>}
+                    {visibleColumns.valor && <TableHead className="text-xs font-medium">Importe</TableHead>}
+                    {visibleColumns.categoria && <TableHead className="text-xs font-medium">Categoría</TableHead>}
+                    {visibleColumns.parcela && <TableHead className="text-xs font-medium">Cuota</TableHead>}
+                    {visibleColumns.dataCompra && <TableHead className="text-xs font-medium">Fecha Compra</TableHead>}
+                    {visibleColumns.fixoVariavel && <TableHead className="text-xs font-medium">Fijo/Variable</TableHead>}
+                    <TableHead className="text-xs font-medium">Acción</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -785,9 +880,9 @@ export default function CreditCardInvoice() {
                           <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
                             <FileText className="w-6 h-6 text-muted-foreground" />
                           </div>
-                          <p className="font-medium text-sm">Nenhuma transação encontrada</p>
+                          <p className="font-medium text-sm">No se encontraron transacciones</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Não há transações para exibir no período selecionado.
+                            No hay transacciones para mostrar en el período seleccionado.
                           </p>
                         </div>
                       </TableCell>
@@ -795,8 +890,8 @@ export default function CreditCardInvoice() {
                   ) : (
                     filteredTransactions.map((transaction) => (
                       <TableRow key={transaction.id} className="border-border/50">
-                        {visibleColumns.responsavel && <TableCell className="text-xs">{transaction.responsavel}</TableCell>}
-                        {visibleColumns.descricao && <TableCell className="text-xs font-medium">{transaction.descricao}</TableCell>}
+                        {visibleColumns.responsable && <TableCell className="text-xs">{transaction.responsable}</TableCell>}
+                        {visibleColumns.descripcion && <TableCell className="text-xs font-medium">{transaction.descripcion}</TableCell>}
                         {visibleColumns.valor && (
                           <TableCell className="text-xs font-medium text-destructive">
                             {formatCurrency(transaction.valor)}
@@ -823,9 +918,29 @@ export default function CreditCardInvoice() {
                           </TableCell>
                         )}
                         <TableCell>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                            <Settings className="w-3.5 h-3.5" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                                <Settings className="w-3.5 h-3.5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-background border shadow-lg z-50">
+                              <DropdownMenuItem 
+                                onClick={() => handleEdit(transaction)}
+                                className="cursor-pointer"
+                              >
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handleDelete(transaction)}
+                                className="cursor-pointer text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))
@@ -865,10 +980,10 @@ export default function CreditCardInvoice() {
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" className="h-7 text-xs" disabled>
-                  Voltar
+                  Anterior
                 </Button>
                 <Button variant="outline" size="sm" className="h-7 text-xs" disabled>
-                  Próximo
+                  Siguiente
                 </Button>
               </div>
             </div>
@@ -881,7 +996,7 @@ export default function CreditCardInvoice() {
               <h3 className="font-semibold mb-4">Gráficos</h3>
               <Tabs defaultValue="despesas" className="w-full">
                 <TabsList className="w-full bg-muted/50 p-1">
-                  <TabsTrigger value="despesas" className="flex-1 text-xs">Despesas</TabsTrigger>
+                  <TabsTrigger value="despesas" className="flex-1 text-xs">Gastos</TabsTrigger>
                 </TabsList>
                 <TabsContent value="despesas" className="mt-4">
                   <div className="text-center">
@@ -900,22 +1015,22 @@ export default function CreditCardInvoice() {
 
             {/* Details Section */}
             <div className="glass rounded-xl p-5 border border-border/50">
-              <h3 className="font-semibold mb-4">Detalhes</h3>
+              <h3 className="font-semibold mb-4">Detalles</h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Cartão</span>
+                  <span className="text-muted-foreground">Tarjeta</span>
                   <span className="font-medium">{card.name}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Bandeira</span>
+                  <span className="text-muted-foreground">Marca</span>
                   <span className="font-medium">{card.brand}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Conta</span>
+                  <span className="text-muted-foreground">Cuenta</span>
                   <span className="font-medium">{card.account}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Limite</span>
+                  <span className="text-muted-foreground">Límite</span>
                   <span className="font-medium">{formatCurrency(card.limit)}</span>
                 </div>
               </div>
@@ -927,16 +1042,16 @@ export default function CreditCardInvoice() {
         <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-lg font-semibold">Personalize sua visualização</DialogTitle>
+              <DialogTitle className="text-lg font-semibold">Personaliza tu visualización</DialogTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Configure como você quer ver suas transações
+                Configura cómo quieres ver tus transacciones
               </p>
             </DialogHeader>
             
             <div className="space-y-6 py-4">
               {/* View Mode */}
               <div className="space-y-3">
-                <h4 className="text-sm font-medium">Modo de visualização</h4>
+                <h4 className="text-sm font-medium">Modo de visualización</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setViewMode("cards")}
@@ -960,23 +1075,23 @@ export default function CreditCardInvoice() {
                     )}
                   >
                     <TableIcon className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-sm font-medium">Tabela</span>
+                    <span className="text-sm font-medium">Tabla</span>
                   </button>
                 </div>
               </div>
               
               {/* Columns */}
               <div className="space-y-3">
-                <h4 className="text-sm font-medium">Colunas visíveis</h4>
+                <h4 className="text-sm font-medium">Columnas visibles</h4>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { key: "descricao", label: "Descrição" },
-                    { key: "responsavel", label: "Responsável" },
-                    { key: "valor", label: "Valor" },
-                    { key: "categoria", label: "Categoria" },
-                    { key: "parcela", label: "Parcela" },
-                    { key: "dataCompra", label: "Data Compra" },
-                    { key: "fixoVariavel", label: "Fixo/Variável" },
+                    { key: "descripcion", label: "Descripción" },
+                    { key: "responsable", label: "Responsable" },
+                    { key: "valor", label: "Importe" },
+                    { key: "categoria", label: "Categoría" },
+                    { key: "parcela", label: "Cuota" },
+                    { key: "dataCompra", label: "Fecha Compra" },
+                    { key: "fixoVariavel", label: "Fijo/Variable" },
                   ].map(({ key, label }) => (
                     <button
                       key={key}
@@ -1002,11 +1117,31 @@ export default function CreditCardInvoice() {
             
             <DialogFooter>
               <Button onClick={() => setIsSettingsOpen(false)} className="w-full">
-                Salvar Preferências
+                Guardar Preferencias
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Transaction Dialog */}
+        <EditTransactionDialog
+          open={editDialogOpen}
+          onOpenChange={(open) => {
+            setEditDialogOpen(open);
+            if (!open) setSelectedTransaction(null);
+          }}
+          transaction={selectedTransaction}
+        />
+
+        {/* Delete Transaction Dialog */}
+        <DeleteTransactionDialog
+          open={deleteDialogOpen}
+          onOpenChange={(open) => {
+            setDeleteDialogOpen(open);
+            if (!open) setSelectedTransaction(null);
+          }}
+          transaction={selectedTransaction}
+        />
       </div>
     </Layout>
   );
