@@ -247,53 +247,49 @@ export default function AccountReport() {
   const toggleColumn = (column: keyof typeof visibleColumns) => {
     setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
   };
-
-  // Convert local transaction to Transaction type for dialogs
-  const convertToTransaction = (t: typeof allTransactions[0]): Transaction => ({
-    id: t.id.toString(),
-    type: t.tipo === "ingreso" ? "ingreso" : "gasto",
-    description: t.descripcion,
-    amount: Math.abs(t.valor),
-    category: t.categoria,
-    subcategory: t.categoria,
-    account: t.cuenta,
-    creditCard: t.tarjeta || undefined,
-    responsible: t.responsable,
-    dueDate: new Date(t.fechaVencimiento),
-    paymentDate: t.fechaPago ? new Date(t.fechaPago) : undefined,
-    competenceDate: new Date(t.fechaCompetencia),
-    status: t.status as Transaction["status"],
-    isFixed: t.fijoVariable === "Fijo",
-    color: t.tipo === "ingreso" ? "hsl(142, 76%, 36%)" : "hsl(340, 82%, 52%)",
-  });
-
-  const handleEditClick = (t: typeof allTransactions[0]) => {
-    setSelectedTransaction(convertToTransaction(t));
-    setEditDialogOpen(true);
-  };
-
-  const handleDeleteClick = (t: typeof allTransactions[0]) => {
-    setSelectedTransaction(convertToTransaction(t));
-    setDeleteDialogOpen(true);
-  };
+  
+  // Get real transactions from context
+  const { transactions: contextTransactions, getTransactionsByAccount } = useTransactions();
   
   const account = id ? accountsData[id] : null;
   const accountName = account?.name || "";
+  
+  // Get transactions for this account from the real context
+  const accountTransactions = useMemo(() => {
+    return getTransactionsByAccount(accountName);
+  }, [getTransactionsByAccount, accountName]);
 
-  // Mock transactions for this account - would come from API filtered by account
-  const allTransactions = useMemo(() => [
-    { id: 1, descripcion: "Restaurante", responsable: "Juan", valor: -85.50, tipo: "gasto", status: "pagado", cuenta: accountName, tarjeta: "", categoria: "Alimentación", fechaVencimiento: "2026-01-15", fechaCompetencia: "2026-01-15", fechaPago: "2026-01-15", fijoVariable: "Variable" },
-    { id: 2, descripcion: "Salario", responsable: "Juan", valor: 5000.00, tipo: "ingreso", status: "cobrado", cuenta: accountName, tarjeta: "", categoria: "Salario", fechaVencimiento: "2026-01-05", fechaCompetencia: "2026-01-05", fechaPago: "2026-01-05", fijoVariable: "Fijo" },
-    { id: 3, descripcion: "Supermercado", responsable: "María", valor: -320.00, tipo: "gasto", status: "pendiente", cuenta: accountName, tarjeta: "", categoria: "Mercado", fechaVencimiento: "2026-01-20", fechaCompetencia: "2026-01-20", fechaPago: "", fijoVariable: "Variable" },
-    { id: 4, descripcion: "Factura de luz", responsable: "Juan", valor: -180.00, tipo: "gasto", status: "pagado", cuenta: accountName, tarjeta: "", categoria: "Hogar", fechaVencimiento: "2026-01-10", fechaCompetencia: "2026-01-10", fechaPago: "2026-01-10", fijoVariable: "Fijo" },
-    { id: 5, descripcion: "Freelance", responsable: "Juan", valor: 1500.00, tipo: "ingreso", status: "pendiente", cuenta: accountName, tarjeta: "", categoria: "Trabajo", fechaVencimiento: "2026-01-25", fechaCompetencia: "2026-01-25", fechaPago: "", fijoVariable: "Variable" },
-    { id: 6, descripcion: "Internet", responsable: "María", valor: -120.00, tipo: "gasto", status: "pagado", cuenta: accountName, tarjeta: "", categoria: "Hogar", fechaVencimiento: "2026-01-15", fechaCompetencia: "2026-01-15", fechaPago: "2026-01-15", fijoVariable: "Fijo" },
-    // Transactions from December 2025
-    { id: 7, descripcion: "Bonus", responsable: "Juan", valor: 2000.00, tipo: "ingreso", status: "cobrado", cuenta: accountName, tarjeta: "", categoria: "Salario", fechaVencimiento: "2025-12-20", fechaCompetencia: "2025-12-20", fechaPago: "2025-12-20", fijoVariable: "Variable" },
-    { id: 8, descripcion: "Regalo Navidad", responsable: "María", valor: -350.00, tipo: "gasto", status: "pagado", cuenta: accountName, tarjeta: "", categoria: "Ocio", fechaVencimiento: "2025-12-24", fechaCompetencia: "2025-12-24", fechaPago: "2025-12-24", fijoVariable: "Variable" },
-    // Transactions from February 2026
-    { id: 9, descripcion: "Alquiler", responsable: "Juan", valor: -1500.00, tipo: "gasto", status: "pendiente", cuenta: accountName, tarjeta: "", categoria: "Hogar", fechaVencimiento: "2026-02-05", fechaCompetencia: "2026-02-05", fechaPago: "", fijoVariable: "Fijo" },
-  ], [accountName]);
+  // Transform transactions to display format
+  const allTransactions = useMemo(() => {
+    return accountTransactions.map(t => ({
+      id: t.id,
+      descripcion: t.description,
+      responsable: t.responsible,
+      valor: t.type === "gasto" ? -t.amount : t.amount,
+      tipo: t.type,
+      status: t.status,
+      cuenta: t.account,
+      tarjeta: t.creditCard || "",
+      categoria: t.category,
+      fechaVencimiento: format(t.dueDate, "yyyy-MM-dd"),
+      fechaCompetencia: format(t.competenceDate, "yyyy-MM-dd"),
+      fechaPago: t.paymentDate ? format(t.paymentDate, "yyyy-MM-dd") : "",
+      fijoVariable: t.isFixed ? "Fijo" : "Variable",
+      originalTransaction: t, // Keep reference to original for edit/delete
+    }));
+  }, [accountTransactions]);
+
+  // Handler for edit - use original Transaction directly
+  const handleEditClick = (t: typeof allTransactions[0]) => {
+    setSelectedTransaction(t.originalTransaction);
+    setEditDialogOpen(true);
+  };
+
+  // Handler for delete - use original Transaction directly
+  const handleDeleteClick = (t: typeof allTransactions[0]) => {
+    setSelectedTransaction(t.originalTransaction);
+    setDeleteDialogOpen(true);
+  };
 
   // Filter transactions based on effectiveDateRange, filters, tab, and search
   const filteredTransactions = useMemo(() => {
