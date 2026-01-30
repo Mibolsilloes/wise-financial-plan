@@ -35,6 +35,8 @@ export interface BankAccount {
   type: "corriente" | "ahorro";
   balance: number;
   color: string;
+  isDefault?: boolean;
+  lastUpdate?: string;
 }
 
 export interface CreditCard {
@@ -69,9 +71,10 @@ export const categories: Category[] = [
 
 // Cuentas bancarias
 export const bankAccounts: BankAccount[] = [
-  { id: "1", name: "Cuenta Principal", bank: "Santander", type: "corriente", balance: 4250.80, color: "hsl(0, 100%, 40%)" },
-  { id: "2", name: "Cuenta Ahorro", bank: "BBVA", type: "ahorro", balance: 8500.00, color: "hsl(210, 100%, 40%)" },
-  { id: "3", name: "Cuenta Nómina", bank: "CaixaBank", type: "corriente", balance: 1820.45, color: "hsl(200, 80%, 45%)" },
+  { id: "1", name: "Santander", bank: "Santander", type: "corriente", balance: 5420.50, color: "hsl(0, 100%, 40%)", isDefault: true, lastUpdate: "2024-12-20" },
+  { id: "2", name: "BBVA", bank: "BBVA", type: "ahorro", balance: 12350.00, color: "hsl(210, 100%, 40%)", isDefault: false, lastUpdate: "2024-12-19" },
+  { id: "3", name: "CaixaBank", bank: "CaixaBank", type: "corriente", balance: 890.25, color: "hsl(200, 80%, 45%)", isDefault: false, lastUpdate: "2024-12-18" },
+  { id: "4", name: "Efectivo", bank: "Efectivo", type: "corriente", balance: 150.00, color: "hsl(160, 84%, 39%)", isDefault: false, lastUpdate: "2024-12-20" },
 ];
 
 // Tarjetas de crédito
