@@ -9,6 +9,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +40,7 @@ import {
 } from "@dnd-kit/sortable";
 import { SortableCategoryItem } from "@/components/categories/SortableCategoryItem";
 import { EditCategoryDialog } from "@/components/categories/EditCategoryDialog";
+import { toast } from "sonner";
 
 // Transform mockData categories to match the expected format
 const defaultCategories = mockDataCategories.map((cat, index) => ({
@@ -51,6 +62,10 @@ export default function Categories() {
   // Edit dialog state
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<typeof defaultCategories[0] | null>(null);
+
+  // Delete dialog state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingCategory, setDeletingCategory] = useState<typeof defaultCategories[0] | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -100,6 +115,20 @@ export default function Categories() {
         ? { ...cat, ...updates }
         : cat
     ));
+  };
+
+  const handleDeleteClick = (category: typeof defaultCategories[0]) => {
+    setDeletingCategory(category);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deletingCategory) {
+      setCategories(categories.filter(cat => cat.id !== deletingCategory.id));
+      toast.success(`Categoría "${deletingCategory.name}" eliminada`);
+      setIsDeleteDialogOpen(false);
+      setDeletingCategory(null);
+    }
   };
 
   return (
@@ -179,6 +208,7 @@ export default function Categories() {
                   category={category}
                   index={index}
                   onEditClick={handleEditClick}
+                  onDeleteClick={handleDeleteClick}
                 />
               ))}
             </div>
@@ -198,6 +228,28 @@ export default function Categories() {
           category={editingCategory}
           onSave={handleSaveEdit}
         />
+
+        {/* Delete Category Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar categoría?</AlertDialogTitle>
+              <AlertDialogDescription>
+                ¿Estás seguro de que deseas eliminar la categoría "{deletingCategory?.name}"? 
+                Esta acción no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleConfirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   );
