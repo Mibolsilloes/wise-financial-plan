@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePeriod } from "@/contexts/PeriodContext";
-import { format, subMonths } from "date-fns";
+import { format, subMonths, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
 import { transactions, calculateTotals, previousPeriodBalance } from "@/data/mockData";
 
@@ -143,8 +143,15 @@ function FinancialCard({
 export function FinancialCards() {
   const { effectiveDateRange, monthName, selectedPeriod } = usePeriod();
   
-  // Calculate totals from mock data
-  const totals = calculateTotals(transactions);
+  // Filter transactions by effective date range
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(t => 
+      isWithinInterval(t.dueDate, { start: effectiveDateRange.from, end: effectiveDateRange.to })
+    );
+  }, [effectiveDateRange]);
+  
+  // Calculate totals from filtered transactions
+  const totals = calculateTotals(filteredTransactions);
   
   // Get previous month name for the "Saldo Del Período Anterior" card
   const previousMonthDate = subMonths(effectiveDateRange.from, 1);
