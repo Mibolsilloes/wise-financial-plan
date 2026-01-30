@@ -41,6 +41,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useCreditCards } from "@/contexts/CreditCardsContext";
+import { toast } from "sonner";
 
 const brandColors: Record<string, string> = {
   "Visa": "hsl(217, 91%, 60%)",
@@ -56,42 +58,6 @@ const brandGradients: Record<string, string> = {
   "American Express": "from-cyan-500 to-blue-600",
 };
 
-const cards = [
-  { 
-    id: 1, 
-    name: "Santander Platinum",
-    brand: "Mastercard",
-    limit: 15000.00,
-    used: 4230.75,
-    closingDay: 3,
-    dueDay: 10,
-    account: "Santander",
-    person: "Juan"
-  },
-  { 
-    id: 2, 
-    name: "BBVA Aqua",
-    brand: "Visa",
-    limit: 8000.00,
-    used: 2150.00,
-    closingDay: 15,
-    dueDay: 22,
-    account: "BBVA",
-    person: "María"
-  },
-  { 
-    id: 3, 
-    name: "CaixaBank Neo",
-    brand: "Visa",
-    limit: 5000.00,
-    used: 890.50,
-    closingDay: 20,
-    dueDay: 27,
-    account: "CaixaBank",
-    person: "Juan"
-  },
-];
-
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
@@ -99,15 +65,54 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+interface CardForEdit {
+  id: string;
+  name: string;
+  brand: string;
+  limit: number;
+  used: number;
+  closingDay: number;
+  dueDay: number;
+  account: string;
+  person: string;
+}
+
 export default function CreditCards() {
   const navigate = useNavigate();
+  const { creditCards, updateCreditCard } = useCreditCards();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedCardForEdit, setSelectedCardForEdit] = useState<typeof cards[0] | null>(null);
+  const [selectedCardForEdit, setSelectedCardForEdit] = useState<CardForEdit | null>(null);
 
-  const openEditDialog = (card: typeof cards[0]) => {
+  // Transform context cards to local format
+  const cards = creditCards.map(card => ({
+    id: card.id,
+    name: card.name,
+    brand: card.brand || card.bank,
+    limit: card.limit,
+    used: card.used,
+    closingDay: card.closingDay,
+    dueDay: card.dueDay,
+    account: card.account || card.bank || "Sin cuenta",
+    person: card.holder || "Usuario"
+  }));
+
+  const openEditDialog = (card: CardForEdit) => {
     setSelectedCardForEdit(card);
     setEditDialogOpen(true);
+  };
+
+  const handleSaveCard = (id: string, updates: Partial<CardForEdit>) => {
+    updateCreditCard(id, {
+      name: updates.name,
+      brand: updates.brand,
+      limit: updates.limit,
+      closingDay: updates.closingDay,
+      dueDay: updates.dueDay,
+      account: updates.account,
+      holder: updates.person,
+    });
+    toast.success("Tarjeta actualizada correctamente");
   };
   return (
     <Layout>
@@ -305,6 +310,7 @@ export default function CreditCards() {
             card={selectedCardForEdit}
             open={editDialogOpen}
             onOpenChange={setEditDialogOpen}
+            onSave={handleSaveCard}
           />
         )}
       </div>
@@ -313,12 +319,13 @@ export default function CreditCards() {
 }
 
 interface EditCardDialogProps {
-  card: typeof cards[0];
+  card: CardForEdit;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSave: (id: string, updates: Partial<CardForEdit>) => void;
 }
 
-function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
+function EditCardDialog({ card, open, onOpenChange, onSave }: EditCardDialogProps) {
   const [cardName, setCardName] = useState(card.name);
   const [limit, setLimit] = useState(card.limit.toString());
   const [brand, setBrand] = useState(card.brand.toLowerCase());
@@ -339,7 +346,14 @@ function EditCardDialog({ card, open, onOpenChange }: EditCardDialogProps) {
   const cardColor = brandColors[card.brand] || "hsl(217, 91%, 60%)";
 
   const handleSave = () => {
-    // Would handle save logic here
+    onSave(card.id, {
+      name: cardName,
+      brand: brand.charAt(0).toUpperCase() + brand.slice(1),
+      limit: parseFloat(limit) || card.limit,
+      closingDay: parseInt(closingDay) || card.closingDay,
+      dueDay: parseInt(dueDay) || card.dueDay,
+      account: account.charAt(0).toUpperCase() + account.slice(1),
+    });
     onOpenChange(false);
   };
 

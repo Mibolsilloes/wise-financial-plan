@@ -41,11 +41,14 @@ export interface CreditCard {
   id: string;
   name: string;
   bank: string;
+  brand: string;
   limit: number;
   used: number;
   closingDay: number;
   dueDay: number;
   color: string;
+  account?: string;
+  holder?: string;
 }
 
 // Categorías de gastos e ingresos
@@ -73,8 +76,8 @@ export const bankAccounts: BankAccount[] = [
 
 // Tarjetas de crédito
 export const creditCards: CreditCard[] = [
-  { id: "1", name: "Visa Gold", bank: "Santander", limit: 3000, used: 845.30, closingDay: 25, dueDay: 5, color: "hsl(45, 100%, 50%)" },
-  { id: "2", name: "Mastercard", bank: "BBVA", limit: 2000, used: 320.50, closingDay: 15, dueDay: 1, color: "hsl(15, 100%, 50%)" },
+  { id: "1", name: "Visa Gold", bank: "Santander", brand: "Visa", limit: 3000, used: 845.30, closingDay: 25, dueDay: 5, color: "hsl(45, 100%, 50%)", account: "Santander", holder: "Juan" },
+  { id: "2", name: "Mastercard", bank: "BBVA", brand: "Mastercard", limit: 2000, used: 320.50, closingDay: 15, dueDay: 1, color: "hsl(15, 100%, 50%)", account: "BBVA", holder: "María" },
 ];
 
 // Generar transacciones para el mes actual
