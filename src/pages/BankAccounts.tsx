@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Layout } from "@/components/layout/Layout";
+import { useAccounts } from "@/contexts/AccountsContext";
+import { toast } from "sonner";
 import { 
   Plus, 
   Edit2, 
@@ -58,6 +60,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { BankAccount } from "@/data/mockData";
 
 const bankIcons: Record<string, React.ElementType> = {
   "Santander": Landmark,
@@ -65,7 +68,7 @@ const bankIcons: Record<string, React.ElementType> = {
   "CaixaBank": Building2,
   "Sabadell": Building2,
   "Efectivo": Wallet,
-};
+}
 
 const bankColors: Record<string, string> = {
   "Santander": "hsl(0, 84%, 60%)",
@@ -75,37 +78,6 @@ const bankColors: Record<string, string> = {
   "Efectivo": "hsl(160, 84%, 39%)",
 };
 
-const accounts = [
-  { 
-    id: 1, 
-    name: "Santander", 
-    balance: 5420.50, 
-    isDefault: true,
-    lastUpdate: "2024-12-20"
-  },
-  { 
-    id: 2, 
-    name: "BBVA", 
-    balance: 12350.00, 
-    isDefault: false,
-    lastUpdate: "2024-12-19"
-  },
-  { 
-    id: 3, 
-    name: "CaixaBank", 
-    balance: 890.25, 
-    isDefault: false,
-    lastUpdate: "2024-12-18"
-  },
-  { 
-    id: 4, 
-    name: "Efectivo", 
-    balance: 150.00, 
-    isDefault: false,
-    lastUpdate: "2024-12-20"
-  },
-];
-
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
@@ -114,23 +86,38 @@ const formatCurrency = (value: number) => {
 };
 
 interface TransferDialogProps {
-  sourceAccount: typeof accounts[0];
+  sourceAccount: BankAccount;
+  accounts: BankAccount[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onTransfer: (fromId: string, toId: string, amount: number) => void;
 }
 
-function TransferDialog({ sourceAccount, open, onOpenChange }: TransferDialogProps) {
+function TransferDialog({ sourceAccount, accounts, open, onOpenChange, onTransfer }: TransferDialogProps) {
   const [destinationAccountId, setDestinationAccountId] = useState<string>("");
   const [transferDate, setTransferDate] = useState<Date>(new Date());
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
 
-  const destinationAccount = accounts.find(a => a.id.toString() === destinationAccountId);
+  useEffect(() => {
+    if (open) {
+      setDestinationAccountId("");
+      setAmount("");
+      setDescription("");
+      setTransferDate(new Date());
+    }
+  }, [open, sourceAccount]);
+
+  const destinationAccount = accounts.find(a => a.id === destinationAccountId);
   const SourceIcon = bankIcons[sourceAccount.name] || Building2;
   const sourceColor = bankColors[sourceAccount.name] || "hsl(217, 91%, 60%)";
 
   const handleTransfer = () => {
-    // Would handle transfer logic here
+    const numAmount = parseFloat(amount.replace(",", ".")) || 0;
+    if (destinationAccountId && numAmount > 0) {
+      onTransfer(sourceAccount.id, destinationAccountId, numAmount);
+      toast.success(`Transferencia de ${formatCurrency(numAmount)} realizada correctamente`);
+    }
     onOpenChange(false);
   };
 
@@ -291,16 +278,26 @@ function TransferDialog({ sourceAccount, open, onOpenChange }: TransferDialogPro
 }
 
 interface AdjustBalanceDialogProps {
-  account: typeof accounts[0];
+  account: BankAccount;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onAdjust: (id: string, amount: number, operation: "add" | "subtract" | "set") => void;
 }
 
-function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialogProps) {
+function AdjustBalanceDialog({ account, open, onOpenChange, onAdjust }: AdjustBalanceDialogProps) {
   const [adjustmentDate, setAdjustmentDate] = useState<Date>(new Date());
   const [amount, setAmount] = useState("");
   const [adjustmentType, setAdjustmentType] = useState<"add" | "subtract" | "set">("add");
   const [reason, setReason] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setAmount("");
+      setAdjustmentType("add");
+      setReason("");
+      setAdjustmentDate(new Date());
+    }
+  }, [open, account]);
 
   const AccountIcon = bankIcons[account.name] || Building2;
   const accountColor = bankColors[account.name] || "hsl(217, 91%, 60%)";
@@ -320,7 +317,11 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
   };
 
   const handleAdjust = () => {
-    // Would handle adjustment logic here
+    const numAmount = parseFloat(amount.replace(",", ".")) || 0;
+    if (numAmount > 0 || adjustmentType === "set") {
+      onAdjust(account.id, numAmount, adjustmentType);
+      toast.success("Saldo ajustado correctamente");
+    }
     onOpenChange(false);
   };
 
@@ -519,12 +520,13 @@ function AdjustBalanceDialog({ account, open, onOpenChange }: AdjustBalanceDialo
 }
 
 interface EditAccountDialogProps {
-  account: typeof accounts[0];
+  account: BankAccount;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSave: (id: string, updates: Partial<BankAccount>) => void;
 }
 
-function EditAccountDialog({ account, open, onOpenChange }: EditAccountDialogProps) {
+function EditAccountDialog({ account, open, onOpenChange, onSave }: EditAccountDialogProps) {
   const [accountName, setAccountName] = useState(account.name);
   const [isDefault, setIsDefault] = useState(account.isDefault);
   const [initialBalance, setInitialBalance] = useState(account.balance.toString());
@@ -540,7 +542,12 @@ function EditAccountDialog({ account, open, onOpenChange }: EditAccountDialogPro
   const accountColor = bankColors[account.name] || "hsl(217, 91%, 60%)";
 
   const handleSave = () => {
-    // Would handle save logic here
+    onSave(account.id, {
+      name: accountName,
+      isDefault,
+      balance: parseFloat(initialBalance.replace(",", ".")) || 0,
+    });
+    toast.success("Cuenta actualizada correctamente");
     onOpenChange(false);
   };
 
@@ -638,26 +645,27 @@ function EditAccountDialog({ account, open, onOpenChange }: EditAccountDialogPro
 
 export default function BankAccounts() {
   const navigate = useNavigate();
+  const { accounts, transfer, adjustBalance, updateAccount } = useAccounts();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [adjustBalanceDialogOpen, setAdjustBalanceDialogOpen] = useState(false);
   const [editAccountDialogOpen, setEditAccountDialogOpen] = useState(false);
-  const [selectedAccountForTransfer, setSelectedAccountForTransfer] = useState<typeof accounts[0] | null>(null);
-  const [selectedAccountForAdjust, setSelectedAccountForAdjust] = useState<typeof accounts[0] | null>(null);
-  const [selectedAccountForEdit, setSelectedAccountForEdit] = useState<typeof accounts[0] | null>(null);
+  const [selectedAccountForTransfer, setSelectedAccountForTransfer] = useState<BankAccount | null>(null);
+  const [selectedAccountForAdjust, setSelectedAccountForAdjust] = useState<BankAccount | null>(null);
+  const [selectedAccountForEdit, setSelectedAccountForEdit] = useState<BankAccount | null>(null);
   const totalBalance = accounts.reduce((acc, account) => acc + account.balance, 0);
 
-  const openTransferDialog = (account: typeof accounts[0]) => {
+  const openTransferDialog = (account: BankAccount) => {
     setSelectedAccountForTransfer(account);
     setTransferDialogOpen(true);
   };
 
-  const openAdjustBalanceDialog = (account: typeof accounts[0]) => {
+  const openAdjustBalanceDialog = (account: BankAccount) => {
     setSelectedAccountForAdjust(account);
     setAdjustBalanceDialogOpen(true);
   };
 
-  const openEditAccountDialog = (account: typeof accounts[0]) => {
+  const openEditAccountDialog = (account: BankAccount) => {
     setSelectedAccountForEdit(account);
     setEditAccountDialogOpen(true);
   };
@@ -845,8 +853,10 @@ export default function BankAccounts() {
         {selectedAccountForTransfer && (
           <TransferDialog
             sourceAccount={selectedAccountForTransfer}
+            accounts={accounts}
             open={transferDialogOpen}
             onOpenChange={setTransferDialogOpen}
+            onTransfer={transfer}
           />
         )}
 
@@ -856,6 +866,7 @@ export default function BankAccounts() {
             account={selectedAccountForAdjust}
             open={adjustBalanceDialogOpen}
             onOpenChange={setAdjustBalanceDialogOpen}
+            onAdjust={adjustBalance}
           />
         )}
 
@@ -865,6 +876,7 @@ export default function BankAccounts() {
             account={selectedAccountForEdit}
             open={editAccountDialogOpen}
             onOpenChange={setEditAccountDialogOpen}
+            onSave={updateAccount}
           />
         )}
       </div>
