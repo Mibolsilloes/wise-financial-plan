@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePeriod } from "@/contexts/PeriodContext";
+import { isWithinInterval } from "date-fns";
 import { transactions, getExpensesByCategory, getIncomeByCategory } from "@/data/mockData";
 
 const chartTabs = [
@@ -38,33 +39,37 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export function ChartPanel() {
   const [selectedTab, setSelectedTab] = useState("gastos-pagados");
-  const { periodLabel } = usePeriod();
+  const { periodLabel, effectiveDateRange } = usePeriod();
 
   const chartData = useMemo(() => {
-    let filteredTransactions = [...transactions];
+    // First filter by date range
+    let filteredTransactions = transactions.filter(t => 
+      isWithinInterval(t.dueDate, { start: effectiveDateRange.from, end: effectiveDateRange.to })
+    );
 
+    // Then filter by selected tab
     switch (selectedTab) {
       case "ingresos":
-        filteredTransactions = transactions.filter(t => t.type === "ingreso");
+        filteredTransactions = filteredTransactions.filter(t => t.type === "ingreso");
         break;
       case "gastos":
-        filteredTransactions = transactions.filter(t => t.type === "gasto");
+        filteredTransactions = filteredTransactions.filter(t => t.type === "gasto");
         break;
       case "gastos-no-pagados":
-        filteredTransactions = transactions.filter(t => t.type === "gasto" && t.status === "pendiente");
+        filteredTransactions = filteredTransactions.filter(t => t.type === "gasto" && t.status === "pendiente");
         break;
       case "gastos-pagados":
-        filteredTransactions = transactions.filter(t => t.type === "gasto" && t.status === "pagado");
+        filteredTransactions = filteredTransactions.filter(t => t.type === "gasto" && t.status === "pagado");
         break;
       case "ingresos-no-cobrados":
-        filteredTransactions = transactions.filter(t => t.type === "ingreso" && t.status === "por_cobrar");
+        filteredTransactions = filteredTransactions.filter(t => t.type === "ingreso" && t.status === "por_cobrar");
         break;
       case "ingresos-cobrados":
-        filteredTransactions = transactions.filter(t => t.type === "ingreso" && t.status === "cobrado");
+        filteredTransactions = filteredTransactions.filter(t => t.type === "ingreso" && t.status === "cobrado");
         break;
       default:
         // all - show expenses by default for pie chart
-        filteredTransactions = transactions.filter(t => t.type === "gasto");
+        filteredTransactions = filteredTransactions.filter(t => t.type === "gasto");
     }
 
     // Group by category
@@ -82,7 +87,7 @@ export function ChartPanel() {
     const total = data.reduce((sum, item) => sum + item.value, 0);
     
     return data.map(item => ({ ...item, total }));
-  }, [selectedTab]);
+  }, [selectedTab, effectiveDateRange]);
 
   const hasData = chartData.length > 0;
 
