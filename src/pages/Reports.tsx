@@ -844,9 +844,9 @@ export default function Reports() {
             {/* Chart Management - Collapsible */}
             <Collapsible>
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+                <Button variant="outline" size="sm" className="gap-2 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/50">
                   <Settings2 className="h-4 w-4" />
-                  <span className="text-sm">Gestionar gráficos</span>
+                  <span className="text-sm font-medium">Gestionar gráficos</span>
                   <ChevronDown className="h-4 w-4 transition-transform duration-200 [[data-state=open]_&]:rotate-180" />
                 </Button>
               </CollapsibleTrigger>
