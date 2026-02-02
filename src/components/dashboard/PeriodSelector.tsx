@@ -16,7 +16,12 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { usePeriod, PeriodType } from "@/contexts/PeriodContext";
+import { useTransactions } from "@/contexts/TransactionsContext";
+import { useAccounts } from "@/contexts/AccountsContext";
+import { useCategories } from "@/contexts/CategoriesContext";
+import { useCreditCards } from "@/contexts/CreditCardsContext";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const periods: { id: PeriodType; label: string }[] = [
   { id: "today", label: "Hoy" },
@@ -39,7 +44,31 @@ export function PeriodSelector() {
     periodLabel,
   } = usePeriod();
 
+  const { refetchTransactions, loading: transactionsLoading } = useTransactions();
+  const { refetchAccounts } = useAccounts();
+  const { refetchCategories } = useCategories();
+  const { refetchCreditCards } = useCreditCards();
+
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refetchTransactions(),
+        refetchAccounts(),
+        refetchCategories(),
+        refetchCreditCards(),
+      ]);
+      refresh(); // Also trigger period context refresh
+      toast.success("Datos actualizados correctamente");
+    } catch (error) {
+      toast.error("Error al actualizar los datos");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handlePeriodClick = (periodId: PeriodType) => {
     setSelectedPeriod(periodId);
@@ -150,10 +179,11 @@ export function PeriodSelector() {
             variant="outline" 
             size="sm" 
             className="gap-2"
-            onClick={refresh}
+            onClick={handleRefresh}
+            disabled={isRefreshing}
           >
-            <RefreshCw className="w-4 h-4" />
-            Actualizar
+            <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+            {isRefreshing ? "Actualizando..." : "Actualizar"}
           </Button>
         </div>
       </div>
