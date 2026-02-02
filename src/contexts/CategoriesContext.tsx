@@ -8,6 +8,7 @@ interface CategoriesContextType {
   deleteCategory: (id: string) => void;
   getCategoryById: (id: string) => Category | undefined;
   getCategoryByName: (name: string) => Category | undefined;
+  refetchCategories: () => Promise<void>;
 }
 
 const CategoriesContext = createContext<CategoriesContextType | undefined>(undefined);
@@ -47,6 +48,12 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
     [categories]
   );
 
+  const refetchCategories = useCallback(async () => {
+    // For now, reset to initial categories
+    // When Supabase integration is complete, this will fetch from DB
+    setCategories([...initialCategories]);
+  }, []);
+
   return (
     <CategoriesContext.Provider
       value={{
@@ -56,6 +63,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
         deleteCategory,
         getCategoryById,
         getCategoryByName,
+        refetchCategories,
       }}
     >
       {children}

@@ -10,6 +10,7 @@ interface AccountsContextType {
   getAccountByName: (name: string) => BankAccount | undefined;
   adjustBalance: (id: string, amount: number, operation: "add" | "subtract" | "set") => void;
   transfer: (fromId: string, toId: string, amount: number) => void;
+  refetchAccounts: () => Promise<void>;
 }
 
 const AccountsContext = createContext<AccountsContextType | undefined>(undefined);
@@ -85,6 +86,12 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const refetchAccounts = useCallback(async () => {
+    // For now, reset to initial accounts
+    // When Supabase integration is complete, this will fetch from DB
+    setAccounts([...initialAccounts]);
+  }, []);
+
   return (
     <AccountsContext.Provider
       value={{
@@ -96,6 +103,7 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
         getAccountByName,
         adjustBalance,
         transfer,
+        refetchAccounts,
       }}
     >
       {children}

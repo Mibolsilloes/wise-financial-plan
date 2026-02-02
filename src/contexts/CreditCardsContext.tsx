@@ -9,6 +9,7 @@ interface CreditCardsContextType {
   getCreditCardById: (id: string) => CreditCard | undefined;
   getCreditCardByName: (name: string) => CreditCard | undefined;
   updateUsedLimit: (id: string, amount: number) => void;
+  refetchCreditCards: () => Promise<void>;
 }
 
 const CreditCardsContext = createContext<CreditCardsContextType | undefined>(undefined);
@@ -54,6 +55,12 @@ export function CreditCardsProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  const refetchCreditCards = useCallback(async () => {
+    // For now, reset to initial cards
+    // When Supabase integration is complete, this will fetch from DB
+    setCreditCards([...initialCards]);
+  }, []);
+
   return (
     <CreditCardsContext.Provider
       value={{
@@ -64,6 +71,7 @@ export function CreditCardsProvider({ children }: { children: ReactNode }) {
         getCreditCardById,
         getCreditCardByName,
         updateUsedLimit,
+        refetchCreditCards,
       }}
     >
       {children}

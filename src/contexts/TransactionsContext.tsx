@@ -12,6 +12,7 @@ interface TransactionsContextType {
   getTransactionsByCategory: (categoryName: string) => Transaction[];
   getTransactionsByAccount: (accountName: string) => Transaction[];
   getTransactionsByCreditCard: (cardName: string) => Transaction[];
+  refetchTransactions: () => Promise<void>;
 }
 
 const TransactionsContext = createContext<TransactionsContextType | undefined>(undefined);
@@ -176,6 +177,10 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
     [transactions]
   );
 
+  const refetchTransactions = useCallback(async () => {
+    await fetchTransactions();
+  }, [user]);
+
   return (
     <TransactionsContext.Provider
       value={{
@@ -187,6 +192,7 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
         getTransactionsByCategory,
         getTransactionsByAccount,
         getTransactionsByCreditCard,
+        refetchTransactions,
       }}
     >
       {children}
