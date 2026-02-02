@@ -3,8 +3,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Flag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePeriod } from "@/contexts/PeriodContext";
+import { useTransactions } from "@/contexts/TransactionsContext";
 import { isWithinInterval } from "date-fns";
-import { transactions, getExpensesByCategory, getIncomeByCategory } from "@/data/mockData";
 
 const chartTabs = [
   { id: "all", label: "Todas" },
@@ -40,6 +40,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 export function ChartPanel() {
   const [selectedTab, setSelectedTab] = useState("gastos-pagados");
   const { periodLabel, effectiveDateRange } = usePeriod();
+  const { transactions } = useTransactions();
 
   const chartData = useMemo(() => {
     // First filter by date range
@@ -87,7 +88,7 @@ export function ChartPanel() {
     const total = data.reduce((sum, item) => sum + item.value, 0);
     
     return data.map(item => ({ ...item, total }));
-  }, [selectedTab, effectiveDateRange]);
+  }, [selectedTab, effectiveDateRange, transactions]);
 
   const hasData = chartData.length > 0;
 
