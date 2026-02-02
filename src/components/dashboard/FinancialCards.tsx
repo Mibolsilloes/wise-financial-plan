@@ -11,9 +11,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePeriod } from "@/contexts/PeriodContext";
+import { useTransactions } from "@/contexts/TransactionsContext";
 import { format, subMonths, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
-import { transactions, calculateTotals, previousPeriodBalance } from "@/data/mockData";
+import { calculateTotals, previousPeriodBalance } from "@/data/mockData";
 
 interface DetailBadge {
   label: string;
@@ -142,13 +143,14 @@ function FinancialCard({
 
 export function FinancialCards() {
   const { effectiveDateRange, monthName, selectedPeriod } = usePeriod();
+  const { transactions } = useTransactions();
   
   // Filter transactions by effective date range
   const filteredTransactions = useMemo(() => {
     return transactions.filter(t => 
       isWithinInterval(t.dueDate, { start: effectiveDateRange.from, end: effectiveDateRange.to })
     );
-  }, [effectiveDateRange]);
+  }, [effectiveDateRange, transactions]);
   
   // Calculate totals from filtered transactions
   const totals = calculateTotals(filteredTransactions);
