@@ -80,7 +80,8 @@ import { FilterPopover } from "@/components/dashboard/FilterPopover";
 import { AddRevenueDialog } from "@/components/dashboard/AddRevenueDialog";
 import { AddExpenseDialog } from "@/components/dashboard/AddExpenseDialog";
 import { usePeriod, PeriodType } from "@/contexts/PeriodContext";
-import { transactions, Transaction } from "@/data/mockData";
+import { useTransactions } from "@/contexts/TransactionsContext";
+import { Transaction } from "@/data/mockData";
 
 const frequencyDataMonthly = [
   { period: "Ene", ingresos: 8500, gastos: 4200 },
@@ -269,6 +270,9 @@ export default function Reports() {
     currentYear,
   } = usePeriod();
 
+  // Get transactions from context
+  const { transactions } = useTransactions();
+
   const [isRevenueDialogOpen, setIsRevenueDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -308,7 +312,7 @@ export default function Reports() {
     return transactions.filter(t => 
       isWithinInterval(t.dueDate, { start: startDate, end: endDate })
     );
-  }, [selectedPeriod, currentMonth, currentYear, dateRange]);
+  }, [selectedPeriod, currentMonth, currentYear, dateRange, transactions]);
 
   // Generate chart data from filtered transactions
   const expenseData = useMemo(() => {
