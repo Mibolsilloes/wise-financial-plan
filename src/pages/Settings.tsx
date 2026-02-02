@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme, ThemeColor } from "@/contexts/ThemeContext";
 import { 
   User, 
   Share2, 
@@ -42,17 +43,17 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-const themes = [
-  { id: "dark", name: "Predeterminado", colors: ["hsl(222, 47%, 6%)", "hsl(217, 91%, 60%)"] },
+const themes: { id: ThemeColor; name: string; colors: string[] }[] = [
+  { id: "green", name: "Verde (Predeterminado)", colors: ["hsl(157, 54%, 33%)", "hsl(157, 45%, 40%)"] },
   { id: "pink", name: "Rosa", colors: ["hsl(340, 30%, 8%)", "hsl(340, 82%, 52%)"] },
-  { id: "blue", name: "Azul", colors: ["hsl(217, 47%, 8%)", "hsl(199, 89%, 48%)"] },
+  { id: "blue", name: "Azul", colors: ["hsl(199, 47%, 8%)", "hsl(199, 89%, 48%)"] },
   { id: "black", name: "Negro", colors: ["hsl(0, 0%, 4%)", "hsl(0, 0%, 50%)"] },
 ];
 
 export default function Settings() {
   const navigate = useNavigate();
   const { profile, signOut, updateProfile } = useAuth();
-  const [activeTheme, setActiveTheme] = useState("dark");
+  const { themeColor, setThemeColor } = useTheme();
   const [notifications, setNotifications] = useState({
     enabled: true,
     whatsapp: true,
@@ -348,14 +349,17 @@ export default function Settings() {
           <TabsContent value="appearance" className="animate-fade-in">
             <div className="glass rounded-xl p-6 max-w-2xl">
               <h2 className="text-lg font-semibold mb-6">Tema del sistema</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {themes.map((theme) => (
                   <button
                     key={theme.id}
-                    onClick={() => setActiveTheme(theme.id)}
+                    onClick={() => {
+                      setThemeColor(theme.id);
+                      toast.success(`Tema cambiado a ${theme.name}`);
+                    }}
                     className={cn(
                       "relative p-4 rounded-xl border-2 transition-all",
-                      activeTheme === theme.id
+                      themeColor === theme.id
                         ? "border-primary shadow-glow-primary"
                         : "border-border hover:border-muted-foreground"
                     )}
@@ -367,7 +371,7 @@ export default function Settings() {
                       }}
                     />
                     <p className="text-sm font-medium">{theme.name}</p>
-                    {activeTheme === theme.id && (
+                    {themeColor === theme.id && (
                       <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
                     )}
                   </button>

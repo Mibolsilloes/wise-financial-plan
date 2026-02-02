@@ -10,6 +10,7 @@ import { TransactionsProvider } from "./contexts/TransactionsContext";
 import { CategoriesProvider } from "./contexts/CategoriesContext";
 import { AccountsProvider } from "./contexts/AccountsContext";
 import { CreditCardsProvider } from "./contexts/CreditCardsContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -28,37 +29,39 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <TransactionsProvider>
-          <CategoriesProvider>
-            <AccountsProvider>
-              <CreditCardsProvider>
-                <PeriodProvider>
-                  <FilterProvider>
-                    <Toaster />
-                    <Sonner />
-                    <BrowserRouter>
-                      <Routes>
-                        <Route path="/auth" element={<Auth />} />
-                        <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-                        <Route path="/relatorios" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-                        <Route path="/categorias" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
-                        <Route path="/categorias/:id/relatorio" element={<ProtectedRoute><CategoryReport /></ProtectedRoute>} />
-                        <Route path="/contas" element={<ProtectedRoute><BankAccounts /></ProtectedRoute>} />
-                        <Route path="/contas/:id/extrato" element={<ProtectedRoute><AccountReport /></ProtectedRoute>} />
-                        <Route path="/cartoes" element={<ProtectedRoute><CreditCards /></ProtectedRoute>} />
-                        <Route path="/cartoes/:id/fatura" element={<ProtectedRoute><CreditCardInvoice /></ProtectedRoute>} />
-                        <Route path="/configuracoes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </BrowserRouter>
-                  </FilterProvider>
-                </PeriodProvider>
-              </CreditCardsProvider>
-            </AccountsProvider>
-          </CategoriesProvider>
-        </TransactionsProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <TransactionsProvider>
+            <CategoriesProvider>
+              <AccountsProvider>
+                <CreditCardsProvider>
+                  <PeriodProvider>
+                    <FilterProvider>
+                      <Toaster />
+                      <Sonner />
+                      <BrowserRouter>
+                        <Routes>
+                          <Route path="/auth" element={<Auth />} />
+                          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                          <Route path="/relatorios" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+                          <Route path="/categorias" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
+                          <Route path="/categorias/:id/relatorio" element={<ProtectedRoute><CategoryReport /></ProtectedRoute>} />
+                          <Route path="/contas" element={<ProtectedRoute><BankAccounts /></ProtectedRoute>} />
+                          <Route path="/contas/:id/extrato" element={<ProtectedRoute><AccountReport /></ProtectedRoute>} />
+                          <Route path="/cartoes" element={<ProtectedRoute><CreditCards /></ProtectedRoute>} />
+                          <Route path="/cartoes/:id/fatura" element={<ProtectedRoute><CreditCardInvoice /></ProtectedRoute>} />
+                          <Route path="/configuracoes" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </BrowserRouter>
+                    </FilterProvider>
+                  </PeriodProvider>
+                </CreditCardsProvider>
+              </AccountsProvider>
+            </CategoriesProvider>
+          </TransactionsProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
