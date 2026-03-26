@@ -88,43 +88,38 @@ export default function Categories() {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setCategories((items) => {
-        const sortedItems = [...items].sort((a, b) => a.position - b.position);
-        const oldIndex = sortedItems.findIndex((item) => item.id === active.id);
-        const newIndex = sortedItems.findIndex((item) => item.id === over.id);
-        
-        const reordered = arrayMove(sortedItems, oldIndex, newIndex);
-        
-        // Update positions
-        return reordered.map((item, index) => ({
-          ...item,
-          position: index,
-        }));
+      const sortedItems = [...categories].sort((a, b) => a.position - b.position);
+      const oldIndex = sortedItems.findIndex((item) => item.id === active.id);
+      const newIndex = sortedItems.findIndex((item) => item.id === over.id);
+      
+      const reordered = arrayMove(sortedItems, oldIndex, newIndex);
+      
+      // Update positions in DB
+      reordered.forEach((item, index) => {
+        if (item.position !== index) {
+          updateCategory(item.id, { position: index });
+        }
       });
     }
-  }, []);
+  }, [categories, updateCategory]);
 
-  const handleEditClick = (category: typeof defaultCategories[0]) => {
+  const handleEditClick = (category: typeof categories[0]) => {
     setEditingCategory(category);
     setIsEditDialogOpen(true);
   };
 
-  const handleSaveEdit = (id: number, updates: { name: string; color: string; keywords: string[] }) => {
-    setCategories(categories.map(cat => 
-      cat.id === id 
-        ? { ...cat, ...updates }
-        : cat
-    ));
+  const handleSaveEdit = (id: string, updates: { name: string; color: string; keywords: string[] }) => {
+    updateCategory(id, updates);
   };
 
-  const handleDeleteClick = (category: typeof defaultCategories[0]) => {
+  const handleDeleteClick = (category: typeof categories[0]) => {
     setDeletingCategory(category);
     setIsDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = () => {
     if (deletingCategory) {
-      setCategories(categories.filter(cat => cat.id !== deletingCategory.id));
+      deleteCategory(deletingCategory.id);
       toast.success(`Categoría "${deletingCategory.name}" eliminada`);
       setIsDeleteDialogOpen(false);
       setDeletingCategory(null);

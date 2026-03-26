@@ -35,7 +35,7 @@ const categoryIcons: Record<string, React.ElementType> = {
 };
 
 interface CategoryItem {
-  id: number;
+  id: string;
   name: string;
   color: string;
   subcategories: number;
