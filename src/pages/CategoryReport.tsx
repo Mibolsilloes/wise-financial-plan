@@ -171,6 +171,7 @@ export default function CategoryReport() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentMonth, currentYear, effectiveDateRange } = usePeriod();
+  const { categories: contextCategories } = useCategories();
   const [activeTab, setActiveTab] = useState("todas");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -198,6 +199,11 @@ export default function CategoryReport() {
   const toggleColumn = (column: keyof typeof visibleColumns) => {
     setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
   };
+
+  // Build categoryData from context
+  const categoryData = Object.fromEntries(
+    contextCategories.map(c => [c.id, { name: c.name, color: c.color, type: c.type }])
+  );
   
   const category = id ? categoryData[id] : null;
   

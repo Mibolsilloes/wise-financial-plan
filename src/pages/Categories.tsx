@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { categories as mockDataCategories } from "@/data/mockData";
+import { useCategories } from "@/contexts/CategoriesContext";
 import {
   DndContext,
   closestCenter,
