@@ -1,11 +1,14 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
-import { creditCards as initialCards, CreditCard } from "@/data/mockData";
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
+import { CreditCard } from "@/data/mockData";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./AuthContext";
 
 interface CreditCardsContextType {
   creditCards: CreditCard[];
-  addCreditCard: (card: Omit<CreditCard, "id">) => void;
-  updateCreditCard: (id: string, updates: Partial<CreditCard>) => void;
-  deleteCreditCard: (id: string) => void;
+  loading: boolean;
+  addCreditCard: (card: Omit<CreditCard, "id">) => Promise<void>;
+  updateCreditCard: (id: string, updates: Partial<CreditCard>) => Promise<void>;
+  deleteCreditCard: (id: string) => Promise<void>;
   getCreditCardById: (id: string) => CreditCard | undefined;
   getCreditCardByName: (name: string) => CreditCard | undefined;
   updateUsedLimit: (id: string, amount: number) => void;
@@ -15,37 +18,115 @@ interface CreditCardsContextType {
 const CreditCardsContext = createContext<CreditCardsContextType | undefined>(undefined);
 
 export function CreditCardsProvider({ children }: { children: ReactNode }) {
-  const [creditCards, setCreditCards] = useState<CreditCard[]>(initialCards);
+  const { user } = useAuth();
+  const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const addCreditCard = useCallback((card: Omit<CreditCard, "id">) => {
-    const newCard: CreditCard = {
-      ...card,
-      id: `card${Date.now()}`,
-    };
-    setCreditCards((prev) => [...prev, newCard]);
-  }, []);
+  useEffect(() => {
+    if (user) {
+      fetchCreditCards();
+    } else {
+      setCreditCards([]);
+    }
+  }, [user]);
 
-  const updateCreditCard = useCallback((id: string, updates: Partial<CreditCard>) => {
-    setCreditCards((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
-    );
-  }, []);
+  const fetchCreditCards = async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("credit_cards")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
 
-  const deleteCreditCard = useCallback((id: string) => {
-    setCreditCards((prev) => prev.filter((c) => c.id !== id));
-  }, []);
+    if (!error && data) {
+      const transformed: CreditCard[] = data.map((c) => ({
+        id: c.id,
+        name: c.name,
+        bank: c.brand,
+        brand: c.brand,
+        limit: Number(c.credit_limit),
+        used: 0,
+        closingDay: c.closing_day,
+        dueDay: c.due_day,
+        color: c.color,
+      }));
+      setCreditCards(transformed);
+    }
+    setLoading(false);
+  };
+
+  const addCreditCard = useCallback(async (card: Omit<CreditCard, "id">) => {
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("credit_cards")
+      .insert({
+        user_id: user.id,
+        name: card.name,
+        brand: card.brand,
+        last_digits: card.name.slice(-4) || "0000",
+        credit_limit: card.limit,
+        closing_day: card.closingDay,
+        due_day: card.dueDay,
+        color: card.color,
+      })
+      .select()
+      .single();
+
+    if (!error && data) {
+      setCreditCards((prev) => [...prev, {
+        id: data.id,
+        name: data.name,
+        bank: data.brand,
+        brand: data.brand,
+        limit: Number(data.credit_limit),
+        used: 0,
+        closingDay: data.closing_day,
+        dueDay: data.due_day,
+        color: data.color,
+      }]);
+    }
+  }, [user]);
+
+  const updateCreditCard = useCallback(async (id: string, updates: Partial<CreditCard>) => {
+    if (!user) return;
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.brand !== undefined) dbUpdates.brand = updates.brand;
+    if (updates.limit !== undefined) dbUpdates.credit_limit = updates.limit;
+    if (updates.closingDay !== undefined) dbUpdates.closing_day = updates.closingDay;
+    if (updates.dueDay !== undefined) dbUpdates.due_day = updates.dueDay;
+    if (updates.color !== undefined) dbUpdates.color = updates.color;
+
+    const { error } = await supabase
+      .from("credit_cards")
+      .update(dbUpdates)
+      .eq("id", id);
+
+    if (!error) {
+      setCreditCards((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
+    }
+  }, [user]);
+
+  const deleteCreditCard = useCallback(async (id: string) => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("credit_cards")
+      .delete()
+      .eq("id", id);
+
+    if (!error) {
+      setCreditCards((prev) => prev.filter((c) => c.id !== id));
+    }
+  }, [user]);
 
   const getCreditCardById = useCallback(
-    (id: string) => {
-      return creditCards.find((c) => c.id === id);
-    },
+    (id: string) => creditCards.find((c) => c.id === id),
     [creditCards]
   );
 
   const getCreditCardByName = useCallback(
-    (name: string) => {
-      return creditCards.find((c) => c.name === name);
-    },
+    (name: string) => creditCards.find((c) => c.name === name),
     [creditCards]
   );
 
@@ -56,15 +137,14 @@ export function CreditCardsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refetchCreditCards = useCallback(async () => {
-    // For now, reset to initial cards
-    // When Supabase integration is complete, this will fetch from DB
-    setCreditCards([...initialCards]);
-  }, []);
+    await fetchCreditCards();
+  }, [user]);
 
   return (
     <CreditCardsContext.Provider
       value={{
         creditCards,
+        loading,
         addCreditCard,
         updateCreditCard,
         deleteCreditCard,

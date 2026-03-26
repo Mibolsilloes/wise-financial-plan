@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { categories as mockDataCategories } from "@/data/mockData";
+import { useCategories } from "@/contexts/CategoriesContext";
 import {
   DndContext,
   closestCenter,
@@ -42,30 +42,30 @@ import { SortableCategoryItem } from "@/components/categories/SortableCategoryIt
 import { EditCategoryDialog } from "@/components/categories/EditCategoryDialog";
 import { toast } from "sonner";
 
-// Transform mockData categories to match the expected format
-const defaultCategories = mockDataCategories.map((cat, index) => ({
-  id: parseInt(cat.id),
-  name: cat.name,
-  color: cat.color,
-  subcategories: cat.subcategories?.length || 0,
-  total: cat.totalAmount,
-  type: cat.type,
-  keywords: [] as string[],
-  position: index,
-}));
-
 export default function Categories() {
-  const [categories, setCategories] = useState(defaultCategories);
+  const { categories: contextCategories, deleteCategory, updateCategory } = useCategories();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
+  // Transform context categories to local format
+  const categories = contextCategories.map((cat, index) => ({
+    id: cat.id,
+    name: cat.name,
+    color: cat.color,
+    subcategories: cat.subcategories?.length || 0,
+    total: cat.totalAmount,
+    type: cat.type,
+    keywords: cat.keywords || [],
+    position: cat.position ?? index,
+  }));
+
   // Edit dialog state
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<typeof defaultCategories[0] | null>(null);
+  const [editingCategory, setEditingCategory] = useState<typeof categories[0] | null>(null);
 
   // Delete dialog state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingCategory, setDeletingCategory] = useState<typeof defaultCategories[0] | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<typeof categories[0] | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -88,43 +88,38 @@ export default function Categories() {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      setCategories((items) => {
-        const sortedItems = [...items].sort((a, b) => a.position - b.position);
-        const oldIndex = sortedItems.findIndex((item) => item.id === active.id);
-        const newIndex = sortedItems.findIndex((item) => item.id === over.id);
-        
-        const reordered = arrayMove(sortedItems, oldIndex, newIndex);
-        
-        // Update positions
-        return reordered.map((item, index) => ({
-          ...item,
-          position: index,
-        }));
+      const sortedItems = [...categories].sort((a, b) => a.position - b.position);
+      const oldIndex = sortedItems.findIndex((item) => item.id === active.id);
+      const newIndex = sortedItems.findIndex((item) => item.id === over.id);
+      
+      const reordered = arrayMove(sortedItems, oldIndex, newIndex);
+      
+      // Update positions in DB
+      reordered.forEach((item, index) => {
+        if (item.position !== index) {
+          updateCategory(item.id, { position: index });
+        }
       });
     }
-  }, []);
+  }, [categories, updateCategory]);
 
-  const handleEditClick = (category: typeof defaultCategories[0]) => {
+  const handleEditClick = (category: typeof categories[0]) => {
     setEditingCategory(category);
     setIsEditDialogOpen(true);
   };
 
-  const handleSaveEdit = (id: number, updates: { name: string; color: string; keywords: string[] }) => {
-    setCategories(categories.map(cat => 
-      cat.id === id 
-        ? { ...cat, ...updates }
-        : cat
-    ));
+  const handleSaveEdit = (id: string, updates: { name: string; color: string; keywords: string[] }) => {
+    updateCategory(id, updates);
   };
 
-  const handleDeleteClick = (category: typeof defaultCategories[0]) => {
+  const handleDeleteClick = (category: typeof categories[0]) => {
     setDeletingCategory(category);
     setIsDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = () => {
     if (deletingCategory) {
-      setCategories(categories.filter(cat => cat.id !== deletingCategory.id));
+      deleteCategory(deletingCategory.id);
       toast.success(`Categoría "${deletingCategory.name}" eliminada`);
       setIsDeleteDialogOpen(false);
       setDeletingCategory(null);

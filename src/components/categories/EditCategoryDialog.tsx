@@ -97,7 +97,7 @@ const colorPalette = [
 ];
 
 interface CategoryItem {
-  id: number;
+  id: string;
   name: string;
   color: string;
   subcategories: number;
@@ -110,7 +110,7 @@ interface EditCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   category: CategoryItem | null;
-  onSave: (id: number, updates: { name: string; color: string; keywords: string[] }) => void;
+  onSave: (id: string, updates: { name: string; color: string; keywords: string[] }) => void;
 }
 
 export function EditCategoryDialog({ 

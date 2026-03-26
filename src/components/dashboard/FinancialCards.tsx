@@ -14,7 +14,7 @@ import { usePeriod } from "@/contexts/PeriodContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
 import { format, subMonths, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
-import { calculateTotals, previousPeriodBalance } from "@/data/mockData";
+import { calculateTotals } from "@/data/mockData";
 
 interface DetailBadge {
   label: string;
@@ -185,12 +185,12 @@ export function FinancialCards() {
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
       <FinancialCard
         title="Saldo del período anterior"
-        mainValue={previousPeriodBalance.total}
+        mainValue={0}
         subtitle={`Hasta ${previousMonthEndDate}`}
         formula="Ingresos - Gastos + Saldo bancario"
         details={[
-          { label: "Pendiente", value: previousPeriodBalance.pending, variant: "danger" },
-          { label: "Disponible", value: previousPeriodBalance.available, variant: "success" },
+          { label: "Pendiente", value: 0, variant: "danger" },
+          { label: "Disponible", value: 0, variant: "success" },
         ]}
         icon={Wallet}
         variant="neutral"
@@ -219,11 +219,11 @@ export function FinancialCards() {
       />
       <FinancialCard
         title="Saldo previsto"
-        mainValue={previousPeriodBalance.total + totals.saldoPrevisto}
+        mainValue={totals.saldoPrevisto}
         subtitle={`Previsión para ${periodLabel}`}
-        formula="Ingresos - Gastos + Saldo bancario"
+        formula="Ingresos - Gastos"
         details={[
-          { label: "Disponible", value: previousPeriodBalance.available + totals.saldoDisponible, variant: "success" },
+          { label: "Disponible", value: totals.saldoDisponible, variant: "success" },
           { label: "Previsto", value: totals.ingresosPorCobrar - totals.gastosPendientes, variant: "neutral" },
         ]}
         icon={PiggyBank}

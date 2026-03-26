@@ -26,7 +26,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useFilters } from "@/contexts/FilterContext";
-import { categories, bankAccounts, creditCards } from "@/data/mockData";
+import { useCategories } from "@/contexts/CategoriesContext";
+import { useAccounts } from "@/contexts/AccountsContext";
+import { useCreditCards } from "@/contexts/CreditCardsContext";
 
 interface FilterPopoverContentProps {
   onApply: () => void;
@@ -35,6 +37,9 @@ interface FilterPopoverContentProps {
 
 function FilterPopoverContent({ onApply, onClear }: FilterPopoverContentProps) {
   const { filters, updateFilter, clearFilters } = useFilters();
+  const { categories } = useCategories();
+  const { accounts: bankAccounts } = useAccounts();
+  const { creditCards } = useCreditCards();
 
   const handleClear = () => {
     clearFilters();

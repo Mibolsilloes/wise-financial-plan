@@ -52,7 +52,7 @@ import { FilterPopover } from "@/components/dashboard/FilterPopover";
 import { PeriodSelector } from "@/components/dashboard/PeriodSelector";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { cn } from "@/lib/utils";
-import { categories as mockCategories } from "@/data/mockData";
+import { useCategories } from "@/contexts/CategoriesContext";
 
 type GroupingOption = "none" | "categoria" | "vencimiento" | "creacion" | "responsable";
 
@@ -81,18 +81,7 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-// Extended category data - merging mockData with additional categories from Categories page
-const categoryData: Record<string, { name: string; color: string; type: string }> = {
-  // From mockData.ts
-  ...Object.fromEntries(mockCategories.map(c => [c.id, { name: c.name, color: c.color, type: c.type }])),
-  // Additional categories from Categories.tsx (different IDs)
-  "13": { name: "Hogar", color: "hsl(340, 82%, 52%)", type: "gasto" },
-  "14": { name: "Supermercado", color: "hsl(45, 93%, 47%)", type: "gasto" },
-  "15": { name: "Viajes", color: "hsl(199, 89%, 48%)", type: "gasto" },
-  "16": { name: "Donaciones", color: "hsl(172, 66%, 50%)", type: "gasto" },
-  "17": { name: "Suscripciones", color: "hsl(280, 70%, 60%)", type: "gasto" },
-  "18": { name: "Servicios", color: "hsl(200, 80%, 50%)", type: "gasto" },
-};
+// categoryData is now built dynamically from the context inside the component
 
 // Modern gradient card component matching "Lançamentos pendentes" style
 interface GradientCardProps {
@@ -182,6 +171,7 @@ export default function CategoryReport() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentMonth, currentYear, effectiveDateRange } = usePeriod();
+  const { categories: contextCategories } = useCategories();
   const [activeTab, setActiveTab] = useState("todas");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -209,6 +199,11 @@ export default function CategoryReport() {
   const toggleColumn = (column: keyof typeof visibleColumns) => {
     setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
   };
+
+  // Build categoryData from context
+  const categoryData = Object.fromEntries(
+    contextCategories.map(c => [c.id, { name: c.name, color: c.color, type: c.type }])
+  );
   
   const category = id ? categoryData[id] : null;
   
