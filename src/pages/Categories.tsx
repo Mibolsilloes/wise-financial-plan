@@ -42,30 +42,30 @@ import { SortableCategoryItem } from "@/components/categories/SortableCategoryIt
 import { EditCategoryDialog } from "@/components/categories/EditCategoryDialog";
 import { toast } from "sonner";
 
-// Transform mockData categories to match the expected format
-const defaultCategories = mockDataCategories.map((cat, index) => ({
-  id: parseInt(cat.id),
-  name: cat.name,
-  color: cat.color,
-  subcategories: cat.subcategories?.length || 0,
-  total: cat.totalAmount,
-  type: cat.type,
-  keywords: [] as string[],
-  position: index,
-}));
-
 export default function Categories() {
-  const [categories, setCategories] = useState(defaultCategories);
+  const { categories: contextCategories, deleteCategory, updateCategory } = useCategories();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   
+  // Transform context categories to local format
+  const categories = contextCategories.map((cat, index) => ({
+    id: cat.id,
+    name: cat.name,
+    color: cat.color,
+    subcategories: cat.subcategories?.length || 0,
+    total: cat.totalAmount,
+    type: cat.type,
+    keywords: cat.keywords || [],
+    position: cat.position ?? index,
+  }));
+
   // Edit dialog state
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<typeof defaultCategories[0] | null>(null);
+  const [editingCategory, setEditingCategory] = useState<typeof categories[0] | null>(null);
 
   // Delete dialog state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [deletingCategory, setDeletingCategory] = useState<typeof defaultCategories[0] | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<typeof categories[0] | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
