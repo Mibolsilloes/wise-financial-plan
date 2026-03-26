@@ -52,7 +52,7 @@ import { FilterPopover } from "@/components/dashboard/FilterPopover";
 import { PeriodSelector } from "@/components/dashboard/PeriodSelector";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { cn } from "@/lib/utils";
-import { categories as mockCategories } from "@/data/mockData";
+import { useCategories } from "@/contexts/CategoriesContext";
 
 type GroupingOption = "none" | "categoria" | "vencimiento" | "creacion" | "responsable";
 

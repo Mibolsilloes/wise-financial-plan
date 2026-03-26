@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
-import { transactions as initialTransactions, Transaction } from "@/data/mockData";
+import { Transaction } from "@/data/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 
@@ -19,22 +19,19 @@ const TransactionsContext = createContext<TransactionsContextType | undefined>(u
 
 export function TransactionsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch transactions from database when user logs in
   useEffect(() => {
     if (user) {
       fetchTransactions();
     } else {
-      // Use mock data when not logged in
-      setTransactions(initialTransactions);
+      setTransactions([]);
     }
   }, [user]);
 
   const fetchTransactions = async () => {
     if (!user) return;
-
     setLoading(true);
     const { data, error } = await supabase
       .from("transactions")
@@ -43,7 +40,6 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
       .order("due_date", { ascending: false });
 
     if (!error && data) {
-      // Transform database transactions to app format
       const transformedData: Transaction[] = data.map((t) => ({
         id: t.id,
         type: t.type === "income" ? "ingreso" : "gasto",
@@ -51,37 +47,25 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
         amount: Number(t.amount),
         category: t.subcategory || "Sin categoría",
         subcategory: t.subcategory,
-        account: "Cuenta Principal", // TODO: Join with accounts table
+        account: "Cuenta Principal",
         creditCard: undefined,
         responsible: "Usuario",
         dueDate: new Date(t.due_date),
         paymentDate: t.payment_date ? new Date(t.payment_date) : undefined,
         competenceDate: new Date(t.due_date),
-        status: t.status === "paid" 
+        status: t.status === "paid"
           ? (t.type === "income" ? "cobrado" : "pagado")
           : (t.type === "income" ? "por_cobrar" : "pendiente"),
         isFixed: false,
         color: t.type === "income" ? "hsl(142, 76%, 36%)" : "hsl(340, 82%, 52%)",
       }));
-
-      // If user has no transactions in DB, keep showing demo data
-      if (transformedData.length > 0) {
-        setTransactions(transformedData);
-      }
+      setTransactions(transformedData);
     }
     setLoading(false);
   };
 
   const addTransaction = useCallback(async (transaction: Omit<Transaction, "id">) => {
-    if (!user) {
-      // Fallback to local state for demo
-      const newTransaction: Transaction = {
-        ...transaction,
-        id: `t${Date.now()}`,
-      };
-      setTransactions((prev) => [...prev, newTransaction]);
-      return;
-    }
+    if (!user) return;
 
     const { data, error } = await supabase
       .from("transactions")
@@ -108,13 +92,7 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const updateTransaction = useCallback(async (id: string, updates: Partial<Transaction>) => {
-    if (!user) {
-      // Fallback to local state for demo
-      setTransactions((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-      );
-      return;
-    }
+    if (!user) return;
 
     const dbUpdates: Record<string, unknown> = {};
     if (updates.description) dbUpdates.description = updates.description;
@@ -140,11 +118,7 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const deleteTransaction = useCallback(async (id: string) => {
-    if (!user) {
-      // Fallback to local state for demo
-      setTransactions((prev) => prev.filter((t) => t.id !== id));
-      return;
-    }
+    if (!user) return;
 
     const { error } = await supabase
       .from("transactions")
@@ -157,23 +131,17 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const getTransactionsByCategory = useCallback(
-    (categoryName: string) => {
-      return transactions.filter((t) => t.category === categoryName);
-    },
+    (categoryName: string) => transactions.filter((t) => t.category === categoryName),
     [transactions]
   );
 
   const getTransactionsByAccount = useCallback(
-    (accountName: string) => {
-      return transactions.filter((t) => t.account === accountName);
-    },
+    (accountName: string) => transactions.filter((t) => t.account === accountName),
     [transactions]
   );
 
   const getTransactionsByCreditCard = useCallback(
-    (cardName: string) => {
-      return transactions.filter((t) => t.creditCard === cardName);
-    },
+    (cardName: string) => transactions.filter((t) => t.creditCard === cardName),
     [transactions]
   );
 
