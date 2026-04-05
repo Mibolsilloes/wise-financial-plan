@@ -61,8 +61,19 @@ export default function Auth() {
     if (regPassword.length < 6)    { toast.error("Mínimo 6 caracteres"); return; }
     setLoading(true);
     const { error } = await signUp(regEmail, regPassword, regName);
-    if (error) toast.error("Error al crear cuenta", { description: error.message });
-    else { toast.success("¡Cuenta creada exitosamente!"); navigate("/"); }
+    if (error) {
+      toast.error("Error al crear cuenta", { description: error.message });
+    } else {
+      toast.success("¡Revisa tu correo electrónico!", {
+        description: "Te enviamos un enlace de verificación. Confirma tu email para poder iniciar sesión.",
+        duration: 8000,
+      });
+      setTab("login");
+      setRegName("");
+      setRegEmail("");
+      setRegPassword("");
+      setRegConfirm("");
+    }
     setLoading(false);
   };
 
