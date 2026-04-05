@@ -64,7 +64,9 @@ export default function Auth() {
     if (regPassword.length < 6)    { toast.error("Mínimo 6 caracteres"); return; }
     setLoading(true);
     const { error } = await signUp(regEmail, regPassword, regName);
+    console.log("SignUp result:", { error: error?.message, email: regEmail });
     if (error) {
+      console.error("SignUp error details:", error);
       toast.error("Error al crear cuenta", { description: error.message });
     } else {
       toast.success("¡Revisa tu correo electrónico!", {
