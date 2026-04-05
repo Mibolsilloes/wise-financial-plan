@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Mail, Lock, User, Loader2, Eye, EyeOff,
@@ -32,12 +33,14 @@ export default function Auth() {
   const navigate     = useNavigate();
   const { signIn, signUp } = useAuth();
   const [loading,  setLoading]  = useState(false);
-  const [tab,      setTab]      = useState<"login" | "register">("login");
+  const [tab,      setTab]      = useState<"login" | "register" | "forgot">("login");
   const [showPwd,  setShowPwd]  = useState(false);
   const [showCPwd, setShowCPwd] = useState(false);
 
   const [loginEmail,    setLoginEmail]    = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [forgotEmail,   setForgotEmail]   = useState("");
+  const [forgotSent,    setForgotSent]    = useState(false);
 
   const [regName,     setRegName]     = useState("");
   const [regEmail,    setRegEmail]    = useState("");
@@ -73,6 +76,24 @@ export default function Auth() {
       setRegEmail("");
       setRegPassword("");
       setRegConfirm("");
+    }
+    setLoading(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      toast.error("Error al enviar el correo", { description: error.message });
+    } else {
+      setForgotSent(true);
+      toast.success("¡Correo enviado!", {
+        description: "Revisa tu bandeja de entrada para restablecer tu contraseña.",
+        duration: 8000,
+      });
     }
     setLoading(false);
   };
@@ -195,36 +216,40 @@ export default function Auth() {
           {/* Heading */}
           <div className="mb-7">
             <h2 className="text-2xl font-bold text-foreground tracking-tight">
-              {tab === "login" ? "Bienvenido de vuelta" : "Crea tu cuenta"}
+              {tab === "login" ? "Bienvenido de vuelta" : tab === "register" ? "Crea tu cuenta" : "Recuperar contraseña"}
             </h2>
             <p className="text-muted-foreground text-sm mt-1.5">
               {tab === "login"
                 ? "Ingresa tus credenciales para continuar"
-                : "Empieza a gestionar tus finanzas hoy"}
+                : tab === "register"
+                ? "Empieza a gestionar tus finanzas hoy"
+                : "Te enviaremos un enlace para restablecer tu contraseña"}
             </p>
           </div>
 
-          {/* Custom pill tab switcher */}
-          <div className="auth-tab-switcher">
-            <button
-              type="button"
-              className={`auth-tab-btn ${tab === "login" ? "active" : ""}`}
-              onClick={() => setTab("login")}
-            >
-              Iniciar sesión
-            </button>
-            <button
-              type="button"
-              className={`auth-tab-btn ${tab === "register" ? "active" : ""}`}
-              onClick={() => setTab("register")}
-            >
-              Crear cuenta
-            </button>
-            <div
-              className="auth-tab-slider"
-              style={{ transform: tab === "register" ? "translateX(100%)" : "translateX(0)" }}
-            />
-          </div>
+          {/* Custom pill tab switcher — hide on forgot */}
+          {tab !== "forgot" && (
+            <div className="auth-tab-switcher">
+              <button
+                type="button"
+                className={`auth-tab-btn ${tab === "login" ? "active" : ""}`}
+                onClick={() => setTab("login")}
+              >
+                Iniciar sesión
+              </button>
+              <button
+                type="button"
+                className={`auth-tab-btn ${tab === "register" ? "active" : ""}`}
+                onClick={() => setTab("register")}
+              >
+                Crear cuenta
+              </button>
+              <div
+                className="auth-tab-slider"
+                style={{ transform: tab === "register" ? "translateX(100%)" : "translateX(0)" }}
+              />
+            </div>
+          )}
 
           {/* ── LOGIN FORM ── */}
           {tab === "login" && (
@@ -243,7 +268,7 @@ export default function Auth() {
                 }
               />
               <div className="flex justify-end -mt-2">
-                <button type="button" className="text-xs text-primary/80 hover:text-primary transition-colors">
+                <button type="button" onClick={() => { setTab("forgot"); setForgotSent(false); setForgotEmail(loginEmail); }} className="text-xs text-primary/80 hover:text-primary transition-colors">
                   ¿Olvidaste tu contraseña?
                 </button>
               </div>
@@ -298,6 +323,44 @@ export default function Auth() {
               />
               <SubmitBtn loading={loading} idle="Crear cuenta gratis" busy="Creando cuenta..." />
             </form>
+          )}
+
+          {/* ── FORGOT PASSWORD FORM ── */}
+          {tab === "forgot" && (
+            <div className="auth-form-animate mt-7 space-y-5">
+              {forgotSent ? (
+                <div className="text-center space-y-4 py-4">
+                  <Mail className="h-12 w-12 text-primary mx-auto" />
+                  <h3 className="text-lg font-semibold text-foreground">¡Correo enviado!</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Si existe una cuenta con <strong>{forgotEmail}</strong>, recibirás un enlace para restablecer tu contraseña.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setTab("login"); setForgotSent(false); }}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Volver al inicio de sesión
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-5">
+                  <AuthField
+                    id="f-email" type="email" label="Correo electrónico"
+                    placeholder="tu@email.com" value={forgotEmail} onChange={setForgotEmail}
+                    icon={<Mail className="h-4 w-4" />}
+                  />
+                  <SubmitBtn loading={loading} idle="Enviar enlace de recuperación" busy="Enviando..." />
+                  <button
+                    type="button"
+                    onClick={() => setTab("login")}
+                    className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors text-center"
+                  >
+                    Volver al inicio de sesión
+                  </button>
+                </form>
+              )}
+            </div>
           )}
 
           {/* Legal */}

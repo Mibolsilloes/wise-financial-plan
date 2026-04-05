@@ -23,6 +23,7 @@ import CreditCards from "./pages/CreditCards";
 import CreditCardInvoice from "./pages/CreditCardInvoice";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
                       <BrowserRouter>
                         <Routes>
                           <Route path="/auth" element={<Auth />} />
+                          <Route path="/reset-password" element={<ResetPassword />} />
                           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                           <Route path="/relatorios" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
                           <Route path="/categorias" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
