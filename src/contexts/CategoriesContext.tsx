@@ -57,7 +57,10 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
   };
 
   const addCategory = useCallback(async (category: Omit<Category, "id">) => {
-    if (!user) return;
+    if (!user) {
+      console.error("addCategory: no user logged in");
+      return;
+    }
 
     const { data, error } = await supabase
       .from("categories")
@@ -73,7 +76,12 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
       .select()
       .single();
 
-    if (!error && data) {
+    if (error) {
+      console.error("addCategory error:", error);
+      return;
+    }
+
+    if (data) {
       setCategories((prev) => [...prev, {
         id: data.id,
         name: data.name,
