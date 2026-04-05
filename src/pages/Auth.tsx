@@ -327,24 +327,34 @@ export default function Auth() {
 
           {/* ── FORGOT PASSWORD FORM ── */}
           {tab === "forgot" && (
-            <div className="auth-form-animate mt-7 space-y-5">
+            <div className="auth-form-animate mt-7">
               {forgotSent ? (
-                <div className="text-center space-y-4 py-4">
-                  <Mail className="h-12 w-12 text-primary mx-auto" />
-                  <h3 className="text-lg font-semibold text-foreground">¡Correo enviado!</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Si existe una cuenta con <strong>{forgotEmail}</strong>, recibirás un enlace para restablecer tu contraseña.
-                  </p>
+                <div className="text-center space-y-5 py-4">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto">
+                    <Mail className="h-7 w-7 text-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground">¡Correo enviado!</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed max-w-[300px] mx-auto">
+                      Si existe una cuenta con <span className="font-medium text-foreground">{forgotEmail}</span>, recibirás un enlace para restablecer tu contraseña.
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-muted/50 border border-border p-3.5 text-[12px] text-muted-foreground">
+                    💡 Revisa también tu carpeta de spam si no lo encuentras en la bandeja de entrada.
+                  </div>
                   <button
                     type="button"
                     onClick={() => { setTab("login"); setForgotSent(false); }}
-                    className="text-sm text-primary hover:underline"
+                    className="auth-submit-btn"
                   >
                     Volver al inicio de sesión
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleForgotPassword} className="space-y-5">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-2">
+                    <Mail className="h-6 w-6 text-primary" />
+                  </div>
                   <AuthField
                     id="f-email" type="email" label="Correo electrónico"
                     placeholder="tu@email.com" value={forgotEmail} onChange={setForgotEmail}
@@ -354,9 +364,9 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={() => setTab("login")}
-                    className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors text-center"
+                    className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors text-center py-2"
                   >
-                    Volver al inicio de sesión
+                    ← Volver al inicio de sesión
                   </button>
                 </form>
               )}
