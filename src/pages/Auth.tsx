@@ -79,6 +79,24 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      toast.error("Error al enviar el correo", { description: error.message });
+    } else {
+      setForgotSent(true);
+      toast.success("¡Correo enviado!", {
+        description: "Revisa tu bandeja de entrada para restablecer tu contraseña.",
+        duration: 8000,
+      });
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen flex overflow-hidden">
 
@@ -197,36 +215,40 @@ export default function Auth() {
           {/* Heading */}
           <div className="mb-7">
             <h2 className="text-2xl font-bold text-foreground tracking-tight">
-              {tab === "login" ? "Bienvenido de vuelta" : "Crea tu cuenta"}
+              {tab === "login" ? "Bienvenido de vuelta" : tab === "register" ? "Crea tu cuenta" : "Recuperar contraseña"}
             </h2>
             <p className="text-muted-foreground text-sm mt-1.5">
               {tab === "login"
                 ? "Ingresa tus credenciales para continuar"
-                : "Empieza a gestionar tus finanzas hoy"}
+                : tab === "register"
+                ? "Empieza a gestionar tus finanzas hoy"
+                : "Te enviaremos un enlace para restablecer tu contraseña"}
             </p>
           </div>
 
-          {/* Custom pill tab switcher */}
-          <div className="auth-tab-switcher">
-            <button
-              type="button"
-              className={`auth-tab-btn ${tab === "login" ? "active" : ""}`}
-              onClick={() => setTab("login")}
-            >
-              Iniciar sesión
-            </button>
-            <button
-              type="button"
-              className={`auth-tab-btn ${tab === "register" ? "active" : ""}`}
-              onClick={() => setTab("register")}
-            >
-              Crear cuenta
-            </button>
-            <div
-              className="auth-tab-slider"
-              style={{ transform: tab === "register" ? "translateX(100%)" : "translateX(0)" }}
-            />
-          </div>
+          {/* Custom pill tab switcher — hide on forgot */}
+          {tab !== "forgot" && (
+            <div className="auth-tab-switcher">
+              <button
+                type="button"
+                className={`auth-tab-btn ${tab === "login" ? "active" : ""}`}
+                onClick={() => setTab("login")}
+              >
+                Iniciar sesión
+              </button>
+              <button
+                type="button"
+                className={`auth-tab-btn ${tab === "register" ? "active" : ""}`}
+                onClick={() => setTab("register")}
+              >
+                Crear cuenta
+              </button>
+              <div
+                className="auth-tab-slider"
+                style={{ transform: tab === "register" ? "translateX(100%)" : "translateX(0)" }}
+              />
+            </div>
+          )}
 
           {/* ── LOGIN FORM ── */}
           {tab === "login" && (
