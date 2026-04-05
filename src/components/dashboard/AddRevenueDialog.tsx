@@ -113,18 +113,20 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
 
     addTransaction({
       type: "ingreso",
-      description: descricao.trim(),
+      description:   descricao.trim(),
       amount,
-      category: categoria,
-      subcategory: subcategoria || undefined,
-      account: selectedAcc?.name || "Cuenta Principal",
-      responsible: responsibleName,
-      dueDate: dataVencimento,
-      paymentDate: foiRecebida ? dataRecebimento : undefined,
+      category:      categoria,
+      categoryId:    selectedCategory?.id,
+      subcategory:   subcategoria || undefined,
+      account:       selectedAcc?.name || "",
+      accountId:     conta || undefined,
+      responsible:   responsibleName,
+      dueDate:       dataVencimento,
+      paymentDate:   foiRecebida ? dataRecebimento : undefined,
       competenceDate: dataCompetencia,
-      status: foiRecebida ? "cobrado" : "por_cobrar",
-      isFixed: receitaFixa,
-      color: selectedCategory?.color || "hsl(142, 76%, 36%)",
+      status:        foiRecebida ? "cobrado" : "por_cobrar",
+      isFixed:       receitaFixa,
+      color:         selectedCategory?.color || "hsl(142, 76%, 36%)",
     });
 
     toast({

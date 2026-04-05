@@ -645,8 +645,32 @@ function EditAccountDialog({ account, open, onOpenChange, onSave }: EditAccountD
 
 export default function BankAccounts() {
   const navigate = useNavigate();
-  const { accounts, transfer, adjustBalance, updateAccount } = useAccounts();
+  const { accounts, transfer, adjustBalance, updateAccount, addAccount, deleteAccount } = useAccounts();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // New account form state
+  const [newAccountName, setNewAccountName]       = useState("");
+  const [newAccountBank, setNewAccountBank]       = useState("");
+  const [newAccountBalance, setNewAccountBalance] = useState("0");
+
+  const handleCreateAccount = async () => {
+    if (!newAccountName.trim()) {
+      toast.error("El nombre de la cuenta es obligatorio");
+      return;
+    }
+    await addAccount({
+      name:    newAccountName.trim(),
+      bank:    newAccountBank.trim() || newAccountName.trim(),
+      type:    "corriente",
+      balance: parseFloat(newAccountBalance.replace(",", ".")) || 0,
+      color:   "hsl(157, 54%, 33%)",
+    });
+    toast.success("Cuenta creada correctamente");
+    setNewAccountName("");
+    setNewAccountBank("");
+    setNewAccountBalance("0");
+    setIsDialogOpen(false);
+  };
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [adjustBalanceDialogOpen, setAdjustBalanceDialogOpen] = useState(false);
   const [editAccountDialogOpen, setEditAccountDialogOpen] = useState(false);
@@ -694,21 +718,40 @@ export default function BankAccounts() {
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div>
-                  <Label htmlFor="name">Nombre de la cuenta</Label>
-                  <Input id="name" placeholder="Ej: Banco Sabadell" className="mt-1.5" />
+                  <Label htmlFor="acc-name">Nombre de la cuenta</Label>
+                  <Input
+                    id="acc-name"
+                    placeholder="Ej: Cuenta nómina"
+                    className="mt-1.5"
+                    value={newAccountName}
+                    onChange={(e) => setNewAccountName(e.target.value)}
+                  />
                 </div>
                 <div>
-                  <Label htmlFor="balance">Saldo inicial</Label>
-                  <Input id="balance" type="number" placeholder="0,00" className="mt-1.5" />
+                  <Label htmlFor="acc-bank">Banco</Label>
+                  <Input
+                    id="acc-bank"
+                    placeholder="Ej: Santander, BBVA, CaixaBank..."
+                    className="mt-1.5"
+                    value={newAccountBank}
+                    onChange={(e) => setNewAccountBank(e.target.value)}
+                  />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="default">Cuenta por defecto</Label>
-                    <p className="text-xs text-muted-foreground">Establecer como cuenta principal</p>
-                  </div>
-                  <Switch id="default" />
+                <div>
+                  <Label htmlFor="acc-balance">Saldo inicial (€)</Label>
+                  <Input
+                    id="acc-balance"
+                    type="number"
+                    step="0.01"
+                    placeholder="0,00"
+                    className="mt-1.5"
+                    value={newAccountBalance}
+                    onChange={(e) => setNewAccountBalance(e.target.value)}
+                  />
                 </div>
-                <Button className="w-full">Crear cuenta</Button>
+                <Button className="w-full" onClick={handleCreateAccount} disabled={!newAccountName.trim()}>
+                  Crear cuenta
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -792,9 +835,15 @@ export default function BankAccounts() {
                           <Edit2 className="w-4 h-4" />
                           Editar
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="gap-2 cursor-pointer text-warning">
+                        <DropdownMenuItem
+                          className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                          onClick={() => {
+                            deleteAccount(account.id);
+                            toast.success("Cuenta eliminada");
+                          }}
+                        >
                           <Archive className="w-4 h-4" />
-                          Archivar
+                          Eliminar cuenta
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -819,7 +868,9 @@ export default function BankAccounts() {
                     {formatCurrency(account.balance)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Actualizado el {new Date(account.lastUpdate).toLocaleDateString("es-ES")}
+                    {account.lastUpdate
+                      ? `Actualizado el ${new Date(account.lastUpdate).toLocaleDateString("es-ES")}`
+                      : "Recientemente actualizado"}
                   </p>
                 </div>
 

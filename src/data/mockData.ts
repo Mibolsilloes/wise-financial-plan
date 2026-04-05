@@ -6,9 +6,12 @@ export interface Transaction {
   description: string;
   amount: number;
   category: string;
+  categoryId?: string;
   subcategory?: string;
   account: string;
+  accountId?: string;
   creditCard?: string;
+  creditCardId?: string;
   responsible: string;
   dueDate: Date;
   paymentDate?: Date;

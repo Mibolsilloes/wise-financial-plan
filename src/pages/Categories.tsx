@@ -42,10 +42,48 @@ import { SortableCategoryItem } from "@/components/categories/SortableCategoryIt
 import { EditCategoryDialog } from "@/components/categories/EditCategoryDialog";
 import { toast } from "sonner";
 
+const PALETTE = [
+  "hsl(340, 82%, 52%)",
+  "hsl(25, 95%, 53%)",
+  "hsl(45, 93%, 47%)",
+  "hsl(160, 84%, 39%)",
+  "hsl(217, 91%, 60%)",
+  "hsl(280, 65%, 60%)",
+  "hsl(157, 54%, 33%)",
+  "hsl(0, 72%, 51%)",
+];
+
 export default function Categories() {
-  const { categories: contextCategories, deleteCategory, updateCategory } = useCategories();
+  const { categories: contextCategories, deleteCategory, updateCategory, addCategory } = useCategories();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // New category form state
+  const [newCatName,  setNewCatName]  = useState("");
+  const [newCatColor, setNewCatColor] = useState(PALETTE[3]);
+  const [newCatType,  setNewCatType]  = useState<"gasto" | "ingreso">("gasto");
+
+  const handleCreateCategory = async () => {
+    if (!newCatName.trim()) {
+      toast.error("El nombre de la categoría es obligatorio");
+      return;
+    }
+    await addCategory({
+      name:        newCatName.trim(),
+      type:        newCatType,
+      color:       newCatColor,
+      icon:        "Tag",
+      subcategories: [],
+      totalAmount: 0,
+      position:    contextCategories.length,
+      keywords:    [],
+    });
+    toast.success(`Categoría "${newCatName.trim()}" creada`);
+    setNewCatName("");
+    setNewCatColor(PALETTE[3]);
+    setNewCatType("gasto");
+    setIsDialogOpen(false);
+  };
   
   // Transform context categories to local format
   const categories = contextCategories.map((cat, index) => ({
@@ -149,27 +187,74 @@ export default function Categories() {
                 <DialogTitle>Crear nueva categoría</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
+                {/* Nombre */}
                 <div>
-                  <Label htmlFor="name">Nombre de la categoría</Label>
-                  <Input id="name" placeholder="Ej: Inversiones" className="mt-1.5" />
+                  <Label htmlFor="cat-name">Nombre de la categoría</Label>
+                  <Input
+                    id="cat-name"
+                    placeholder="Ej: Inversiones"
+                    className="mt-1.5"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                  />
                 </div>
+
+                {/* Tipo */}
                 <div>
-                  <Label htmlFor="color">Color</Label>
+                  <Label>Tipo</Label>
                   <div className="flex gap-2 mt-1.5">
-                    {["hsl(340, 82%, 52%)", "hsl(25, 95%, 53%)", "hsl(45, 93%, 47%)", "hsl(160, 84%, 39%)", "hsl(217, 91%, 60%)", "hsl(280, 65%, 60%)"].map((color) => (
+                    <button
+                      type="button"
+                      onClick={() => setNewCatType("gasto")}
+                      className={`flex-1 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                        newCatType === "gasto"
+                          ? "border-destructive bg-destructive/10 text-destructive"
+                          : "border-border text-muted-foreground"
+                      }`}
+                    >
+                      Gasto
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewCatType("ingreso")}
+                      className={`flex-1 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                        newCatType === "ingreso"
+                          ? "border-success bg-success/10 text-success"
+                          : "border-border text-muted-foreground"
+                      }`}
+                    >
+                      Ingreso
+                    </button>
+                  </div>
+                </div>
+
+                {/* Color */}
+                <div>
+                  <Label>Color</Label>
+                  <div className="flex gap-2 mt-1.5 flex-wrap">
+                    {PALETTE.map((color) => (
                       <button
                         key={color}
-                        className="w-8 h-8 rounded-lg border-2 border-transparent hover:border-foreground/50 transition-colors"
+                        type="button"
+                        onClick={() => setNewCatColor(color)}
+                        className={`w-8 h-8 rounded-lg border-2 transition-all ${
+                          newCatColor === color
+                            ? "border-foreground scale-110"
+                            : "border-transparent hover:border-foreground/50"
+                        }`}
                         style={{ backgroundColor: color }}
                       />
                     ))}
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="description">Descripción (opcional)</Label>
-                  <Textarea id="description" placeholder="Describe esta categoría..." className="mt-1.5" />
-                </div>
-                <Button className="w-full">Crear categoría</Button>
+
+                <Button
+                  className="w-full"
+                  onClick={handleCreateCategory}
+                  disabled={!newCatName.trim()}
+                >
+                  Crear categoría
+                </Button>
               </div>
             </DialogContent>
           </Dialog>

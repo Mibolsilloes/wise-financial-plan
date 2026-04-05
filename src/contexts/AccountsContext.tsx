@@ -48,6 +48,7 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
         type: "corriente" as const,
         balance: Number(a.balance),
         color: a.color,
+        lastUpdate: a.created_at,
       }));
       setAccounts(transformed);
     }

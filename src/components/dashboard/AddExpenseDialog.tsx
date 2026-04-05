@@ -112,25 +112,28 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
       return;
     }
 
-    const selectedAcc = accounts.find((a) => a.id === conta);
+    const selectedAcc  = accounts.find((a) => a.id === conta);
     const selectedCard = creditCards.find((c) => c.id === cartao);
     const responsibleName = responsibles.find((r) => r.id === responsavel)?.label || "Juan García";
 
     addTransaction({
       type: "gasto",
-      description: descricao.trim(),
+      description:   descricao.trim(),
       amount,
-      category: categoria,
-      subcategory: subcategoria || undefined,
-      account: selectedAcc?.name || "Cuenta Principal",
-      creditCard: selectedCard?.name,
-      responsible: responsibleName,
-      dueDate: dataVencimento,
-      paymentDate: foiPaga ? dataPagamento : undefined,
+      category:      categoria,
+      categoryId:    selectedCategory?.id,
+      subcategory:   subcategoria || undefined,
+      account:       selectedAcc?.name || "",
+      accountId:     conta     || undefined,
+      creditCard:    selectedCard?.name,
+      creditCardId:  cartao    || undefined,
+      responsible:   responsibleName,
+      dueDate:       dataVencimento,
+      paymentDate:   foiPaga ? dataPagamento : undefined,
       competenceDate: dataCompetencia,
-      status: foiPaga ? "pagado" : "pendiente",
-      isFixed: despesaFixa,
-      color: selectedCategory?.color || "hsl(340, 82%, 52%)",
+      status:        foiPaga ? "pagado" : "pendiente",
+      isFixed:       despesaFixa,
+      color:         selectedCategory?.color || "hsl(340, 82%, 52%)",
     });
 
     toast({

@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { 
-  Home, 
-  BarChart3, 
-  Tags, 
-  Building2, 
-  CreditCard, 
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Home,
+  BarChart3,
+  Tags,
+  Building2,
+  CreditCard,
   Settings,
   User,
   ChevronDown,
-  Crown
+  Crown,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -21,24 +21,38 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import logoIcon from "@/assets/logo-icon.png";
-
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 const navItems = [
-  { path: "/", label: "Planifica tu dinero", icon: Home },
-  { path: "/relatorios", label: "Informes", icon: BarChart3 },
-  { path: "/categorias", label: "Categorías", icon: Tags },
-  { path: "/contas", label: "Cuentas bancarias", icon: Building2 },
-  { path: "/cartoes", label: "Tarjetas de crédito", icon: CreditCard },
-  { path: "/configuracoes", label: "Ajustes", icon: Settings },
+  { path: "/",              label: "Planifica tu dinero",  icon: Home },
+  { path: "/relatorios",   label: "Informes",             icon: BarChart3 },
+  { path: "/categorias",   label: "Categorías",           icon: Tags },
+  { path: "/contas",       label: "Cuentas bancarias",    icon: Building2 },
+  { path: "/cartoes",      label: "Tarjetas de crédito",  icon: CreditCard },
+  { path: "/configuracoes",label: "Ajustes",              icon: Settings },
 ];
 
 export function TopNav() {
-  const location = useLocation();
-  const [user] = useState({
-    name: "Juan García",
-    plan: "Premium",
-    avatar: "",
-  });
+  const location            = useLocation();
+  const navigate            = useNavigate();
+  const { user, profile, signOut } = useAuth();
+
+  const displayName = profile?.full_name || user?.email?.split("@")[0] || "Usuario";
+  const displayEmail = user?.email || "";
+
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Sesión cerrada correctamente");
+    navigate("/auth");
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-lg">
@@ -47,11 +61,7 @@ export function TopNav() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
             <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center">
-              <img 
-                src={logoIcon} 
-                alt="MiBolsillo" 
-                className="h-6 w-auto"
-              />
+              <img src={logoIcon} alt="MiBolsillo" className="h-6 w-auto" />
             </div>
             <span className="text-white font-bold text-lg hidden sm:block">MiBolsillo</span>
           </Link>
@@ -83,16 +93,16 @@ export function TopNav() {
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors">
                 <Avatar className="w-8 h-8 border-2 border-white/30">
-                  <AvatarImage src={user.avatar} alt={user.name} />
+                  <AvatarImage src={profile?.avatar_url || ""} alt={displayName} />
                   <AvatarFallback className="bg-white/20 text-white text-xs font-semibold">
-                    {user.name.split(" ").map(n => n[0]).join("")}
+                    {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-white">{user.name}</p>
+                  <p className="text-sm font-medium text-white leading-tight">{displayName}</p>
                   <div className="flex items-center gap-1">
                     <Crown className="w-3 h-3 text-yellow-300" />
-                    <span className="text-xs text-yellow-300">{user.plan}</span>
+                    <span className="text-xs text-yellow-300">Premium</span>
                   </div>
                 </div>
                 <ChevronDown className="w-4 h-4 text-white/70 hidden sm:block" />
@@ -100,8 +110,8 @@ export function TopNav() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-popover border-border">
               <div className="px-3 py-2">
-                <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-muted-foreground">juan@email.com</p>
+                <p className="text-sm font-medium truncate">{displayName}</p>
+                <p className="text-xs text-muted-foreground truncate">{displayEmail}</p>
               </div>
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem asChild>
@@ -117,7 +127,11 @@ export function TopNav() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border" />
-              <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer">
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive cursor-pointer gap-2"
+                onClick={handleSignOut}
+              >
+                <LogOut className="w-4 h-4" />
                 Cerrar sesión
               </DropdownMenuItem>
             </DropdownMenuContent>
