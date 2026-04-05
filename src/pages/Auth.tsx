@@ -268,7 +268,7 @@ export default function Auth() {
                 }
               />
               <div className="flex justify-end -mt-2">
-                <button type="button" className="text-xs text-primary/80 hover:text-primary transition-colors">
+                <button type="button" onClick={() => { setTab("forgot"); setForgotSent(false); setForgotEmail(loginEmail); }} className="text-xs text-primary/80 hover:text-primary transition-colors">
                   ¿Olvidaste tu contraseña?
                 </button>
               </div>
@@ -323,6 +323,44 @@ export default function Auth() {
               />
               <SubmitBtn loading={loading} idle="Crear cuenta gratis" busy="Creando cuenta..." />
             </form>
+          )}
+
+          {/* ── FORGOT PASSWORD FORM ── */}
+          {tab === "forgot" && (
+            <div className="auth-form-animate mt-7 space-y-5">
+              {forgotSent ? (
+                <div className="text-center space-y-4 py-4">
+                  <Mail className="h-12 w-12 text-primary mx-auto" />
+                  <h3 className="text-lg font-semibold text-foreground">¡Correo enviado!</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Si existe una cuenta con <strong>{forgotEmail}</strong>, recibirás un enlace para restablecer tu contraseña.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => { setTab("login"); setForgotSent(false); }}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Volver al inicio de sesión
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-5">
+                  <AuthField
+                    id="f-email" type="email" label="Correo electrónico"
+                    placeholder="tu@email.com" value={forgotEmail} onChange={setForgotEmail}
+                    icon={<Mail className="h-4 w-4" />}
+                  />
+                  <SubmitBtn loading={loading} idle="Enviar enlace de recuperación" busy="Enviando..." />
+                  <button
+                    type="button"
+                    onClick={() => setTab("login")}
+                    className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors text-center"
+                  >
+                    Volver al inicio de sesión
+                  </button>
+                </form>
+              )}
+            </div>
           )}
 
           {/* Legal */}
