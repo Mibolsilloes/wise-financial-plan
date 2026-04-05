@@ -32,12 +32,14 @@ export default function Auth() {
   const navigate     = useNavigate();
   const { signIn, signUp } = useAuth();
   const [loading,  setLoading]  = useState(false);
-  const [tab,      setTab]      = useState<"login" | "register">("login");
+  const [tab,      setTab]      = useState<"login" | "register" | "forgot">("login");
   const [showPwd,  setShowPwd]  = useState(false);
   const [showCPwd, setShowCPwd] = useState(false);
 
   const [loginEmail,    setLoginEmail]    = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [forgotEmail,   setForgotEmail]   = useState("");
+  const [forgotSent,    setForgotSent]    = useState(false);
 
   const [regName,     setRegName]     = useState("");
   const [regEmail,    setRegEmail]    = useState("");
