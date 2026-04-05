@@ -3,10 +3,13 @@ import { Category } from "@/data/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 
+type CategoryInput = Omit<Category, "id">;
+type CategoryActionResult = { error: Error | null };
+
 interface CategoriesContextType {
   categories: Category[];
   loading: boolean;
-  addCategory: (category: Omit<Category, "id">) => Promise<void>;
+  addCategory: (category: CategoryInput) => Promise<CategoryActionResult>;
   updateCategory: (id: string, updates: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   getCategoryById: (id: string) => Category | undefined;
@@ -21,45 +24,79 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchCategories();
-    } else {
+  const fetchCategories = useCallback(async () => {
+    if (!user) return;
+
+    setLoading(true);
+
+    try {
+      const { data: categoryRows, error: categoriesError } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("position", { ascending: true });
+
+      if (categoriesError) {
+        console.error("fetchCategories error:", categoriesError);
+        setCategories([]);
+        return;
+      }
+
+      const categoryIds = (categoryRows ?? []).map((category) => category.id);
+      const subcategoriesByCategory = new Map<string, string[]>();
+
+      if (categoryIds.length > 0) {
+        const { data: subcategoryRows, error: subcategoriesError } = await supabase
+          .from("subcategories")
+          .select("category_id, name")
+          .in("category_id", categoryIds)
+          .order("created_at", { ascending: true });
+
+        if (subcategoriesError) {
+          console.error("fetchSubcategories error:", subcategoriesError);
+        } else {
+          subcategoryRows.forEach((subcategory) => {
+            const items = subcategoriesByCategory.get(subcategory.category_id) ?? [];
+            items.push(subcategory.name);
+            subcategoriesByCategory.set(subcategory.category_id, items);
+          });
+        }
+      }
+
+      const transformed: Category[] = (categoryRows ?? []).map((category) => ({
+        id: category.id,
+        name: category.name,
+        type: category.type as "ingreso" | "gasto",
+        color: category.color,
+        icon: category.icon,
+        subcategories: subcategoriesByCategory.get(category.id) ?? [],
+        totalAmount: 0,
+        position: category.position ?? undefined,
+        keywords: category.keywords ?? undefined,
+      }));
+
+      setCategories(transformed);
+    } catch (error) {
+      console.error("Unexpected fetchCategories error:", error);
       setCategories([]);
+    } finally {
+      setLoading(false);
     }
   }, [user]);
 
-  const fetchCategories = async () => {
-    if (!user) return;
-    setLoading(true);
-
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*, subcategories(name)")
-      .eq("user_id", user.id)
-      .order("position", { ascending: true });
-
-    if (!error && data) {
-      const transformed: Category[] = data.map((c) => ({
-        id: c.id,
-        name: c.name,
-        type: c.type as "ingreso" | "gasto",
-        color: c.color,
-        icon: c.icon,
-        subcategories: (c.subcategories as { name: string }[])?.map((s) => s.name) || [],
-        totalAmount: 0,
-        position: c.position ?? undefined,
-        keywords: c.keywords ?? undefined,
-      }));
-      setCategories(transformed);
+  useEffect(() => {
+    if (user) {
+      void fetchCategories();
+    } else {
+      setCategories([]);
     }
-    setLoading(false);
-  };
+  }, [user, fetchCategories]);
 
-  const addCategory = useCallback(async (category: Omit<Category, "id">) => {
+  const addCategory = useCallback(async (category: CategoryInput): Promise<CategoryActionResult> => {
     if (!user) {
-      console.error("addCategory: no user logged in");
-      return;
+      const error = new Error("Usuario no autenticado");
+      console.error("addCategory error:", error);
+      return { error };
     }
 
     const { data, error } = await supabase
@@ -78,22 +115,32 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       console.error("addCategory error:", error);
-      return;
+      return { error: error as Error };
     }
 
-    if (data) {
-      setCategories((prev) => [...prev, {
-        id: data.id,
-        name: data.name,
-        type: data.type as "ingreso" | "gasto",
-        color: data.color,
-        icon: data.icon,
-        subcategories: [],
-        totalAmount: 0,
-        position: data.position ?? undefined,
-        keywords: data.keywords ?? undefined,
-      }]);
+    if (!data) {
+      const missingDataError = new Error("No se pudo recuperar la categoría creada");
+      console.error("addCategory error:", missingDataError);
+      return { error: missingDataError };
     }
+
+    const createdCategory: Category = {
+      id: data.id,
+      name: data.name,
+      type: data.type as "ingreso" | "gasto",
+      color: data.color,
+      icon: data.icon,
+      subcategories: [],
+      totalAmount: 0,
+      position: data.position ?? undefined,
+      keywords: data.keywords ?? undefined,
+    };
+
+    setCategories((prev) =>
+      [...prev, createdCategory].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+    );
+
+    return { error: null };
   }, [user]);
 
   const updateCategory = useCallback(async (id: string, updates: Partial<Category>) => {
@@ -109,7 +156,8 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase
       .from("categories")
       .update(dbUpdates)
-      .eq("id", id);
+      .eq("id", id)
+      .eq("user_id", user.id);
 
     if (!error) {
       setCategories((prev) => prev.map((c) => (c.id === id ? { ...c, ...updates } : c)));
@@ -121,7 +169,8 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase
       .from("categories")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("user_id", user.id);
 
     if (!error) {
       setCategories((prev) => prev.filter((c) => c.id !== id));
@@ -140,7 +189,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
 
   const refetchCategories = useCallback(async () => {
     await fetchCategories();
-  }, [user]);
+  }, [fetchCategories]);
 
   return (
     <CategoriesContext.Provider
