@@ -64,21 +64,32 @@ export default function Categories() {
   const [newCatType,  setNewCatType]  = useState<"gasto" | "ingreso">("gasto");
 
   const handleCreateCategory = async () => {
-    if (!newCatName.trim()) {
+    const categoryName = newCatName.trim();
+
+    if (!categoryName) {
       toast.error("El nombre de la categoría es obligatorio");
       return;
     }
-    await addCategory({
-      name:        newCatName.trim(),
-      type:        newCatType,
-      color:       newCatColor,
-      icon:        "Tag",
+
+    const { error } = await addCategory({
+      name: categoryName,
+      type: newCatType,
+      color: newCatColor,
+      icon: "Tag",
       subcategories: [],
       totalAmount: 0,
-      position:    contextCategories.length,
-      keywords:    [],
+      position: contextCategories.length,
+      keywords: [],
     });
-    toast.success(`Categoría "${newCatName.trim()}" creada`);
+
+    if (error) {
+      toast.error("No se pudo crear la categoría", {
+        description: error.message,
+      });
+      return;
+    }
+
+    toast.success(`Categoría "${categoryName}" creada`);
     setNewCatName("");
     setNewCatColor(PALETTE[3]);
     setNewCatType("gasto");
