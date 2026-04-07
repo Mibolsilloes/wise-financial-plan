@@ -79,8 +79,9 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
   };
 
   const handleSave = async () => {
-    // Validation
-    const amount = parseFloat(valor);
+    // Validation - support both comma and dot decimal separators
+    const normalizedValor = valor.replace(",", ".");
+    const amount = parseFloat(normalizedValor);
     if (isNaN(amount) || amount <= 0) {
       toast({
         title: "Error",
@@ -103,6 +104,15 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
       toast({
         title: "Error",
         description: "Por favor, selecciona una categoría",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (incomeCategories.length === 0) {
+      toast({
+        title: "Error",
+        description: "No hay categorías de ingreso disponibles. Crea una categoría primero.",
         variant: "destructive",
       });
       return;

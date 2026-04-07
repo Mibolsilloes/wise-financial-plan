@@ -66,6 +66,8 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
   const expenseCategories = categories.filter((c) => c.type === "gasto");
   const selectedCategory = categories.find((c) => c.name === categoria);
 
+  console.log("Debug - Expense categories:", expenseCategories.length, "Available categories:", categories.length);
+
   const resetForm = () => {
     setValor("");
     setDescricao("");
@@ -83,8 +85,9 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
   };
 
   const handleSave = async () => {
-    // Validation
-    const amount = parseFloat(valor);
+    // Validation - support both comma and dot decimal separators
+    const normalizedValor = valor.replace(",", ".");
+    const amount = parseFloat(normalizedValor);
     if (isNaN(amount) || amount <= 0) {
       toast({
         title: "Error",
@@ -107,6 +110,15 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
       toast({
         title: "Error",
         description: "Por favor, selecciona una categoría",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (expenseCategories.length === 0) {
+      toast({
+        title: "Error",
+        description: "No hay categorías de gasto disponibles. Crea una categoría primero.",
         variant: "destructive",
       });
       return;
