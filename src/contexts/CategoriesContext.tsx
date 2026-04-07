@@ -6,6 +6,15 @@ import { useAuth } from "./AuthContext";
 type CategoryInput = Omit<Category, "id">;
 type CategoryActionResult = { error: Error | null };
 
+// Funções de mapeamento entre valores da interface (espanhol) e banco de dados (inglês)
+const mapCategoryTypeToDb = (uiType: "ingreso" | "gasto"): "income" | "expense" => {
+  return uiType === "ingreso" ? "income" : "expense";
+};
+
+const mapCategoryTypeFromDb = (dbType: "income" | "expense"): "ingreso" | "gasto" => {
+  return dbType === "income" ? "ingreso" : "gasto";
+};
+
 interface CategoriesContextType {
   categories: Category[];
   loading: boolean;
@@ -66,7 +75,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
       const transformed: Category[] = (categoryRows ?? []).map((category) => ({
         id: category.id,
         name: category.name,
-        type: category.type as "ingreso" | "gasto",
+        type: mapCategoryTypeFromDb(category.type as "income" | "expense"),
         color: category.color,
         icon: category.icon,
         subcategories: subcategoriesByCategory.get(category.id) ?? [],
@@ -104,7 +113,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
       .insert({
         user_id: user.id,
         name: category.name,
-        type: category.type,
+        type: mapCategoryTypeToDb(category.type),
         color: category.color,
         icon: category.icon,
         keywords: category.keywords || [],
@@ -127,7 +136,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
     const createdCategory: Category = {
       id: data.id,
       name: data.name,
-      type: data.type as "ingreso" | "gasto",
+      type: mapCategoryTypeFromDb(data.type as "income" | "expense"),
       color: data.color,
       icon: data.icon,
       subcategories: [],
@@ -147,7 +156,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     const dbUpdates: Record<string, unknown> = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
-    if (updates.type !== undefined) dbUpdates.type = updates.type;
+    if (updates.type !== undefined) dbUpdates.type = mapCategoryTypeToDb(updates.type);
     if (updates.color !== undefined) dbUpdates.color = updates.color;
     if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
     if (updates.keywords !== undefined) dbUpdates.keywords = updates.keywords;
