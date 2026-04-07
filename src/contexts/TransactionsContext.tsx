@@ -25,7 +25,7 @@ type TransactionRow = {
 interface TransactionsContextType {
   transactions: Transaction[];
   loading: boolean;
-  addTransaction: (transaction: Omit<Transaction, "id">) => Promise<void>;
+  addTransaction: (transaction: Omit<Transaction, "id">) => Promise<{ error: Error | null }>;
   updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
   getTransactionsByCategory: (categoryName: string) => Transaction[];
@@ -102,34 +102,48 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   };
 
-  const addTransaction = useCallback(async (transaction: Omit<Transaction, "id">) => {
-    if (!user) return;
+  const addTransaction = useCallback(async (transaction: Omit<Transaction, "id">): Promise<{ error: Error | null }> => {
+    if (!user) {
+      return { error: new Error("Usuário não autenticado") };
+    }
 
-    const isPaid = ["pagado", "cobrado"].includes(transaction.status);
+    try {
+      const isPaid = ["pagado", "cobrado"].includes(transaction.status);
 
-    const { data, error } = await supabase
-      .from("transactions")
-      .insert({
-        user_id:        user.id,
-        description:    transaction.description,
-        amount:         transaction.amount,
-        type:           transaction.type === "ingreso" ? "income" : "expense",
-        status:         isPaid ? "paid" : "pending",
-        category_id:    transaction.categoryId    || null,
-        subcategory:    transaction.subcategory   || null,
-        account_id:     transaction.accountId     || null,
-        credit_card_id: transaction.creditCardId  || null,
-        due_date:       transaction.dueDate.toISOString().split("T")[0],
-        payment_date:   transaction.paymentDate
-          ? transaction.paymentDate.toISOString().split("T")[0]
-          : null,
-      })
-      .select()
-      .single();
+      const { data, error } = await supabase
+        .from("transactions")
+        .insert({
+          user_id:        user.id,
+          description:    transaction.description,
+          amount:         transaction.amount,
+          type:           transaction.type === "ingreso" ? "income" : "expense",
+          status:         isPaid ? "paid" : "pending",
+          category_id:    transaction.categoryId    || null,
+          subcategory:    transaction.subcategory   || null,
+          account_id:     transaction.accountId     || null,
+          credit_card_id: transaction.creditCardId  || null,
+          due_date:       transaction.dueDate.toISOString().split("T")[0],
+          payment_date:   transaction.paymentDate
+            ? transaction.paymentDate.toISOString().split("T")[0]
+            : null,
+        })
+        .select()
+        .single();
 
-    if (!error && data) {
-      const newTransaction: Transaction = { ...transaction, id: data.id };
-      setTransactions((prev) => [newTransaction, ...prev]);
+      if (error) {
+        console.error("addTransaction error:", error);
+        return { error: new Error(error.message) };
+      }
+
+      if (data) {
+        const newTransaction: Transaction = { ...transaction, id: data.id };
+        setTransactions((prev) => [newTransaction, ...prev]);
+      }
+
+      return { error: null };
+    } catch (error) {
+      console.error("addTransaction exception:", error);
+      return { error: error instanceof Error ? error : new Error("Error al crear transacción") };
     }
   }, [user]);
 

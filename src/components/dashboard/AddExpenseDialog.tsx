@@ -82,7 +82,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
     setDataCompetencia(new Date());
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validation
     const amount = parseFloat(valor);
     if (isNaN(amount) || amount <= 0) {
@@ -116,7 +116,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
     const selectedCard = creditCards.find((c) => c.id === cartao);
     const responsibleName = responsibles.find((r) => r.id === responsavel)?.label || "Juan García";
 
-    addTransaction({
+    const { error } = await addTransaction({
       type: "gasto",
       description:   descricao.trim(),
       amount,
@@ -135,6 +135,15 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
       isFixed:       despesaFixa,
       color:         selectedCategory?.color || "hsl(340, 82%, 52%)",
     });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: `No se pudo crear el gasto: ${error.message}`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     toast({
       title: "Gasto añadido",
@@ -197,6 +206,11 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                   ))}
                 </SelectContent>
               </Select>
+              {expenseCategories.length === 0 && (
+                <p className="text-sm text-warning mt-2">
+                  No hay categorías de gasto. Crea una categoría en la página de Categorías primero.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -464,6 +478,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
         {/* Botón guardar */}
         <Button
           onClick={handleSave}
+          disabled={expenseCategories.length === 0}
           className="w-full bg-destructive hover:bg-destructive/90 text-white"
         >
           <TrendingDown className="mr-2 h-4 w-4" />

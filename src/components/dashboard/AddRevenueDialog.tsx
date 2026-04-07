@@ -78,7 +78,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
     setDataCompetencia(new Date());
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Validation
     const amount = parseFloat(valor);
     if (isNaN(amount) || amount <= 0) {
@@ -111,7 +111,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
     const selectedAcc = accounts.find((a) => a.id === conta);
     const responsibleName = responsibles.find((r) => r.id === responsavel)?.label || "Juan García";
 
-    addTransaction({
+    const { error } = await addTransaction({
       type: "ingreso",
       description:   descricao.trim(),
       amount,
@@ -128,6 +128,15 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
       isFixed:       receitaFixa,
       color:         selectedCategory?.color || "hsl(142, 76%, 36%)",
     });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: `No se pudo crear el ingreso: ${error.message}`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     toast({
       title: "Ingreso añadido",
@@ -190,6 +199,11 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                   ))}
                 </SelectContent>
               </Select>
+              {incomeCategories.length === 0 && (
+                <p className="text-sm text-warning mt-2">
+                  No hay categorías de ingreso. Crea una categoría en la página de Categorías primero.
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -432,6 +446,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
         {/* Botón guardar */}
         <Button
           onClick={handleSave}
+          disabled={incomeCategories.length === 0}
           className="w-full bg-success hover:bg-success/90 text-white"
         >
           <TrendingUp className="mr-2 h-4 w-4" />
