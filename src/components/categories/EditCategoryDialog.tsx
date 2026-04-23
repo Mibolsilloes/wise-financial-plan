@@ -159,21 +159,24 @@ export function EditCategoryDialog({
 
   const handleAddSubcategory = async () => {
     if (!category) return;
-    const name = newSubcategory.trim();
-    if (!name) return;
-    if (subcategories.includes(name)) {
-      toast.error("Esa subcategoría ya existe");
+    const normalized = newSubcategory.trim().replace(/\s+/g, " ");
+    if (!normalized) return;
+    const isDuplicate = subcategories.some(
+      (s) => s.trim().toLowerCase() === normalized.toLowerCase()
+    );
+    if (isDuplicate) {
+      toast.error("Ya existe una subcategoría con ese nombre");
       return;
     }
     setSavingSub(true);
-    const { error } = await addSubcategory(category.id, name);
+    const { error } = await addSubcategory(category.id, normalized);
     setSavingSub(false);
     if (error) {
       toast.error("No se pudo crear la subcategoría", { description: error.message });
       return;
     }
     setNewSubcategory("");
-    toast.success(`Subcategoría "${name}" añadida`);
+    toast.success(`Subcategoría "${normalized}" añadida`);
   };
 
   const handleRemoveSubcategory = async (name: string) => {
