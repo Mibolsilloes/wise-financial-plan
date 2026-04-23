@@ -34,12 +34,12 @@ const App = () => (
     <TooltipProvider>
       <ThemeProvider>
         <AuthProvider>
-          <TransactionsProvider>
-            <CategoriesProvider>
-              <AccountsProvider>
-                <CreditCardsProvider>
-                  <ResponsiblesProvider>
-                  <PeriodProvider>
+          <ResponsiblesProvider>
+            <TransactionsProvider>
+              <CategoriesProvider>
+                <AccountsProvider>
+                  <CreditCardsProvider>
+                    <PeriodProvider>
                     <FilterProvider>
                       <Toaster />
                       <Sonner />
@@ -61,11 +61,11 @@ const App = () => (
                       </BrowserRouter>
                     </FilterProvider>
                   </PeriodProvider>
-                  </ResponsiblesProvider>
-                </CreditCardsProvider>
-              </AccountsProvider>
-            </CategoriesProvider>
-          </TransactionsProvider>
+                  </CreditCardsProvider>
+                </AccountsProvider>
+              </CategoriesProvider>
+            </TransactionsProvider>
+          </ResponsiblesProvider>
         </AuthProvider>
       </ThemeProvider>
     </TooltipProvider>
