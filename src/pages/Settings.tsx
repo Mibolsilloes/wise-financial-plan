@@ -243,6 +243,11 @@ export default function Settings() {
             </div>
           </TabsContent>
 
+          {/* ── Responsibles ── */}
+          <TabsContent value="responsibles" className="animate-fade-in">
+            <ResponsiblesManager />
+          </TabsContent>
+
           {/* ── Preferences ── */}
           <TabsContent value="preferences" className="animate-fade-in">
             <div className="glass rounded-xl p-6 max-w-2xl">
