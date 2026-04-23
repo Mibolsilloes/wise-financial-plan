@@ -206,16 +206,6 @@ export default function CategoryReport() {
   );
   
   const category = id ? categoryData[id] : null;
-  
-  if (!category) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-6">
-          <p>Categoría no encontrada</p>
-        </div>
-      </Layout>
-    );
-  }
 
   const monthNames = [
     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
