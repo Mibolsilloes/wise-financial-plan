@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme, ThemeColor } from "@/contexts/ThemeContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
 import { ResponsiblesManager } from "@/components/settings/ResponsiblesManager";
+import { usePlan } from "@/hooks/usePlan";
 import {
   User,
   Share2,
@@ -570,10 +571,5 @@ function UsageStat({ label, used, max }: { label: string; used: number; max: num
         </div>
       )}
     </div>
-  );
-}
-        </Tabs>
-      </div>
-    </Layout>
   );
 }
