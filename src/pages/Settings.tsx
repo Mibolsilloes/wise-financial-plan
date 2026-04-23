@@ -4,6 +4,7 @@ import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme, ThemeColor } from "@/contexts/ThemeContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
+import { ResponsiblesManager } from "@/components/settings/ResponsiblesManager";
 import {
   User,
   Share2,
@@ -22,6 +23,7 @@ import {
   AlertTriangle,
   LogOut,
   Check,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -149,6 +151,7 @@ export default function Settings() {
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList className="glass border border-border/50 p-1 flex-wrap h-auto gap-1">
             <TabsTrigger value="profile"       className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><User className="w-4 h-4" />Mi perfil</TabsTrigger>
+            <TabsTrigger value="responsibles"  className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Users className="w-4 h-4" />Responsables</TabsTrigger>
             <TabsTrigger value="preferences"   className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Globe className="w-4 h-4" />Preferencias</TabsTrigger>
             <TabsTrigger value="notifications" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Bell className="w-4 h-4" />Notificaciones</TabsTrigger>
             <TabsTrigger value="appearance"    className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"><Palette className="w-4 h-4" />Apariencia</TabsTrigger>
@@ -238,6 +241,11 @@ export default function Settings() {
                 </Button>
               </div>
             </div>
+          </TabsContent>
+
+          {/* ── Responsibles ── */}
+          <TabsContent value="responsibles" className="animate-fade-in">
+            <ResponsiblesManager />
           </TabsContent>
 
           {/* ── Preferences ── */}

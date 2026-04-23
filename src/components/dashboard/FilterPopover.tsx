@@ -30,6 +30,7 @@ import { useCategories } from "@/contexts/CategoriesContext";
 import { useAccounts } from "@/contexts/AccountsContext";
 import { useCreditCards } from "@/contexts/CreditCardsContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
+import { useResponsibles } from "@/contexts/ResponsiblesContext";
 
 interface FilterPopoverContentProps {
   onApply: () => void;
@@ -42,6 +43,7 @@ function FilterPopoverContent({ onApply, onClear }: FilterPopoverContentProps) {
   const { accounts: bankAccounts } = useAccounts();
   const { creditCards } = useCreditCards();
   const { transactions } = useTransactions();
+  const { responsibles: configuredResponsibles } = useResponsibles();
 
   const handleClear = () => {
     clearFilters();
@@ -52,9 +54,12 @@ function FilterPopoverContent({ onApply, onClear }: FilterPopoverContentProps) {
     onApply();
   };
 
-  // Derive unique responsibles from real transactions
+  // Combine configured responsibles with any historical names found in transactions
   const responsibles = Array.from(
-    new Set(transactions.map((t) => t.responsible).filter(Boolean))
+    new Set([
+      ...configuredResponsibles.map((r) => r.name),
+      ...transactions.map((t) => t.responsible).filter(Boolean),
+    ])
   );
 
   return (

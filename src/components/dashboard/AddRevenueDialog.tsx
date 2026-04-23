@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { useTransactions } from "@/contexts/TransactionsContext";
 import { useCategories } from "@/contexts/CategoriesContext";
 import { useAccounts } from "@/contexts/AccountsContext";
+import { useResponsibles } from "@/contexts/ResponsiblesContext";
 import { useToast } from "@/hooks/use-toast";
 
 interface AddRevenueDialogProps {
@@ -36,15 +37,11 @@ interface AddRevenueDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const responsibles = [
-  { id: "juan", label: "Juan García" },
-  { id: "maria", label: "María López" },
-];
-
 export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) {
   const { addTransaction } = useTransactions();
   const { categories } = useCategories();
   const { accounts } = useAccounts();
+  const { responsibles } = useResponsibles();
   const { toast } = useToast();
 
   const [valor, setValor] = useState("");
@@ -119,7 +116,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
     }
 
     const selectedAcc = accounts.find((a) => a.id === conta);
-    const responsibleName = responsibles.find((r) => r.id === responsavel)?.label || "Juan García";
+    const responsibleName = responsibles.find((r) => r.id === responsavel)?.name || "";
 
     const { error } = await addTransaction({
       type: "ingreso",
@@ -401,18 +398,23 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
                   <p className="text-xs text-muted-foreground">Identifica a alguien</p>
                 </div>
               </div>
-              <Select value={responsavel} onValueChange={setResponsavel}>
+              <Select value={responsavel} onValueChange={setResponsavel} disabled={responsibles.length === 0}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona un responsable" />
+                  <SelectValue placeholder={responsibles.length === 0 ? "Añade responsables en Ajustes" : "Selecciona un responsable"} />
                 </SelectTrigger>
                 <SelectContent>
                   {responsibles.map((resp) => (
                     <SelectItem key={resp.id} value={resp.id}>
-                      {resp.label}
+                      {resp.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {responsibles.length === 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Ve a Ajustes → Responsables para añadir hasta 3 personas.
+                </p>
+              )}
             </div>
 
             {/* Fecha de competencia */}

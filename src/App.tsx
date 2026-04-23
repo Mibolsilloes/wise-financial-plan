@@ -10,6 +10,7 @@ import { TransactionsProvider } from "./contexts/TransactionsContext";
 import { CategoriesProvider } from "./contexts/CategoriesContext";
 import { AccountsProvider } from "./contexts/AccountsContext";
 import { CreditCardsProvider } from "./contexts/CreditCardsContext";
+import { ResponsiblesProvider } from "./contexts/ResponsiblesContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Index from "./pages/Index";
@@ -37,6 +38,7 @@ const App = () => (
             <CategoriesProvider>
               <AccountsProvider>
                 <CreditCardsProvider>
+                  <ResponsiblesProvider>
                   <PeriodProvider>
                     <FilterProvider>
                       <Toaster />
@@ -59,6 +61,7 @@ const App = () => (
                       </BrowserRouter>
                     </FilterProvider>
                   </PeriodProvider>
+                  </ResponsiblesProvider>
                 </CreditCardsProvider>
               </AccountsProvider>
             </CategoriesProvider>
