@@ -85,12 +85,14 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+type ActionResult = { error: Error | null };
+
 interface TransferDialogProps {
   sourceAccount: BankAccount;
   accounts: BankAccount[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTransfer: (fromId: string, toId: string, amount: number) => void;
+  onTransfer: (fromId: string, toId: string, amount: number) => Promise<ActionResult>;
 }
 
 function TransferDialog({ sourceAccount, accounts, open, onOpenChange, onTransfer }: TransferDialogProps) {
@@ -112,12 +114,22 @@ function TransferDialog({ sourceAccount, accounts, open, onOpenChange, onTransfe
   const SourceIcon = bankIcons[sourceAccount.name] || Building2;
   const sourceColor = bankColors[sourceAccount.name] || "hsl(217, 91%, 60%)";
 
-  const handleTransfer = () => {
+  const handleTransfer = async () => {
     const numAmount = parseFloat(amount.replace(",", ".")) || 0;
-    if (destinationAccountId && numAmount > 0) {
-      onTransfer(sourceAccount.id, destinationAccountId, numAmount);
-      toast.success(`Transferencia de ${formatCurrency(numAmount)} realizada correctamente`);
+    if (!destinationAccountId || numAmount <= 0) {
+      toast.error("Selecciona una cuenta de destino y un importe válido");
+      return;
     }
+    if (numAmount > sourceAccount.balance) {
+      toast.error("Saldo insuficiente en la cuenta de origen");
+      return;
+    }
+    const { error } = await onTransfer(sourceAccount.id, destinationAccountId, numAmount);
+    if (error) {
+      toast.error("No se pudo realizar la transferencia", { description: error.message });
+      return;
+    }
+    toast.success(`Transferencia de ${formatCurrency(numAmount)} realizada correctamente`);
     onOpenChange(false);
   };
 
@@ -281,7 +293,7 @@ interface AdjustBalanceDialogProps {
   account: BankAccount;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdjust: (id: string, amount: number, operation: "add" | "subtract" | "set") => void;
+  onAdjust: (id: string, amount: number, operation: "add" | "subtract" | "set") => Promise<ActionResult>;
 }
 
 function AdjustBalanceDialog({ account, open, onOpenChange, onAdjust }: AdjustBalanceDialogProps) {
@@ -316,12 +328,18 @@ function AdjustBalanceDialog({ account, open, onOpenChange, onAdjust }: AdjustBa
     }
   };
 
-  const handleAdjust = () => {
+  const handleAdjust = async () => {
     const numAmount = parseFloat(amount.replace(",", ".")) || 0;
-    if (numAmount > 0 || adjustmentType === "set") {
-      onAdjust(account.id, numAmount, adjustmentType);
-      toast.success("Saldo ajustado correctamente");
+    if (numAmount <= 0 && adjustmentType !== "set") {
+      toast.error("Introduce un importe válido");
+      return;
     }
+    const { error } = await onAdjust(account.id, numAmount, adjustmentType);
+    if (error) {
+      toast.error("No se pudo ajustar el saldo", { description: error.message });
+      return;
+    }
+    toast.success("Saldo ajustado correctamente");
     onOpenChange(false);
   };
 
@@ -523,7 +541,7 @@ interface EditAccountDialogProps {
   account: BankAccount;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (id: string, updates: Partial<BankAccount>) => void;
+  onSave: (id: string, updates: Partial<BankAccount>) => Promise<ActionResult>;
 }
 
 function EditAccountDialog({ account, open, onOpenChange, onSave }: EditAccountDialogProps) {
@@ -541,12 +559,20 @@ function EditAccountDialog({ account, open, onOpenChange, onSave }: EditAccountD
   const AccountIcon = bankIcons[account.name] || Building2;
   const accountColor = bankColors[account.name] || "hsl(217, 91%, 60%)";
 
-  const handleSave = () => {
-    onSave(account.id, {
-      name: accountName,
+  const handleSave = async () => {
+    if (!accountName.trim()) {
+      toast.error("El nombre es obligatorio");
+      return;
+    }
+    const { error } = await onSave(account.id, {
+      name: accountName.trim(),
       isDefault,
       balance: parseFloat(initialBalance.replace(",", ".")) || 0,
     });
+    if (error) {
+      toast.error("No se pudo actualizar la cuenta", { description: error.message });
+      return;
+    }
     toast.success("Cuenta actualizada correctamente");
     onOpenChange(false);
   };
@@ -658,18 +684,31 @@ export default function BankAccounts() {
       toast.error("El nombre de la cuenta es obligatorio");
       return;
     }
-    await addAccount({
+    const { error } = await addAccount({
       name:    newAccountName.trim(),
       bank:    newAccountBank.trim() || newAccountName.trim(),
       type:    "corriente",
       balance: parseFloat(newAccountBalance.replace(",", ".")) || 0,
       color:   "hsl(157, 54%, 33%)",
     });
+    if (error) {
+      toast.error("No se pudo crear la cuenta", { description: error.message });
+      return;
+    }
     toast.success("Cuenta creada correctamente");
     setNewAccountName("");
     setNewAccountBank("");
     setNewAccountBalance("0");
     setIsDialogOpen(false);
+  };
+
+  const handleDeleteAccount = async (id: string) => {
+    const { error } = await deleteAccount(id);
+    if (error) {
+      toast.error("No se pudo eliminar la cuenta", { description: error.message });
+      return;
+    }
+    toast.success("Cuenta eliminada");
   };
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [adjustBalanceDialogOpen, setAdjustBalanceDialogOpen] = useState(false);
@@ -837,10 +876,7 @@ export default function BankAccounts() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="gap-2 cursor-pointer text-destructive focus:text-destructive"
-                          onClick={() => {
-                            deleteAccount(account.id);
-                            toast.success("Cuenta eliminada");
-                          }}
+                          onClick={() => handleDeleteAccount(account.id)}
                         >
                           <Archive className="w-4 h-4" />
                           Eliminar cuenta

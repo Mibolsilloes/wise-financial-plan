@@ -49,6 +49,7 @@ export interface CreditCard {
   name: string;
   bank: string;
   brand: string;
+  lastDigits?: string;
   limit: number;
   used: number;
   closingDay: number;

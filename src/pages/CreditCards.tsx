@@ -60,6 +60,7 @@ interface CardForEdit {
   id: string;
   name: string;
   brand: string;
+  lastDigits: string;
   limit: number;
   used: number;
   closingDay: number;
@@ -79,22 +80,25 @@ export default function CreditCards() {
   const [isDialogOpen,   setIsDialogOpen]   = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedCardForEdit, setSelectedCardForEdit] = useState<CardForEdit | null>(null);
+  const [savingNew, setSavingNew] = useState(false);
 
   // ── estado do formulário "Nova tarjeta" ──
   const [newName,       setNewName]       = useState("");
   const [newLimit,      setNewLimit]      = useState("");
   const [newBrand,      setNewBrand]      = useState("Visa");
+  const [newLastDigits, setNewLastDigits] = useState("");
   const [newClosingDay, setNewClosingDay] = useState("15");
   const [newDueDay,     setNewDueDay]     = useState("22");
-  const [newAccountId,  setNewAccountId]  = useState("");
+  const [newAccountId,  setNewAccountId]  = useState("none");
 
   const resetNewForm = () => {
     setNewName("");
     setNewLimit("");
     setNewBrand("Visa");
+    setNewLastDigits("");
     setNewClosingDay("15");
     setNewDueDay("22");
-    setNewAccountId("");
+    setNewAccountId("none");
   };
 
   const handleCreateCard = async () => {
@@ -107,16 +111,40 @@ export default function CreditCards() {
       toast.error("Introduce un límite válido");
       return;
     }
-    await addCreditCard({
+    const cleanedDigits = newLastDigits.replace(/\D/g, "");
+    if (cleanedDigits.length !== 4) {
+      toast.error("Introduce los últimos 4 dígitos de la tarjeta");
+      return;
+    }
+    const closing = parseInt(newClosingDay);
+    const due = parseInt(newDueDay);
+    if (isNaN(closing) || closing < 1 || closing > 31) {
+      toast.error("El día de cierre debe estar entre 1 y 31");
+      return;
+    }
+    if (isNaN(due) || due < 1 || due > 31) {
+      toast.error("El día de vencimiento debe estar entre 1 y 31");
+      return;
+    }
+
+    setSavingNew(true);
+    const { error } = await addCreditCard({
       name:       newName.trim(),
       bank:       newBrand,
       brand:      newBrand,
+      lastDigits: cleanedDigits,
       limit,
       used:       0,
-      closingDay: parseInt(newClosingDay) || 15,
-      dueDay:     parseInt(newDueDay)     || 22,
+      closingDay: closing,
+      dueDay:     due,
       color:      brandColors[newBrand] || "hsl(217, 91%, 60%)",
     });
+    setSavingNew(false);
+
+    if (error) {
+      toast.error("No se pudo registrar la tarjeta", { description: error.message });
+      return;
+    }
     toast.success("Tarjeta registrada correctamente");
     resetNewForm();
     setIsDialogOpen(false);
@@ -127,6 +155,7 @@ export default function CreditCards() {
     id:         card.id,
     name:       card.name,
     brand:      card.brand || card.bank,
+    lastDigits: card.lastDigits || "",
     limit:      card.limit,
     used:       card.used,
     closingDay: card.closingDay,
@@ -140,15 +169,29 @@ export default function CreditCards() {
     setEditDialogOpen(true);
   };
 
-  const handleSaveCard = (id: string, updates: Partial<CardForEdit>) => {
-    updateCreditCard(id, {
+  const handleSaveCard = async (id: string, updates: Partial<CardForEdit>) => {
+    const { error } = await updateCreditCard(id, {
       name:       updates.name,
       brand:      updates.brand,
+      lastDigits: updates.lastDigits,
       limit:      updates.limit,
       closingDay: updates.closingDay,
       dueDay:     updates.dueDay,
     });
+    if (error) {
+      toast.error("No se pudo actualizar la tarjeta", { description: error.message });
+      return;
+    }
     toast.success("Tarjeta actualizada correctamente");
+  };
+
+  const handleDeleteCard = async (id: string) => {
+    const { error } = await deleteCreditCard(id);
+    if (error) {
+      toast.error("No se pudo eliminar la tarjeta", { description: error.message });
+      return;
+    }
+    toast.success("Tarjeta eliminada");
   };
 
   return (
@@ -215,7 +258,19 @@ export default function CreditCards() {
                   </div>
                 </div>
 
-                {/* Días cierre / vencimiento */}
+                {/* Últimos 4 dígitos */}
+                <div>
+                  <Label htmlFor="card-digits">Últimos 4 dígitos</Label>
+                  <Input
+                    id="card-digits"
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="1234"
+                    className="mt-1.5"
+                    value={newLastDigits}
+                    onChange={(e) => setNewLastDigits(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="card-closing">Día de cierre</Label>
@@ -264,7 +319,7 @@ export default function CreditCards() {
                 <Button
                   className="w-full"
                   onClick={handleCreateCard}
-                  disabled={!newName.trim() || !newLimit}
+                  disabled={savingNew || !newName.trim() || !newLimit || newLastDigits.length !== 4}
                 >
                   Registrar tarjeta
                 </Button>
@@ -325,7 +380,7 @@ export default function CreditCards() {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="gap-2 cursor-pointer text-destructive focus:text-destructive"
-                        onClick={() => { deleteCreditCard(card.id); toast.success("Tarjeta eliminada"); }}
+                        onClick={() => handleDeleteCard(card.id)}
                       >
                         <Archive className="w-4 h-4" />
                         Eliminar
@@ -435,6 +490,7 @@ function EditCardDialog({ card, open, onOpenChange, onSave }: EditCardDialogProp
   const [cardName,   setCardName]   = useState(card.name);
   const [limit,      setLimit]      = useState(card.limit.toString());
   const [brand,      setBrand]      = useState(card.brand);
+  const [lastDigits, setLastDigits] = useState(card.lastDigits ?? "");
   const [closingDay, setClosingDay] = useState(card.closingDay.toString());
   const [dueDay,     setDueDay]     = useState(card.dueDay.toString());
 
@@ -442,6 +498,7 @@ function EditCardDialog({ card, open, onOpenChange, onSave }: EditCardDialogProp
     setCardName(card.name);
     setLimit(card.limit.toString());
     setBrand(card.brand);
+    setLastDigits(card.lastDigits ?? "");
     setClosingDay(card.closingDay.toString());
     setDueDay(card.dueDay.toString());
   }, [card]);
@@ -449,12 +506,32 @@ function EditCardDialog({ card, open, onOpenChange, onSave }: EditCardDialogProp
   const cardColor = brandColors[card.brand] || "hsl(217, 91%, 60%)";
 
   const handleSave = () => {
+    if (lastDigits.length !== 4) {
+      toast.error("Los últimos 4 dígitos son obligatorios");
+      return;
+    }
+    const parsedLimit = parseFloat(limit);
+    if (isNaN(parsedLimit) || parsedLimit <= 0) {
+      toast.error("Introduce un límite válido");
+      return;
+    }
+    const closing = parseInt(closingDay);
+    const due = parseInt(dueDay);
+    if (isNaN(closing) || closing < 1 || closing > 31) {
+      toast.error("El día de cierre debe estar entre 1 y 31");
+      return;
+    }
+    if (isNaN(due) || due < 1 || due > 31) {
+      toast.error("El día de vencimiento debe estar entre 1 y 31");
+      return;
+    }
     onSave(card.id, {
       name:       cardName,
       brand,
-      limit:      parseFloat(limit)      || card.limit,
-      closingDay: parseInt(closingDay)   || card.closingDay,
-      dueDay:     parseInt(dueDay)       || card.dueDay,
+      lastDigits,
+      limit:      parsedLimit,
+      closingDay: closing,
+      dueDay:     due,
     });
     onOpenChange(false);
   };
@@ -498,6 +575,17 @@ function EditCardDialog({ card, open, onOpenChange, onSave }: EditCardDialogProp
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Últimos 4 dígitos</Label>
+            <Input
+              inputMode="numeric"
+              maxLength={4}
+              value={lastDigits}
+              onChange={(e) => setLastDigits(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="1234"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Día de cierre</Label>
@@ -521,3 +609,4 @@ function EditCardDialog({ card, open, onOpenChange, onSave }: EditCardDialogProp
     </Dialog>
   );
 }
+
