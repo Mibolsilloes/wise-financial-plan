@@ -60,6 +60,7 @@ interface CardForEdit {
   id: string;
   name: string;
   brand: string;
+  lastDigits: string;
   limit: number;
   used: number;
   closingDay: number;
@@ -79,22 +80,25 @@ export default function CreditCards() {
   const [isDialogOpen,   setIsDialogOpen]   = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedCardForEdit, setSelectedCardForEdit] = useState<CardForEdit | null>(null);
+  const [savingNew, setSavingNew] = useState(false);
 
   // ── estado do formulário "Nova tarjeta" ──
   const [newName,       setNewName]       = useState("");
   const [newLimit,      setNewLimit]      = useState("");
   const [newBrand,      setNewBrand]      = useState("Visa");
+  const [newLastDigits, setNewLastDigits] = useState("");
   const [newClosingDay, setNewClosingDay] = useState("15");
   const [newDueDay,     setNewDueDay]     = useState("22");
-  const [newAccountId,  setNewAccountId]  = useState("");
+  const [newAccountId,  setNewAccountId]  = useState("none");
 
   const resetNewForm = () => {
     setNewName("");
     setNewLimit("");
     setNewBrand("Visa");
+    setNewLastDigits("");
     setNewClosingDay("15");
     setNewDueDay("22");
-    setNewAccountId("");
+    setNewAccountId("none");
   };
 
   const handleCreateCard = async () => {
@@ -107,16 +111,40 @@ export default function CreditCards() {
       toast.error("Introduce un límite válido");
       return;
     }
-    await addCreditCard({
+    const cleanedDigits = newLastDigits.replace(/\D/g, "");
+    if (cleanedDigits.length !== 4) {
+      toast.error("Introduce los últimos 4 dígitos de la tarjeta");
+      return;
+    }
+    const closing = parseInt(newClosingDay);
+    const due = parseInt(newDueDay);
+    if (isNaN(closing) || closing < 1 || closing > 31) {
+      toast.error("El día de cierre debe estar entre 1 y 31");
+      return;
+    }
+    if (isNaN(due) || due < 1 || due > 31) {
+      toast.error("El día de vencimiento debe estar entre 1 y 31");
+      return;
+    }
+
+    setSavingNew(true);
+    const { error } = await addCreditCard({
       name:       newName.trim(),
       bank:       newBrand,
       brand:      newBrand,
+      lastDigits: cleanedDigits,
       limit,
       used:       0,
-      closingDay: parseInt(newClosingDay) || 15,
-      dueDay:     parseInt(newDueDay)     || 22,
+      closingDay: closing,
+      dueDay:     due,
       color:      brandColors[newBrand] || "hsl(217, 91%, 60%)",
     });
+    setSavingNew(false);
+
+    if (error) {
+      toast.error("No se pudo registrar la tarjeta", { description: error.message });
+      return;
+    }
     toast.success("Tarjeta registrada correctamente");
     resetNewForm();
     setIsDialogOpen(false);
@@ -127,6 +155,7 @@ export default function CreditCards() {
     id:         card.id,
     name:       card.name,
     brand:      card.brand || card.bank,
+    lastDigits: card.lastDigits || "",
     limit:      card.limit,
     used:       card.used,
     closingDay: card.closingDay,
@@ -140,15 +169,29 @@ export default function CreditCards() {
     setEditDialogOpen(true);
   };
 
-  const handleSaveCard = (id: string, updates: Partial<CardForEdit>) => {
-    updateCreditCard(id, {
+  const handleSaveCard = async (id: string, updates: Partial<CardForEdit>) => {
+    const { error } = await updateCreditCard(id, {
       name:       updates.name,
       brand:      updates.brand,
+      lastDigits: updates.lastDigits,
       limit:      updates.limit,
       closingDay: updates.closingDay,
       dueDay:     updates.dueDay,
     });
+    if (error) {
+      toast.error("No se pudo actualizar la tarjeta", { description: error.message });
+      return;
+    }
     toast.success("Tarjeta actualizada correctamente");
+  };
+
+  const handleDeleteCard = async (id: string) => {
+    const { error } = await deleteCreditCard(id);
+    if (error) {
+      toast.error("No se pudo eliminar la tarjeta", { description: error.message });
+      return;
+    }
+    toast.success("Tarjeta eliminada");
   };
 
   return (
