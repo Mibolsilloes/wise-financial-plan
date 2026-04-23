@@ -258,7 +258,19 @@ export default function CreditCards() {
                   </div>
                 </div>
 
-                {/* Días cierre / vencimiento */}
+                {/* Últimos 4 dígitos */}
+                <div>
+                  <Label htmlFor="card-digits">Últimos 4 dígitos</Label>
+                  <Input
+                    id="card-digits"
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="1234"
+                    className="mt-1.5"
+                    value={newLastDigits}
+                    onChange={(e) => setNewLastDigits(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="card-closing">Día de cierre</Label>
@@ -307,7 +319,7 @@ export default function CreditCards() {
                 <Button
                   className="w-full"
                   onClick={handleCreateCard}
-                  disabled={!newName.trim() || !newLimit}
+                  disabled={savingNew || !newName.trim() || !newLimit || newLastDigits.length !== 4}
                 >
                   Registrar tarjeta
                 </Button>
@@ -368,7 +380,7 @@ export default function CreditCards() {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="gap-2 cursor-pointer text-destructive focus:text-destructive"
-                        onClick={() => { deleteCreditCard(card.id); toast.success("Tarjeta eliminada"); }}
+                        onClick={() => handleDeleteCard(card.id)}
                       >
                         <Archive className="w-4 h-4" />
                         Eliminar
