@@ -490,6 +490,7 @@ function EditCardDialog({ card, open, onOpenChange, onSave }: EditCardDialogProp
   const [cardName,   setCardName]   = useState(card.name);
   const [limit,      setLimit]      = useState(card.limit.toString());
   const [brand,      setBrand]      = useState(card.brand);
+  const [lastDigits, setLastDigits] = useState(card.lastDigits ?? "");
   const [closingDay, setClosingDay] = useState(card.closingDay.toString());
   const [dueDay,     setDueDay]     = useState(card.dueDay.toString());
 
@@ -497,6 +498,7 @@ function EditCardDialog({ card, open, onOpenChange, onSave }: EditCardDialogProp
     setCardName(card.name);
     setLimit(card.limit.toString());
     setBrand(card.brand);
+    setLastDigits(card.lastDigits ?? "");
     setClosingDay(card.closingDay.toString());
     setDueDay(card.dueDay.toString());
   }, [card]);
@@ -504,12 +506,32 @@ function EditCardDialog({ card, open, onOpenChange, onSave }: EditCardDialogProp
   const cardColor = brandColors[card.brand] || "hsl(217, 91%, 60%)";
 
   const handleSave = () => {
+    if (lastDigits.length !== 4) {
+      toast.error("Los últimos 4 dígitos son obligatorios");
+      return;
+    }
+    const parsedLimit = parseFloat(limit);
+    if (isNaN(parsedLimit) || parsedLimit <= 0) {
+      toast.error("Introduce un límite válido");
+      return;
+    }
+    const closing = parseInt(closingDay);
+    const due = parseInt(dueDay);
+    if (isNaN(closing) || closing < 1 || closing > 31) {
+      toast.error("El día de cierre debe estar entre 1 y 31");
+      return;
+    }
+    if (isNaN(due) || due < 1 || due > 31) {
+      toast.error("El día de vencimiento debe estar entre 1 y 31");
+      return;
+    }
     onSave(card.id, {
       name:       cardName,
       brand,
-      limit:      parseFloat(limit)      || card.limit,
-      closingDay: parseInt(closingDay)   || card.closingDay,
-      dueDay:     parseInt(dueDay)       || card.dueDay,
+      lastDigits,
+      limit:      parsedLimit,
+      closingDay: closing,
+      dueDay:     due,
     });
     onOpenChange(false);
   };
@@ -553,6 +575,17 @@ function EditCardDialog({ card, open, onOpenChange, onSave }: EditCardDialogProp
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Últimos 4 dígitos</Label>
+            <Input
+              inputMode="numeric"
+              maxLength={4}
+              value={lastDigits}
+              onChange={(e) => setLastDigits(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="1234"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Día de cierre</Label>
@@ -576,3 +609,4 @@ function EditCardDialog({ card, open, onOpenChange, onSave }: EditCardDialogProp
     </Dialog>
   );
 }
+
