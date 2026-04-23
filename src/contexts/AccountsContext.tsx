@@ -3,16 +3,18 @@ import { BankAccount } from "@/data/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
 
+type ActionResult = { error: Error | null };
+
 interface AccountsContextType {
   accounts: BankAccount[];
   loading: boolean;
-  addAccount: (account: Omit<BankAccount, "id">) => Promise<void>;
-  updateAccount: (id: string, updates: Partial<BankAccount>) => Promise<void>;
-  deleteAccount: (id: string) => Promise<void>;
+  addAccount: (account: Omit<BankAccount, "id">) => Promise<ActionResult>;
+  updateAccount: (id: string, updates: Partial<BankAccount>) => Promise<ActionResult>;
+  deleteAccount: (id: string) => Promise<ActionResult>;
   getAccountById: (id: string) => BankAccount | undefined;
   getAccountByName: (name: string) => BankAccount | undefined;
-  adjustBalance: (id: string, amount: number, operation: "add" | "subtract" | "set") => Promise<void>;
-  transfer: (fromId: string, toId: string, amount: number) => Promise<void>;
+  adjustBalance: (id: string, amount: number, operation: "add" | "subtract" | "set") => Promise<ActionResult>;
+  transfer: (fromId: string, toId: string, amount: number) => Promise<ActionResult>;
   refetchAccounts: () => Promise<void>;
 }
 
@@ -23,15 +25,7 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchAccounts();
-    } else {
-      setAccounts([]);
-    }
-  }, [user]);
-
-  const fetchAccounts = async () => {
+  const fetchAccounts = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     const { data, error } = await supabase
@@ -40,7 +34,10 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
       .eq("user_id", user.id)
       .order("created_at", { ascending: true });
 
-    if (!error && data) {
+    if (error) {
+      console.error("fetchAccounts error:", error);
+      setAccounts([]);
+    } else if (data) {
       const transformed: BankAccount[] = data.map((a) => ({
         id: a.id,
         name: a.name,
@@ -53,10 +50,18 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
       setAccounts(transformed);
     }
     setLoading(false);
-  };
+  }, [user]);
 
-  const addAccount = useCallback(async (account: Omit<BankAccount, "id">) => {
-    if (!user) return;
+  useEffect(() => {
+    if (user) {
+      void fetchAccounts();
+    } else {
+      setAccounts([]);
+    }
+  }, [user, fetchAccounts]);
+
+  const addAccount = useCallback(async (account: Omit<BankAccount, "id">): Promise<ActionResult> => {
+    if (!user) return { error: new Error("Usuario no autenticado") };
     const { data, error } = await supabase
       .from("bank_accounts")
       .insert({
@@ -69,20 +74,24 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
       .select()
       .single();
 
-    if (!error && data) {
-      setAccounts((prev) => [...prev, {
-        id: data.id,
-        name: data.name,
-        bank: data.bank,
-        type: "corriente" as const,
-        balance: Number(data.balance),
-        color: data.color,
-      }]);
+    if (error || !data) {
+      console.error("addAccount error:", error);
+      return { error: (error as Error) ?? new Error("No se pudo crear la cuenta") };
     }
+
+    setAccounts((prev) => [...prev, {
+      id: data.id,
+      name: data.name,
+      bank: data.bank,
+      type: "corriente" as const,
+      balance: Number(data.balance),
+      color: data.color,
+    }]);
+    return { error: null };
   }, [user]);
 
-  const updateAccount = useCallback(async (id: string, updates: Partial<BankAccount>) => {
-    if (!user) return;
+  const updateAccount = useCallback(async (id: string, updates: Partial<BankAccount>): Promise<ActionResult> => {
+    if (!user) return { error: new Error("Usuario no autenticado") };
     const dbUpdates: Record<string, unknown> = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.bank !== undefined) dbUpdates.bank = updates.bank;
@@ -92,23 +101,31 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase
       .from("bank_accounts")
       .update(dbUpdates)
-      .eq("id", id);
+      .eq("id", id)
+      .eq("user_id", user.id);
 
-    if (!error) {
-      setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)));
+    if (error) {
+      console.error("updateAccount error:", error);
+      return { error: error as Error };
     }
+    setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)));
+    return { error: null };
   }, [user]);
 
-  const deleteAccount = useCallback(async (id: string) => {
-    if (!user) return;
+  const deleteAccount = useCallback(async (id: string): Promise<ActionResult> => {
+    if (!user) return { error: new Error("Usuario no autenticado") };
     const { error } = await supabase
       .from("bank_accounts")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("user_id", user.id);
 
-    if (!error) {
-      setAccounts((prev) => prev.filter((a) => a.id !== id));
+    if (error) {
+      console.error("deleteAccount error:", error);
+      return { error: error as Error };
     }
+    setAccounts((prev) => prev.filter((a) => a.id !== id));
+    return { error: null };
   }, [user]);
 
   const getAccountById = useCallback(
@@ -121,10 +138,10 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
     [accounts]
   );
 
-  const adjustBalance = useCallback(async (id: string, amount: number, operation: "add" | "subtract" | "set") => {
-    if (!user) return;
+  const adjustBalance = useCallback(async (id: string, amount: number, operation: "add" | "subtract" | "set"): Promise<ActionResult> => {
+    if (!user) return { error: new Error("Usuario no autenticado") };
     const account = accounts.find((a) => a.id === id);
-    if (!account) return;
+    if (!account) return { error: new Error("Cuenta no encontrada") };
 
     let newBalance: number;
     switch (operation) {
@@ -137,43 +154,72 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase
       .from("bank_accounts")
       .update({ balance: newBalance })
-      .eq("id", id);
+      .eq("id", id)
+      .eq("user_id", user.id);
 
-    if (!error) {
-      setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, balance: newBalance } : a)));
+    if (error) {
+      console.error("adjustBalance error:", error);
+      return { error: error as Error };
     }
+    setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, balance: newBalance } : a)));
+    return { error: null };
   }, [user, accounts]);
 
-  const transfer = useCallback(async (fromId: string, toId: string, amount: number) => {
-    if (!user) return;
+  const transfer = useCallback(async (fromId: string, toId: string, amount: number): Promise<ActionResult> => {
+    if (!user) return { error: new Error("Usuario no autenticado") };
+    if (fromId === toId) return { error: new Error("La cuenta origen y destino no pueden ser la misma") };
+    if (amount <= 0) return { error: new Error("El importe debe ser mayor a cero") };
+
     const fromAcc = accounts.find((a) => a.id === fromId);
     const toAcc = accounts.find((a) => a.id === toId);
-    if (!fromAcc || !toAcc) return;
+    if (!fromAcc || !toAcc) return { error: new Error("Cuenta no encontrada") };
 
-    const { error: e1 } = await supabase
+    const newFromBalance = fromAcc.balance - amount;
+    const newToBalance = toAcc.balance + amount;
+
+    // Debit origin first
+    const { error: debitError } = await supabase
       .from("bank_accounts")
-      .update({ balance: fromAcc.balance - amount })
-      .eq("id", fromId);
+      .update({ balance: newFromBalance })
+      .eq("id", fromId)
+      .eq("user_id", user.id);
 
-    const { error: e2 } = await supabase
-      .from("bank_accounts")
-      .update({ balance: toAcc.balance + amount })
-      .eq("id", toId);
-
-    if (!e1 && !e2) {
-      setAccounts((prev) =>
-        prev.map((a) => {
-          if (a.id === fromId) return { ...a, balance: a.balance - amount };
-          if (a.id === toId) return { ...a, balance: a.balance + amount };
-          return a;
-        })
-      );
+    if (debitError) {
+      console.error("transfer debit error:", debitError);
+      return { error: debitError as Error };
     }
+
+    // Credit destination
+    const { error: creditError } = await supabase
+      .from("bank_accounts")
+      .update({ balance: newToBalance })
+      .eq("id", toId)
+      .eq("user_id", user.id);
+
+    if (creditError) {
+      // Rollback the debit
+      console.error("transfer credit error, rolling back:", creditError);
+      await supabase
+        .from("bank_accounts")
+        .update({ balance: fromAcc.balance })
+        .eq("id", fromId)
+        .eq("user_id", user.id);
+      return { error: new Error("La transferencia falló al acreditar el destino. Se revirtió el débito.") };
+    }
+
+    setAccounts((prev) =>
+      prev.map((a) => {
+        if (a.id === fromId) return { ...a, balance: newFromBalance };
+        if (a.id === toId) return { ...a, balance: newToBalance };
+        return a;
+      })
+    );
+    return { error: null };
   }, [user, accounts]);
 
   const refetchAccounts = useCallback(async () => {
     await fetchAccounts();
-  }, [user]);
+  }, [fetchAccounts]);
 
   return (
     <AccountsContext.Provider
