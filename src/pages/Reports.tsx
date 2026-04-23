@@ -83,112 +83,98 @@ import { usePeriod, PeriodType } from "@/contexts/PeriodContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
 import { Transaction } from "@/data/mockData";
 
-const frequencyDataMonthly = [
-  { period: "Ene", ingresos: 8500, gastos: 4200 },
-  { period: "Feb", ingresos: 8500, gastos: 3800 },
-  { period: "Mar", ingresos: 9200, gastos: 4500 },
-  { period: "Abr", ingresos: 8500, gastos: 4100 },
-  { period: "May", ingresos: 10000, gastos: 5200 },
-  { period: "Jun", ingresos: 8500, gastos: 3900 },
-  { period: "Jul", ingresos: 8800, gastos: 4300 },
-  { period: "Ago", ingresos: 8500, gastos: 4000 },
-  { period: "Sep", ingresos: 9500, gastos: 4800 },
-  { period: "Oct", ingresos: 8500, gastos: 3700 },
-  { period: "Nov", ingresos: 8500, gastos: 4600 },
-  { period: "Dic", ingresos: 9700, gastos: 4230 },
-];
-
-const frequencyDataDaily = [
-  { period: "01", ingresos: 280, gastos: 150 },
-  { period: "05", ingresos: 350, gastos: 220 },
-  { period: "10", ingresos: 8500, gastos: 180 },
-  { period: "15", ingresos: 120, gastos: 450 },
-  { period: "20", ingresos: 200, gastos: 280 },
-  { period: "25", ingresos: 180, gastos: 320 },
-  { period: "30", ingresos: 150, gastos: 200 },
-];
-
 const monthAbbreviations = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-// Get days in month
 const getDaysInMonth = (month: number, year: number) => {
   return new Date(year, month + 1, 0).getDate();
 };
 
-// Cash flow data generators based on period
-const getCashFlowData = (period: string, currentMonth: number, currentYear: number) => {
+// Build real cash-flow series from transactions for the active period
+const buildCashFlowData = (
+  txs: Transaction[],
+  period: string,
+  currentMonth: number,
+  currentYear: number
+) => {
   const monthAbbr = monthAbbreviations[currentMonth];
-  const daysInMonth = getDaysInMonth(currentMonth, currentYear);
-  
-  // Generate random but consistent values based on day
-  const generateValue = (day: number, base: number, variance: number) => {
-    return Math.round(base + (Math.sin(day * 1.5) * variance));
-  };
 
-  switch (period) {
-    case "today":
-      return [
-        { period: "00:00", ingresos: 0, gastos: 0, saldo: 0 },
-        { period: "06:00", ingresos: 150, gastos: 80, saldo: 70 },
-        { period: "12:00", ingresos: 320, gastos: 150, saldo: 170 },
-        { period: "18:00", ingresos: 180, gastos: 220, saldo: -40 },
-        { period: "23:59", ingresos: 100, gastos: 50, saldo: 50 },
-      ];
-    case "7days": {
-      // Generate last 7 days ending on the 15th of current month (simulating current day)
-      const days = [];
-      for (let i = 6; i >= 0; i--) {
-        const day = Math.max(1, 15 - i); // Simulating days ending on 15th
-        const ingresos = generateValue(day, 1100, 400);
-        const gastos = generateValue(day, 700, 300);
-        days.push({
-          period: `${day} ${monthAbbr}`,
-          ingresos,
-          gastos,
-          saldo: ingresos - gastos,
-        });
-      }
-      return days;
-    }
-    case "month": {
-      // Generate data points every 2 days for the month
-      const days = [];
-      for (let day = 2; day <= daysInMonth; day += 2) {
-        const ingresos = generateValue(day, 2200, 600);
-        const gastos = generateValue(day, 1500, 400);
-        days.push({
-          period: `${day} ${monthAbbr}`,
-          ingresos,
-          gastos,
-          saldo: ingresos - gastos,
-        });
-      }
-      // Add last day if not already included
-      if (daysInMonth % 2 !== 0) {
-        const ingresos = generateValue(daysInMonth, 2200, 600);
-        const gastos = generateValue(daysInMonth, 1500, 400);
-        days.push({
-          period: `${daysInMonth} ${monthAbbr}`,
-          ingresos,
-          gastos,
-          saldo: ingresos - gastos,
-        });
-      }
-      return days;
-    }
-    case "year":
-    default:
-      return monthAbbreviations.map((abbr, idx) => {
-        const ingresos = generateValue(idx + 1, 8800, 1200);
-        const gastos = generateValue(idx + 1, 4400, 600);
-        return {
-          period: abbr,
-          ingresos,
-          gastos,
-          saldo: ingresos - gastos,
-        };
-      });
+  if (period === "today") {
+    const buckets = ["00:00", "06:00", "12:00", "18:00", "23:59"];
+    const data = buckets.map((p) => ({ period: p, ingresos: 0, gastos: 0, saldo: 0 }));
+    txs.forEach((t) => {
+      const h = t.dueDate.getHours();
+      const idx = h < 6 ? 0 : h < 12 ? 1 : h < 18 ? 2 : h < 23 ? 3 : 4;
+      if (t.type === "ingreso") data[idx].ingresos += t.amount;
+      else data[idx].gastos += t.amount;
+    });
+    return data.map((d) => ({ ...d, saldo: d.ingresos - d.gastos }));
   }
+
+  if (period === "7days") {
+    const today = new Date();
+    const days: { period: string; ingresos: number; gastos: number; saldo: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      days.push({
+        period: `${d.getDate()} ${monthAbbreviations[d.getMonth()]}`,
+        ingresos: 0,
+        gastos: 0,
+        saldo: 0,
+      });
+    }
+    txs.forEach((t) => {
+      const diff = Math.floor((today.getTime() - t.dueDate.getTime()) / (1000 * 60 * 60 * 24));
+      const idx = 6 - diff;
+      if (idx >= 0 && idx <= 6) {
+        if (t.type === "ingreso") days[idx].ingresos += t.amount;
+        else days[idx].gastos += t.amount;
+      }
+    });
+    return days.map((d) => ({ ...d, saldo: d.ingresos - d.gastos }));
+  }
+
+  if (period === "month" || period === "custom") {
+    const daysInMonth = getDaysInMonth(currentMonth, currentYear);
+    const dayMap = new Map<number, { ingresos: number; gastos: number }>();
+    txs.forEach((t) => {
+      const day = t.dueDate.getDate();
+      const ex = dayMap.get(day) || { ingresos: 0, gastos: 0 };
+      if (t.type === "ingreso") ex.ingresos += t.amount;
+      else ex.gastos += t.amount;
+      dayMap.set(day, ex);
+    });
+    const out: { period: string; ingresos: number; gastos: number; saldo: number }[] = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const v = dayMap.get(day) || { ingresos: 0, gastos: 0 };
+      out.push({
+        period: `${day} ${monthAbbr}`,
+        ingresos: v.ingresos,
+        gastos: v.gastos,
+        saldo: v.ingresos - v.gastos,
+      });
+    }
+    return out;
+  }
+
+  // year (default)
+  const monthMap = new Map<number, { ingresos: number; gastos: number }>();
+  txs.forEach((t) => {
+    const m = t.dueDate.getMonth();
+    const ex = monthMap.get(m) || { ingresos: 0, gastos: 0 };
+    if (t.type === "ingreso") ex.ingresos += t.amount;
+    else ex.gastos += t.amount;
+    monthMap.set(m, ex);
+  });
+  return monthAbbreviations.map((abbr, idx) => {
+    const v = monthMap.get(idx) || { ingresos: 0, gastos: 0 };
+    return {
+      period: abbr,
+      ingresos: v.ingresos,
+      gastos: v.gastos,
+      saldo: v.ingresos - v.gastos,
+    };
+  });
 };
 
 const chartTypes = [
@@ -1555,7 +1541,7 @@ export default function Reports() {
                 <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
                     {(() => {
-                      const cashFlowData = getCashFlowData(selectedPeriod, currentMonth, currentYear);
+                      const cashFlowData = buildCashFlowData(filteredTransactions, selectedPeriod, currentMonth, currentYear);
                       
                       switch (cashFlowChartType) {
                         case "line":

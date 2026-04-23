@@ -29,6 +29,7 @@ import { useFilters } from "@/contexts/FilterContext";
 import { useCategories } from "@/contexts/CategoriesContext";
 import { useAccounts } from "@/contexts/AccountsContext";
 import { useCreditCards } from "@/contexts/CreditCardsContext";
+import { useTransactions } from "@/contexts/TransactionsContext";
 
 interface FilterPopoverContentProps {
   onApply: () => void;
@@ -40,6 +41,7 @@ function FilterPopoverContent({ onApply, onClear }: FilterPopoverContentProps) {
   const { categories } = useCategories();
   const { accounts: bankAccounts } = useAccounts();
   const { creditCards } = useCreditCards();
+  const { transactions } = useTransactions();
 
   const handleClear = () => {
     clearFilters();
@@ -50,8 +52,10 @@ function FilterPopoverContent({ onApply, onClear }: FilterPopoverContentProps) {
     onApply();
   };
 
-  // Get unique responsibles from transactions
-  const responsibles = ["Juan García", "María López"];
+  // Derive unique responsibles from real transactions
+  const responsibles = Array.from(
+    new Set(transactions.map((t) => t.responsible).filter(Boolean))
+  );
 
   return (
     <div className="flex flex-col gap-4 p-4 w-[300px]">
