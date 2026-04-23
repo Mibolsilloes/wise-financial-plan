@@ -61,11 +61,11 @@ const App = () => (
                       </BrowserRouter>
                     </FilterProvider>
                   </PeriodProvider>
-                  </ResponsiblesProvider>
-                </CreditCardsProvider>
-              </AccountsProvider>
-            </CategoriesProvider>
-          </TransactionsProvider>
+                  </CreditCardsProvider>
+                </AccountsProvider>
+              </CategoriesProvider>
+            </TransactionsProvider>
+          </ResponsiblesProvider>
         </AuthProvider>
       </ThemeProvider>
     </TooltipProvider>
