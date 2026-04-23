@@ -674,7 +674,9 @@ function EditAccountDialog({ account, open, onOpenChange, onSave }: EditAccountD
 export default function BankAccounts() {
   const navigate = useNavigate();
   const { accounts, transfer, adjustBalance, updateAccount, addAccount, deleteAccount } = useAccounts();
+  const { canAddBankAccount, isPremium, usage, limits } = usePlan();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   // New account form state
   const [newAccountName, setNewAccountName]       = useState("");

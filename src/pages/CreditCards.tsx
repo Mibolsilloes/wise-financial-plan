@@ -78,8 +78,10 @@ export default function CreditCards() {
   const navigate                            = useNavigate();
   const { creditCards, addCreditCard, updateCreditCard, deleteCreditCard } = useCreditCards();
   const { accounts }                        = useAccounts();
+  const { canAddCreditCard, isPremium, usage, limits } = usePlan();
 
   const [isDialogOpen,   setIsDialogOpen]   = useState(false);
+  const [showUpgrade,    setShowUpgrade]    = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedCardForEdit, setSelectedCardForEdit] = useState<CardForEdit | null>(null);
   const [savingNew, setSavingNew] = useState(false);
