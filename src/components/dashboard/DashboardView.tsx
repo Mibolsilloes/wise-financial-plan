@@ -286,6 +286,10 @@ export function DashboardView() {
       : 0;
 
   const hasData = filtered.length > 0;
+  const subcategoryFilterActive = !!filters.subcategory?.trim();
+  const noSubMessage = subcategoryFilterActive
+    ? `No se encontraron movimientos con la subcategoría "${filters.subcategory}". Verificá si está bien escrita o si la categoría tiene subcategorías creadas.`
+    : "Ningún movimiento coincide con los filtros aplicados en este período. Probá ajustar los filtros o cambiar el período.";
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -388,7 +392,7 @@ export function DashboardView() {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState message="Aún no hay movimientos en los últimos 6 meses con los filtros aplicados." />
+            <EmptyState message={subcategoryFilterActive ? `Sin movimientos para la subcategoría "${filters.subcategory}" en los últimos 6 meses.` : "Aún no hay movimientos en los últimos 6 meses con los filtros aplicados."} />
           )}
         </div>
       </div>
@@ -427,7 +431,7 @@ export function DashboardView() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <EmptyState message="No hay gastos en este período con los filtros aplicados." />
+              <EmptyState message={subcategoryFilterActive ? `No hay gastos en la subcategoría "${filters.subcategory}" en este período.` : "No hay gastos en este período con los filtros aplicados."} />
             )}
           </div>
         </div>
@@ -489,7 +493,7 @@ export function DashboardView() {
           <Inbox className="w-10 h-10 text-muted-foreground/60 mx-auto" />
           <p className="text-sm text-muted-foreground">
             {hasActiveFilters
-              ? "Ningún movimiento coincide con los filtros aplicados en este período. Probá ajustar los filtros o cambiar el período."
+              ? noSubMessage
               : "No hay transacciones en este período. Agregá ingresos o gastos para ver tu dashboard."}
           </p>
         </div>

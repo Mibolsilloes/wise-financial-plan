@@ -191,8 +191,17 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
   const addSubcategory = useCallback(
     async (categoryId: string, name: string): Promise<CategoryActionResult> => {
       if (!user) return { error: new Error("Usuario no autenticado") };
-      const trimmed = name.trim();
+      const trimmed = name.trim().replace(/\s+/g, " ");
       if (!trimmed) return { error: new Error("El nombre es obligatorio") };
+
+      // Check for duplicates case-insensitively within the same category
+      const parent = categories.find((c) => c.id === categoryId);
+      const exists = parent?.subcategories.some(
+        (s) => s.trim().toLowerCase() === trimmed.toLowerCase()
+      );
+      if (exists) {
+        return { error: new Error("Ya existe una subcategoría con ese nombre") };
+      }
 
       const { error } = await supabase
         .from("subcategories")
@@ -213,7 +222,7 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
 
       return { error: null };
     },
-    [user]
+    [user, categories]
   );
 
   const removeSubcategory = useCallback(
