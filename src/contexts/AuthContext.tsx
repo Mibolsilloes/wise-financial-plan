@@ -10,6 +10,7 @@ interface Profile {
   phone: string | null;
   language: string;
   currency: string;
+  plan: "free" | "premium";
 }
 
 interface AuthContextType {

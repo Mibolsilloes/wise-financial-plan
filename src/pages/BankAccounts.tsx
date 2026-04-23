@@ -4,6 +4,8 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Layout } from "@/components/layout/Layout";
 import { useAccounts } from "@/contexts/AccountsContext";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradePlanDialog } from "@/components/UpgradePlanDialog";
 import { toast } from "sonner";
 import { 
   Plus, 
@@ -672,7 +674,9 @@ function EditAccountDialog({ account, open, onOpenChange, onSave }: EditAccountD
 export default function BankAccounts() {
   const navigate = useNavigate();
   const { accounts, transfer, adjustBalance, updateAccount, addAccount, deleteAccount } = useAccounts();
+  const { canAddBankAccount, isPremium, usage, limits } = usePlan();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
 
   // New account form state
   const [newAccountName, setNewAccountName]       = useState("");
@@ -692,7 +696,13 @@ export default function BankAccounts() {
       color:   "hsl(157, 54%, 33%)",
     });
     if (error) {
-      toast.error("No se pudo crear la cuenta", { description: error.message });
+      const { parsePlanLimitError } = await import("@/hooks/usePlan");
+      const planMsg = parsePlanLimitError(error);
+      if (planMsg) {
+        setShowUpgrade(true);
+      } else {
+        toast.error("No se pudo crear la cuenta", { description: error.message });
+      }
       return;
     }
     toast.success("Cuenta creada correctamente");
@@ -744,7 +754,16 @@ export default function BankAccounts() {
               Gestiona tus cuentas y controla tus saldos
             </p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog
+            open={isDialogOpen}
+            onOpenChange={(o) => {
+              if (o && !canAddBankAccount) {
+                setShowUpgrade(true);
+                return;
+              }
+              setIsDialogOpen(o);
+            }}
+          >
             <DialogTrigger asChild>
               <Button className="gap-2 bg-primary hover:bg-primary/90 shadow-glow-primary">
                 <Plus className="w-4 h-4" />
@@ -967,6 +986,11 @@ export default function BankAccounts() {
           />
         )}
       </div>
+      <UpgradePlanDialog
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        reason={`Has alcanzado el límite de ${limits.bankAccounts} cuentas bancarias del plan Gratuito (${usage.bankAccounts}/${limits.bankAccounts}). Mejora a Premium para crear cuentas ilimitadas.`}
+      />
     </Layout>
   );
 }

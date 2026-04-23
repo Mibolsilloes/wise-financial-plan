@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradePlanDialog } from "@/components/UpgradePlanDialog";
 import {
   Plus,
   Edit2,
@@ -76,8 +78,10 @@ export default function CreditCards() {
   const navigate                            = useNavigate();
   const { creditCards, addCreditCard, updateCreditCard, deleteCreditCard } = useCreditCards();
   const { accounts }                        = useAccounts();
+  const { canAddCreditCard, isPremium, usage, limits } = usePlan();
 
   const [isDialogOpen,   setIsDialogOpen]   = useState(false);
+  const [showUpgrade,    setShowUpgrade]    = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedCardForEdit, setSelectedCardForEdit] = useState<CardForEdit | null>(null);
   const [savingNew, setSavingNew] = useState(false);
@@ -142,7 +146,13 @@ export default function CreditCards() {
     setSavingNew(false);
 
     if (error) {
-      toast.error("No se pudo registrar la tarjeta", { description: error.message });
+      const { parsePlanLimitError } = await import("@/hooks/usePlan");
+      const planMsg = parsePlanLimitError(error);
+      if (planMsg) {
+        setShowUpgrade(true);
+      } else {
+        toast.error("No se pudo registrar la tarjeta", { description: error.message });
+      }
       return;
     }
     toast.success("Tarjeta registrada correctamente");
@@ -206,7 +216,17 @@ export default function CreditCards() {
             </p>
           </div>
 
-          <Dialog open={isDialogOpen} onOpenChange={(o) => { if (!o) resetNewForm(); setIsDialogOpen(o); }}>
+          <Dialog
+            open={isDialogOpen}
+            onOpenChange={(o) => {
+              if (o && !canAddCreditCard) {
+                setShowUpgrade(true);
+                return;
+              }
+              if (!o) resetNewForm();
+              setIsDialogOpen(o);
+            }}
+          >
             <DialogTrigger asChild>
               <Button className="gap-2 bg-primary hover:bg-primary/90 shadow-glow-primary">
                 <Plus className="w-4 h-4" />
@@ -474,6 +494,11 @@ export default function CreditCards() {
           />
         )}
       </div>
+      <UpgradePlanDialog
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        reason={`Has alcanzado el límite de ${limits.creditCards} tarjeta del plan Gratuito (${usage.creditCards}/${limits.creditCards}). Mejora a Premium para tarjetas ilimitadas.`}
+      />
     </Layout>
   );
 }

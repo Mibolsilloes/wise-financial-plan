@@ -128,6 +128,7 @@ export type Database = {
           id: string
           language: string | null
           phone: string | null
+          plan: string
           updated_at: string
           user_id: string
         }
@@ -139,6 +140,7 @@ export type Database = {
           id?: string
           language?: string | null
           phone?: string | null
+          plan?: string
           updated_at?: string
           user_id: string
         }
@@ -150,6 +152,7 @@ export type Database = {
           id?: string
           language?: string | null
           phone?: string | null
+          plan?: string
           updated_at?: string
           user_id?: string
         }
@@ -286,7 +289,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_plan: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
