@@ -22,6 +22,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import logoIcon from "@/assets/logo-icon.png";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlan } from "@/hooks/usePlan";
 import { toast } from "sonner";
 
 const navItems = [
@@ -37,6 +38,7 @@ export function TopNav() {
   const location            = useLocation();
   const navigate            = useNavigate();
   const { user, profile, signOut } = useAuth();
+  const { isPremium } = usePlan();
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Usuario";
   const displayEmail = user?.email || "";
