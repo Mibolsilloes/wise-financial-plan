@@ -336,6 +336,57 @@ export function EditCategoryDialog({
             </div>
           </div>
 
+          {/* Subcategorías */}
+          <div className="space-y-3">
+            <Label className="text-sm text-muted-foreground">
+              Subcategorías
+              <span className="ml-2 text-xs text-muted-foreground/70">
+                (sirven para gastos e ingresos)
+              </span>
+            </Label>
+
+            {subcategories.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {subcategories.map((sub) => (
+                  <Badge
+                    key={sub}
+                    variant="secondary"
+                    className="pl-2.5 pr-1 py-1 gap-1 bg-muted/50"
+                  >
+                    {sub}
+                    <button
+                      onClick={() => handleRemoveSubcategory(sub)}
+                      className="ml-1 hover:bg-destructive/20 rounded-full p-0.5 transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Input
+                value={newSubcategory}
+                onChange={(e) => setNewSubcategory(e.target.value)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), handleAddSubcategory())
+                }
+                placeholder="Nueva subcategoría"
+                className="flex-1"
+                disabled={savingSub}
+              />
+              <Button
+                type="button"
+                onClick={handleAddSubcategory}
+                disabled={savingSub || !newSubcategory.trim()}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-4"
+              >
+                Añadir
+              </Button>
+            </div>
+          </div>
+
           {/* Save Button */}
           <Button 
             onClick={handleSave}
