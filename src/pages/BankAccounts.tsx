@@ -696,7 +696,13 @@ export default function BankAccounts() {
       color:   "hsl(157, 54%, 33%)",
     });
     if (error) {
-      toast.error("No se pudo crear la cuenta", { description: error.message });
+      const { parsePlanLimitError } = await import("@/hooks/usePlan");
+      const planMsg = parsePlanLimitError(error);
+      if (planMsg) {
+        setShowUpgrade(true);
+      } else {
+        toast.error("No se pudo crear la cuenta", { description: error.message });
+      }
       return;
     }
     toast.success("Cuenta creada correctamente");

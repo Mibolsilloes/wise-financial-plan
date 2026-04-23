@@ -146,9 +146,11 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
     });
 
     if (error) {
+      const { parsePlanLimitError } = await import("@/hooks/usePlan");
+      const planMsg = parsePlanLimitError(error);
       toast({
-        title: "Error",
-        description: `No se pudo crear el gasto: ${error.message}`,
+        title: planMsg ? "Límite del plan Gratuito" : "Error",
+        description: planMsg || `No se pudo crear el gasto: ${error.message}`,
         variant: "destructive",
       });
       return;

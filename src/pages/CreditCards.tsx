@@ -146,7 +146,13 @@ export default function CreditCards() {
     setSavingNew(false);
 
     if (error) {
-      toast.error("No se pudo registrar la tarjeta", { description: error.message });
+      const { parsePlanLimitError } = await import("@/hooks/usePlan");
+      const planMsg = parsePlanLimitError(error);
+      if (planMsg) {
+        setShowUpgrade(true);
+      } else {
+        toast.error("No se pudo registrar la tarjeta", { description: error.message });
+      }
       return;
     }
     toast.success("Tarjeta registrada correctamente");
