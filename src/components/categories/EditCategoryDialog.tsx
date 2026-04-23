@@ -113,18 +113,27 @@ interface EditCategoryDialogProps {
   onSave: (id: string, updates: { name: string; color: string; keywords: string[] }) => void;
 }
 
-export function EditCategoryDialog({ 
-  open, 
-  onOpenChange, 
-  category, 
-  onSave 
+import { useCategories } from "@/contexts/CategoriesContext";
+import { toast } from "sonner";
+
+export function EditCategoryDialog({
+  open,
+  onOpenChange,
+  category,
+  onSave,
 }: EditCategoryDialogProps) {
+  const { getCategoryById, addSubcategory, removeSubcategory } = useCategories();
   const [editName, setEditName] = useState("");
   const [editColor, setEditColor] = useState("");
   const [editColorHex, setEditColorHex] = useState("#ff8800");
   const [editKeywords, setEditKeywords] = useState<string[]>([]);
   const [newKeyword, setNewKeyword] = useState("");
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [newSubcategory, setNewSubcategory] = useState("");
+  const [savingSub, setSavingSub] = useState(false);
+
+  const fullCategory = category ? getCategoryById(category.id) : undefined;
+  const subcategories = fullCategory?.subcategories ?? [];
 
   useEffect(() => {
     if (category) {
@@ -133,6 +142,7 @@ export function EditCategoryDialog({
       setEditColorHex(hslToHex(category.color));
       setEditKeywords(category.keywords || []);
       setNewKeyword("");
+      setNewSubcategory("");
     }
   }, [category]);
 
@@ -145,6 +155,35 @@ export function EditCategoryDialog({
 
   const handleRemoveKeyword = (keyword: string) => {
     setEditKeywords(editKeywords.filter(k => k !== keyword));
+  };
+
+  const handleAddSubcategory = async () => {
+    if (!category) return;
+    const name = newSubcategory.trim();
+    if (!name) return;
+    if (subcategories.includes(name)) {
+      toast.error("Esa subcategoría ya existe");
+      return;
+    }
+    setSavingSub(true);
+    const { error } = await addSubcategory(category.id, name);
+    setSavingSub(false);
+    if (error) {
+      toast.error("No se pudo crear la subcategoría", { description: error.message });
+      return;
+    }
+    setNewSubcategory("");
+    toast.success(`Subcategoría "${name}" añadida`);
+  };
+
+  const handleRemoveSubcategory = async (name: string) => {
+    if (!category) return;
+    const { error } = await removeSubcategory(category.id, name);
+    if (error) {
+      toast.error("No se pudo eliminar la subcategoría", { description: error.message });
+      return;
+    }
+    toast.success(`Subcategoría "${name}" eliminada`);
   };
 
   const handleSave = () => {
