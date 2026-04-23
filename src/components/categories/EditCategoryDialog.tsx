@@ -348,7 +348,7 @@ export function EditCategoryDialog({
               </span>
             </Label>
 
-            {subcategories.length > 0 && (
+            {subcategories.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {subcategories.map((sub) => (
                   <Badge
@@ -366,6 +366,10 @@ export function EditCategoryDialog({
                   </Badge>
                 ))}
               </div>
+            ) : (
+              <p className="text-xs text-muted-foreground italic">
+                Esta categoría aún no tiene subcategorías. Añade una abajo para clasificar mejor tus movimientos.
+              </p>
             )}
 
             <div className="flex gap-2">
