@@ -34,12 +34,12 @@ const App = () => (
     <TooltipProvider>
       <ThemeProvider>
         <AuthProvider>
-          <TransactionsProvider>
-            <CategoriesProvider>
-              <AccountsProvider>
-                <CreditCardsProvider>
-                  <ResponsiblesProvider>
-                  <PeriodProvider>
+          <ResponsiblesProvider>
+            <TransactionsProvider>
+              <CategoriesProvider>
+                <AccountsProvider>
+                  <CreditCardsProvider>
+                    <PeriodProvider>
                     <FilterProvider>
                       <Toaster />
                       <Sonner />
