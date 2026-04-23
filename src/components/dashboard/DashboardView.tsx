@@ -493,7 +493,7 @@ export function DashboardView() {
           <Inbox className="w-10 h-10 text-muted-foreground/60 mx-auto" />
           <p className="text-sm text-muted-foreground">
             {hasActiveFilters
-              ? "Ningún movimiento coincide con los filtros aplicados en este período. Probá ajustar los filtros o cambiar el período."
+              ? noSubMessage
               : "No hay transacciones en este período. Agregá ingresos o gastos para ver tu dashboard."}
           </p>
         </div>
