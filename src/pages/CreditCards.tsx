@@ -488,6 +488,11 @@ export default function CreditCards() {
           />
         )}
       </div>
+      <UpgradePlanDialog
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        reason={`Has alcanzado el límite de ${limits.creditCards} tarjeta del plan Gratuito (${usage.creditCards}/${limits.creditCards}). Mejora a Premium para tarjetas ilimitadas.`}
+      />
     </Layout>
   );
 }

@@ -980,6 +980,11 @@ export default function BankAccounts() {
           />
         )}
       </div>
+      <UpgradePlanDialog
+        open={showUpgrade}
+        onOpenChange={setShowUpgrade}
+        reason={`Has alcanzado el límite de ${limits.bankAccounts} cuentas bancarias del plan Gratuito (${usage.bankAccounts}/${limits.bankAccounts}). Mejora a Premium para crear cuentas ilimitadas.`}
+      />
     </Layout>
   );
 }
