@@ -684,18 +684,31 @@ export default function BankAccounts() {
       toast.error("El nombre de la cuenta es obligatorio");
       return;
     }
-    await addAccount({
+    const { error } = await addAccount({
       name:    newAccountName.trim(),
       bank:    newAccountBank.trim() || newAccountName.trim(),
       type:    "corriente",
       balance: parseFloat(newAccountBalance.replace(",", ".")) || 0,
       color:   "hsl(157, 54%, 33%)",
     });
+    if (error) {
+      toast.error("No se pudo crear la cuenta", { description: error.message });
+      return;
+    }
     toast.success("Cuenta creada correctamente");
     setNewAccountName("");
     setNewAccountBank("");
     setNewAccountBalance("0");
     setIsDialogOpen(false);
+  };
+
+  const handleDeleteAccount = async (id: string) => {
+    const { error } = await deleteAccount(id);
+    if (error) {
+      toast.error("No se pudo eliminar la cuenta", { description: error.message });
+      return;
+    }
+    toast.success("Cuenta eliminada");
   };
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [adjustBalanceDialogOpen, setAdjustBalanceDialogOpen] = useState(false);
@@ -863,10 +876,7 @@ export default function BankAccounts() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="gap-2 cursor-pointer text-destructive focus:text-destructive"
-                          onClick={() => {
-                            deleteAccount(account.id);
-                            toast.success("Cuenta eliminada");
-                          }}
+                          onClick={() => handleDeleteAccount(account.id)}
                         >
                           <Archive className="w-4 h-4" />
                           Eliminar cuenta
