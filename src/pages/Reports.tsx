@@ -1541,7 +1541,7 @@ export default function Reports() {
                 <div className="h-[350px]">
                   <ResponsiveContainer width="100%" height="100%">
                     {(() => {
-                      const cashFlowData = getCashFlowData(selectedPeriod, currentMonth, currentYear);
+                      const cashFlowData = buildCashFlowData(filteredTransactions, selectedPeriod, currentMonth, currentYear);
                       
                       switch (cashFlowChartType) {
                         case "line":
