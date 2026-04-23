@@ -112,12 +112,24 @@ function TransferDialog({ sourceAccount, accounts, open, onOpenChange, onTransfe
   const SourceIcon = bankIcons[sourceAccount.name] || Building2;
   const sourceColor = bankColors[sourceAccount.name] || "hsl(217, 91%, 60%)";
 
-  const handleTransfer = () => {
+  const handleTransfer = async () => {
     const numAmount = parseFloat(amount.replace(",", ".")) || 0;
-    if (destinationAccountId && numAmount > 0) {
-      onTransfer(sourceAccount.id, destinationAccountId, numAmount);
-      toast.success(`Transferencia de ${formatCurrency(numAmount)} realizada correctamente`);
+    if (!destinationAccountId || numAmount <= 0) {
+      toast.error("Selecciona una cuenta de destino y un importe válido");
+      return;
     }
+    if (numAmount > sourceAccount.balance) {
+      toast.error("Saldo insuficiente en la cuenta de origen");
+      return;
+    }
+    const result = await Promise.resolve(onTransfer(sourceAccount.id, destinationAccountId, numAmount));
+    // onTransfer may return a Promise<ActionResult> from context
+    const error = (result as unknown as { error?: Error | null })?.error;
+    if (error) {
+      toast.error("No se pudo realizar la transferencia", { description: error.message });
+      return;
+    }
+    toast.success(`Transferencia de ${formatCurrency(numAmount)} realizada correctamente`);
     onOpenChange(false);
   };
 
