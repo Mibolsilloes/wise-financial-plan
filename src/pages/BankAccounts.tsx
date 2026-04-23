@@ -85,12 +85,14 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
+type ActionResult = { error: Error | null };
+
 interface TransferDialogProps {
   sourceAccount: BankAccount;
   accounts: BankAccount[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTransfer: (fromId: string, toId: string, amount: number) => void;
+  onTransfer: (fromId: string, toId: string, amount: number) => Promise<ActionResult>;
 }
 
 function TransferDialog({ sourceAccount, accounts, open, onOpenChange, onTransfer }: TransferDialogProps) {
@@ -122,9 +124,7 @@ function TransferDialog({ sourceAccount, accounts, open, onOpenChange, onTransfe
       toast.error("Saldo insuficiente en la cuenta de origen");
       return;
     }
-    const result = await Promise.resolve(onTransfer(sourceAccount.id, destinationAccountId, numAmount));
-    // onTransfer may return a Promise<ActionResult> from context
-    const error = (result as unknown as { error?: Error | null })?.error;
+    const { error } = await onTransfer(sourceAccount.id, destinationAccountId, numAmount);
     if (error) {
       toast.error("No se pudo realizar la transferencia", { description: error.message });
       return;
@@ -293,7 +293,7 @@ interface AdjustBalanceDialogProps {
   account: BankAccount;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdjust: (id: string, amount: number, operation: "add" | "subtract" | "set") => void;
+  onAdjust: (id: string, amount: number, operation: "add" | "subtract" | "set") => Promise<ActionResult>;
 }
 
 function AdjustBalanceDialog({ account, open, onOpenChange, onAdjust }: AdjustBalanceDialogProps) {
@@ -328,12 +328,18 @@ function AdjustBalanceDialog({ account, open, onOpenChange, onAdjust }: AdjustBa
     }
   };
 
-  const handleAdjust = () => {
+  const handleAdjust = async () => {
     const numAmount = parseFloat(amount.replace(",", ".")) || 0;
-    if (numAmount > 0 || adjustmentType === "set") {
-      onAdjust(account.id, numAmount, adjustmentType);
-      toast.success("Saldo ajustado correctamente");
+    if (numAmount <= 0 && adjustmentType !== "set") {
+      toast.error("Introduce un importe válido");
+      return;
     }
+    const { error } = await onAdjust(account.id, numAmount, adjustmentType);
+    if (error) {
+      toast.error("No se pudo ajustar el saldo", { description: error.message });
+      return;
+    }
+    toast.success("Saldo ajustado correctamente");
     onOpenChange(false);
   };
 
@@ -535,7 +541,7 @@ interface EditAccountDialogProps {
   account: BankAccount;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (id: string, updates: Partial<BankAccount>) => void;
+  onSave: (id: string, updates: Partial<BankAccount>) => Promise<ActionResult>;
 }
 
 function EditAccountDialog({ account, open, onOpenChange, onSave }: EditAccountDialogProps) {
@@ -553,12 +559,20 @@ function EditAccountDialog({ account, open, onOpenChange, onSave }: EditAccountD
   const AccountIcon = bankIcons[account.name] || Building2;
   const accountColor = bankColors[account.name] || "hsl(217, 91%, 60%)";
 
-  const handleSave = () => {
-    onSave(account.id, {
-      name: accountName,
+  const handleSave = async () => {
+    if (!accountName.trim()) {
+      toast.error("El nombre es obligatorio");
+      return;
+    }
+    const { error } = await onSave(account.id, {
+      name: accountName.trim(),
       isDefault,
       balance: parseFloat(initialBalance.replace(",", ".")) || 0,
     });
+    if (error) {
+      toast.error("No se pudo actualizar la cuenta", { description: error.message });
+      return;
+    }
     toast.success("Cuenta actualizada correctamente");
     onOpenChange(false);
   };
