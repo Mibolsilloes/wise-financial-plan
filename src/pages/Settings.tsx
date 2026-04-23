@@ -6,6 +6,7 @@ import { useTheme, ThemeColor } from "@/contexts/ThemeContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
 import { ResponsiblesManager } from "@/components/settings/ResponsiblesManager";
 import { PlansTab } from "@/components/settings/PlansTab";
+import { usePlan } from "@/hooks/usePlan";
 import {
   User,
   Share2,
