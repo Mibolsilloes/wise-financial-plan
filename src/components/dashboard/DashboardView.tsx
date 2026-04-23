@@ -392,7 +392,7 @@ export function DashboardView() {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyState message="Aún no hay movimientos en los últimos 6 meses con los filtros aplicados." />
+            <EmptyState message={subcategoryFilterActive ? `Sin movimientos para la subcategoría "${filters.subcategory}" en los últimos 6 meses.` : "Aún no hay movimientos en los últimos 6 meses con los filtros aplicados."} />
           )}
         </div>
       </div>
@@ -431,7 +431,7 @@ export function DashboardView() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <EmptyState message="No hay gastos en este período con los filtros aplicados." />
+              <EmptyState message={subcategoryFilterActive ? `No hay gastos en la subcategoría "${filters.subcategory}" en este período.` : "No hay gastos en este período con los filtros aplicados."} />
             )}
           </div>
         </div>
