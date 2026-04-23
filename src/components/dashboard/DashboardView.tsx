@@ -22,6 +22,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Activity,
+  Inbox,
 } from "lucide-react";
 import {
   format,
@@ -29,13 +30,15 @@ import {
   eachMonthOfInterval,
   startOfMonth,
   endOfMonth,
-  subMonths,
+  subMilliseconds,
+  differenceInMilliseconds,
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
-import { calculateTotals } from "@/data/mockData";
+import { useFilters } from "@/contexts/FilterContext";
+import { calculateTotals, Transaction } from "@/data/mockData";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-ES", {
@@ -54,11 +57,13 @@ interface KpiCardProps {
   label: string;
   value: number;
   delta?: number;
+  deltaAvailable?: boolean;
   icon: React.ElementType;
   variant: "success" | "danger" | "info" | "neutral";
+  isPercentage?: boolean;
 }
 
-function KpiCard({ label, value, delta, icon: Icon, variant }: KpiCardProps) {
+function KpiCard({ label, value, delta, deltaAvailable = true, icon: Icon, variant, isPercentage }: KpiCardProps) {
   const styles = {
     success: "from-success/20 to-success/5 text-success",
     danger: "from-destructive/20 to-destructive/5 text-destructive",
@@ -73,6 +78,9 @@ function KpiCard({ label, value, delta, icon: Icon, variant }: KpiCardProps) {
   };
 
   const positiveDelta = delta !== undefined && delta >= 0;
+  const displayValue = isPercentage
+    ? `${value.toFixed(1)}%`
+    : formatCurrencyFull(value);
 
   return (
     <div className="glass rounded-xl p-5 relative overflow-hidden animate-scale-in">
@@ -90,9 +98,9 @@ function KpiCard({ label, value, delta, icon: Icon, variant }: KpiCardProps) {
           </div>
         </div>
         <p className={cn("text-2xl font-bold mb-1", valueColor[variant])}>
-          {formatCurrencyFull(value)}
+          {displayValue}
         </p>
-        {delta !== undefined && (
+        {delta !== undefined && deltaAvailable ? (
           <div
             className={cn(
               "flex items-center gap-1 text-xs font-medium",
@@ -106,9 +114,11 @@ function KpiCard({ label, value, delta, icon: Icon, variant }: KpiCardProps) {
             )}
             <span>
               {positiveDelta ? "+" : ""}
-              {delta.toFixed(1)}% vs mes anterior
+              {delta.toFixed(1)}% vs período anterior
             </span>
           </div>
+        ) : (
+          <div className="text-xs text-muted-foreground">Sin datos previos para comparar</div>
         )}
       </div>
     </div>
@@ -136,49 +146,94 @@ const ChartTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="h-full flex flex-col items-center justify-center gap-2 text-center px-4">
+      <Inbox className="w-8 h-8 text-muted-foreground/60" />
+      <p className="text-sm text-muted-foreground">{message}</p>
+    </div>
+  );
+}
+
 export function DashboardView() {
   const { effectiveDateRange } = usePeriod();
   const { transactions } = useTransactions();
+  const { filters, hasActiveFilters } = useFilters();
 
-  // Filtered for current period
-  const filtered = useMemo(
-    () =>
-      transactions.filter((t) =>
-        isWithinInterval(t.dueDate, {
-          start: effectiveDateRange.from,
-          end: effectiveDateRange.to,
-        })
-      ),
-    [transactions, effectiveDateRange]
-  );
+  // Apply all filters (period + transaction filters)
+  const applyTransactionFilters = (txs: Transaction[]) => {
+    return txs.filter((t) => {
+      if (filters.account !== "todas" && t.account !== filters.account) return false;
+      if (filters.category !== "todas" && t.category !== filters.category) return false;
+      if (filters.subcategory && !(t.subcategory || "").toLowerCase().includes(filters.subcategory.toLowerCase())) return false;
+      if (filters.responsible && t.responsible !== filters.responsible) return false;
+      if (filters.creditCard && t.creditCard !== filters.creditCard) return false;
+      if (filters.paymentStatus !== "todos") {
+        const isPaid = t.status === "pagado" || t.status === "cobrado";
+        if (filters.paymentStatus === "pago" && !isPaid) return false;
+        if (filters.paymentStatus === "pendiente" && isPaid) return false;
+      }
+      if (filters.transactionType !== "todos") {
+        const isFixed = !!t.isFixed;
+        if (filters.transactionType === "fijas" && !isFixed) return false;
+        if (filters.transactionType === "variables" && isFixed) return false;
+      }
+      return true;
+    });
+  };
 
-  // Previous period for comparison
-  const prevTotals = useMemo(() => {
-    const prevStart = startOfMonth(subMonths(effectiveDateRange.from, 1));
-    const prevEnd = endOfMonth(subMonths(effectiveDateRange.from, 1));
-    const prev = transactions.filter((t) =>
-      isWithinInterval(t.dueDate, { start: prevStart, end: prevEnd })
+  // Filtered for current period + filters
+  const filtered = useMemo(() => {
+    const inPeriod = transactions.filter((t) =>
+      isWithinInterval(t.dueDate, {
+        start: effectiveDateRange.from,
+        end: effectiveDateRange.to,
+      })
     );
-    return calculateTotals(prev);
-  }, [transactions, effectiveDateRange]);
+    return applyTransactionFilters(inPeriod);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactions, effectiveDateRange, filters]);
+
+  // Previous equivalent period (same length, immediately before)
+  const previousPeriodRange = useMemo(() => {
+    const length = differenceInMilliseconds(effectiveDateRange.to, effectiveDateRange.from);
+    const prevEnd = subMilliseconds(effectiveDateRange.from, 1);
+    const prevStart = subMilliseconds(prevEnd, length);
+    return { from: prevStart, to: prevEnd };
+  }, [effectiveDateRange]);
+
+  const prevFiltered = useMemo(() => {
+    const inPrev = transactions.filter((t) =>
+      isWithinInterval(t.dueDate, {
+        start: previousPeriodRange.from,
+        end: previousPeriodRange.to,
+      })
+    );
+    return applyTransactionFilters(inPrev);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactions, previousPeriodRange, filters]);
 
   const totals = calculateTotals(filtered);
+  const prevTotals = calculateTotals(prevFiltered);
+  const hasPrevData = prevFiltered.length > 0;
 
   const calcDelta = (current: number, previous: number) => {
     if (previous === 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous) * 100;
   };
 
-  // Monthly evolution (last 6 months)
+  // Monthly evolution (last 6 months ending at current period end), with filters applied
   const monthlyEvolution = useMemo(() => {
     const end = endOfMonth(effectiveDateRange.to);
-    const start = startOfMonth(subMonths(end, 5));
+    const start = startOfMonth(new Date(end.getFullYear(), end.getMonth() - 5, 1));
     const months = eachMonthOfInterval({ start, end });
     return months.map((m) => {
       const mStart = startOfMonth(m);
       const mEnd = endOfMonth(m);
-      const monthTx = transactions.filter((t) =>
-        isWithinInterval(t.dueDate, { start: mStart, end: mEnd })
+      const monthTx = applyTransactionFilters(
+        transactions.filter((t) =>
+          isWithinInterval(t.dueDate, { start: mStart, end: mEnd })
+        )
       );
       const ingresos = monthTx
         .filter((t) => t.type === "ingreso")
@@ -193,7 +248,8 @@ export function DashboardView() {
         Balance: ingresos - gastos,
       };
     });
-  }, [transactions, effectiveDateRange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactions, effectiveDateRange, filters]);
 
   // Top categories (gastos)
   const topGastos = useMemo(() => {
@@ -224,17 +280,28 @@ export function DashboardView() {
     totals.totalIngresos > 0
       ? ((totals.totalIngresos - totals.totalGastos) / totals.totalIngresos) * 100
       : 0;
+  const prevTasaAhorro =
+    prevTotals.totalIngresos > 0
+      ? ((prevTotals.totalIngresos - prevTotals.totalGastos) / prevTotals.totalIngresos) * 100
+      : 0;
 
   const hasData = filtered.length > 0;
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {hasActiveFilters && (
+        <div className="text-xs text-muted-foreground px-1">
+          Mostrando datos con filtros activos aplicados.
+        </div>
+      )}
+
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           label="Ingresos del período"
           value={totals.totalIngresos}
           delta={calcDelta(totals.totalIngresos, prevTotals.totalIngresos)}
+          deltaAvailable={hasPrevData}
           icon={TrendingUp}
           variant="success"
         />
@@ -242,20 +309,29 @@ export function DashboardView() {
           label="Gastos del período"
           value={totals.totalGastos}
           delta={calcDelta(totals.totalGastos, prevTotals.totalGastos)}
+          deltaAvailable={hasPrevData}
           icon={TrendingDown}
           variant="danger"
         />
         <KpiCard
           label="Balance neto"
           value={totals.totalIngresos - totals.totalGastos}
+          delta={calcDelta(
+            totals.totalIngresos - totals.totalGastos,
+            prevTotals.totalIngresos - prevTotals.totalGastos
+          )}
+          deltaAvailable={hasPrevData}
           icon={Wallet}
           variant="info"
         />
         <KpiCard
           label="Tasa de ahorro"
           value={tasaAhorro}
+          delta={tasaAhorro - prevTasaAhorro}
+          deltaAvailable={hasPrevData}
           icon={Target}
           variant={tasaAhorro >= 0 ? "success" : "danger"}
+          isPercentage
         />
       </div>
 
@@ -312,9 +388,7 @@ export function DashboardView() {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-              Sin datos para mostrar
-            </div>
+            <EmptyState message="Aún no hay movimientos en los últimos 6 meses con los filtros aplicados." />
           )}
         </div>
       </div>
@@ -353,9 +427,7 @@ export function DashboardView() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                Sin gastos registrados
-              </div>
+              <EmptyState message="No hay gastos en este período con los filtros aplicados." />
             )}
           </div>
         </div>
@@ -406,19 +478,19 @@ export function DashboardView() {
                 </div>
               </div>
             ) : (
-              <div className="w-full text-center text-sm text-muted-foreground">
-                Sin movimientos en el período
-              </div>
+              <EmptyState message="Sin movimientos registrados en el período." />
             )}
           </div>
         </div>
       </div>
 
       {!hasData && (
-        <div className="glass rounded-xl p-8 text-center">
+        <div className="glass rounded-xl p-8 text-center space-y-2">
+          <Inbox className="w-10 h-10 text-muted-foreground/60 mx-auto" />
           <p className="text-sm text-muted-foreground">
-            No hay transacciones en este período. Agrega ingresos o gastos para ver tu
-            dashboard.
+            {hasActiveFilters
+              ? "Ningún movimiento coincide con los filtros aplicados en este período. Probá ajustar los filtros o cambiar el período."
+              : "No hay transacciones en este período. Agregá ingresos o gastos para ver tu dashboard."}
           </p>
         </div>
       )}
