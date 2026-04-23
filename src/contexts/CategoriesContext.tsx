@@ -21,6 +21,8 @@ interface CategoriesContextType {
   addCategory: (category: CategoryInput) => Promise<CategoryActionResult>;
   updateCategory: (id: string, updates: Partial<Category>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
+  addSubcategory: (categoryId: string, name: string) => Promise<CategoryActionResult>;
+  removeSubcategory: (categoryId: string, name: string) => Promise<CategoryActionResult>;
   getCategoryById: (id: string) => Category | undefined;
   getCategoryByName: (name: string) => Category | undefined;
   refetchCategories: () => Promise<void>;
@@ -186,6 +188,62 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  const addSubcategory = useCallback(
+    async (categoryId: string, name: string): Promise<CategoryActionResult> => {
+      if (!user) return { error: new Error("Usuario no autenticado") };
+      const trimmed = name.trim();
+      if (!trimmed) return { error: new Error("El nombre es obligatorio") };
+
+      const { error } = await supabase
+        .from("subcategories")
+        .insert({ category_id: categoryId, name: trimmed });
+
+      if (error) {
+        console.error("addSubcategory error:", error);
+        return { error: error as Error };
+      }
+
+      setCategories((prev) =>
+        prev.map((c) =>
+          c.id === categoryId
+            ? { ...c, subcategories: [...c.subcategories, trimmed] }
+            : c
+        )
+      );
+
+      return { error: null };
+    },
+    [user]
+  );
+
+  const removeSubcategory = useCallback(
+    async (categoryId: string, name: string): Promise<CategoryActionResult> => {
+      if (!user) return { error: new Error("Usuario no autenticado") };
+
+      const { error } = await supabase
+        .from("subcategories")
+        .delete()
+        .eq("category_id", categoryId)
+        .eq("name", name);
+
+      if (error) {
+        console.error("removeSubcategory error:", error);
+        return { error: error as Error };
+      }
+
+      setCategories((prev) =>
+        prev.map((c) =>
+          c.id === categoryId
+            ? { ...c, subcategories: c.subcategories.filter((s) => s !== name) }
+            : c
+        )
+      );
+
+      return { error: null };
+    },
+    [user]
+  );
+
   const getCategoryById = useCallback(
     (id: string) => categories.find((c) => c.id === id),
     [categories]
@@ -208,6 +266,8 @@ export function CategoriesProvider({ children }: { children: ReactNode }) {
         addCategory,
         updateCategory,
         deleteCategory,
+        addSubcategory,
+        removeSubcategory,
         getCategoryById,
         getCategoryByName,
         refetchCategories,
