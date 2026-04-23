@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradePlanDialog } from "@/components/UpgradePlanDialog";
 import {
   Plus,
   Edit2,
@@ -206,7 +208,17 @@ export default function CreditCards() {
             </p>
           </div>
 
-          <Dialog open={isDialogOpen} onOpenChange={(o) => { if (!o) resetNewForm(); setIsDialogOpen(o); }}>
+          <Dialog
+            open={isDialogOpen}
+            onOpenChange={(o) => {
+              if (o && !canAddCreditCard) {
+                setShowUpgrade(true);
+                return;
+              }
+              if (!o) resetNewForm();
+              setIsDialogOpen(o);
+            }}
+          >
             <DialogTrigger asChild>
               <Button className="gap-2 bg-primary hover:bg-primary/90 shadow-glow-primary">
                 <Plus className="w-4 h-4" />

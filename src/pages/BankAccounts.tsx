@@ -4,6 +4,8 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Layout } from "@/components/layout/Layout";
 import { useAccounts } from "@/contexts/AccountsContext";
+import { usePlan } from "@/hooks/usePlan";
+import { UpgradePlanDialog } from "@/components/UpgradePlanDialog";
 import { toast } from "sonner";
 import { 
   Plus, 
@@ -744,7 +746,16 @@ export default function BankAccounts() {
               Gestiona tus cuentas y controla tus saldos
             </p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog
+            open={isDialogOpen}
+            onOpenChange={(o) => {
+              if (o && !canAddBankAccount) {
+                setShowUpgrade(true);
+                return;
+              }
+              setIsDialogOpen(o);
+            }}
+          >
             <DialogTrigger asChild>
               <Button className="gap-2 bg-primary hover:bg-primary/90 shadow-glow-primary">
                 <Plus className="w-4 h-4" />
