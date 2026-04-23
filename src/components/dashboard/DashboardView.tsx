@@ -286,6 +286,10 @@ export function DashboardView() {
       : 0;
 
   const hasData = filtered.length > 0;
+  const subcategoryFilterActive = !!filters.subcategory?.trim();
+  const noSubMessage = subcategoryFilterActive
+    ? `No se encontraron movimientos con la subcategoría "${filters.subcategory}". Verificá si está bien escrita o si la categoría tiene subcategorías creadas.`
+    : "Ningún movimiento coincide con los filtros aplicados en este período. Probá ajustar los filtros o cambiar el período.";
 
   return (
     <div className="space-y-6 animate-fade-in">
