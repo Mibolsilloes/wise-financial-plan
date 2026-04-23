@@ -101,8 +101,14 @@ export function TopNav() {
                 <div className="hidden sm:block text-left">
                   <p className="text-sm font-medium text-white leading-tight">{displayName}</p>
                   <div className="flex items-center gap-1">
-                    <Crown className="w-3 h-3 text-yellow-300" />
-                    <span className="text-xs text-yellow-300">Premium</span>
+                    {isPremium ? (
+                      <>
+                        <Crown className="w-3 h-3 text-yellow-300" />
+                        <span className="text-xs text-yellow-300 font-medium">Premium</span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-white/70 font-medium">Plan Gratuito</span>
+                    )}
                   </div>
                 </div>
                 <ChevronDown className="w-4 h-4 text-white/70 hidden sm:block" />
