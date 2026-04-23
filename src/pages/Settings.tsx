@@ -71,6 +71,7 @@ const themes: { id: ThemeColor; name: string; colors: string[] }[] = [
 export default function Settings() {
   const navigate = useNavigate();
   const { user, profile, signOut, updateProfile } = useAuth();
+  const { isPremium } = usePlan();
   const { themeColor, setThemeColor } = useTheme();
   const { transactions } = useTransactions();
 
@@ -188,10 +189,18 @@ export default function Settings() {
                 <div>
                   <h3 className="font-semibold text-lg">{profile?.full_name || user?.email || "Usuario"}</h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <Crown className="w-4 h-4 text-warning" />
-                    <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
-                      Plan Premium
-                    </Badge>
+                    {isPremium ? (
+                      <>
+                        <Crown className="w-4 h-4 text-warning" />
+                        <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
+                          Plan Premium
+                        </Badge>
+                      </>
+                    ) : (
+                      <Badge variant="secondary" className="bg-muted text-muted-foreground border-border">
+                        Plan Gratuito
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>
