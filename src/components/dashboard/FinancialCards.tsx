@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
+import { useAccounts } from "@/contexts/AccountsContext";
 import { format, subMonths, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
 import { calculateTotals } from "@/data/mockData";
@@ -144,6 +145,16 @@ function FinancialCard({
 export function FinancialCards() {
   const { effectiveDateRange, monthName, selectedPeriod } = usePeriod();
   const { transactions } = useTransactions();
+  const { accounts } = useAccounts();
+
+  const totalCuentas = useMemo(
+    () => accounts.filter((a) => a.type !== "billetera").reduce((sum, a) => sum + a.balance, 0),
+    [accounts]
+  );
+  const totalBilletera = useMemo(
+    () => accounts.filter((a) => a.type === "billetera").reduce((sum, a) => sum + a.balance, 0),
+    [accounts]
+  );
   
   // Filter transactions by effective date range
   const filteredTransactions = useMemo(() => {
