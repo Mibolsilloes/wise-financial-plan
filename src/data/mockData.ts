@@ -37,7 +37,7 @@ export interface BankAccount {
   id: string;
   name: string;
   bank: string;
-  type: "corriente" | "ahorro";
+  type: "corriente" | "ahorro" | "billetera";
   balance: number;
   color: string;
   isDefault?: boolean;
