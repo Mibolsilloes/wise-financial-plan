@@ -43,13 +43,67 @@ import { EditCategoryDialog } from "@/components/categories/EditCategoryDialog";
 import { toast } from "sonner";
 
 import { CATEGORY_COLORS } from "@/lib/categoryColors";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PALETTE = CATEGORY_COLORS;
 
+const DEFAULT_CATEGORIES: {
+  name: string;
+  type: "gasto" | "ingreso";
+  color: string;
+  icon: string;
+}[] = [
+  { name: "Salario", type: "ingreso", color: "#22C55E", icon: "Wallet" },
+  { name: "Vivienda", type: "gasto", color: "#3B82F6", icon: "Home" },
+  { name: "Alimentación", type: "gasto", color: "#F59E0B", icon: "ShoppingCart" },
+  { name: "Transporte", type: "gasto", color: "#8B5CF6", icon: "Car" },
+  { name: "Salud y bienestar", type: "gasto", color: "#EC4899", icon: "Heart" },
+  { name: "Ocio y cultura", type: "gasto", color: "#06B6D4", icon: "Music" },
+  { name: "Compras", type: "gasto", color: "#F97316", icon: "ShoppingBag" },
+];
+
 export default function Categories() {
-  const { categories: contextCategories, deleteCategory, updateCategory, addCategory } = useCategories();
+  const { user } = useAuth();
+  const {
+    categories: contextCategories,
+    loading,
+    deleteCategory,
+    updateCategory,
+    addCategory,
+  } = useCategories();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const seedingRef = useRef(false);
+
+  // Semilla de categorías predeterminadas (editables y borrables).
+  // Solo se crean una vez por usuario; si las borra, no vuelven a aparecer.
+  useEffect(() => {
+    if (!user || loading || seedingRef.current) return;
+    if (contextCategories.length > 0) return;
+
+    const flagKey = `default-categories-seeded:${user.id}`;
+    if (localStorage.getItem(flagKey)) return;
+
+    seedingRef.current = true;
+    localStorage.setItem(flagKey, "1");
+
+    void (async () => {
+      for (let i = 0; i < DEFAULT_CATEGORIES.length; i++) {
+        const def = DEFAULT_CATEGORIES[i];
+        await addCategory({
+          name: def.name,
+          type: def.type,
+          color: def.color,
+          icon: def.icon,
+          subcategories: [],
+          totalAmount: 0,
+          position: i,
+          keywords: [],
+        });
+      }
+      seedingRef.current = false;
+    })();
+  }, [user, loading, contextCategories.length, addCategory]);
 
   // New category form state
   const [newCatName,  setNewCatName]  = useState("");
