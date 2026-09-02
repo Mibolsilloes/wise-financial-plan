@@ -218,13 +218,14 @@ export function FinancialCards() {
         variant="danger"
       />
       <FinancialCard
-        title="Saldo previsto"
-        mainValue={totals.saldoPrevisto}
-        subtitle={`Previsión para ${periodLabel}`}
-        formula="Ingresos - Gastos"
+        title="Saldo actual"
+        mainValue={totals.totalIngresos + totalCuentas + totalBilletera}
+        subtitle={`Ingresos de ${periodLabel} + cuentas + efectivo`}
+        formula="Ingresos + Cuentas bancarias + Billetera"
         details={[
-          { label: "Disponible", value: totals.saldoDisponible, variant: "success" },
-          { label: "Previsto", value: totals.ingresosPorCobrar - totals.gastosPendientes, variant: "neutral" },
+          { label: "Cuentas", value: totalCuentas, variant: "neutral" },
+          { label: "Billetera", value: totalBilletera, variant: "warning" },
+          { label: "Ingresos", value: totals.totalIngresos, variant: "success" },
         ]}
         icon={PiggyBank}
         variant="info"
