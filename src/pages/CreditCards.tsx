@@ -46,6 +46,7 @@ import { cn } from "@/lib/utils";
 import { useCreditCards } from "@/contexts/CreditCardsContext";
 import { useAccounts } from "@/contexts/AccountsContext";
 import { toast } from "sonner";
+import { CardBrandLogo } from "@/components/brand/CardBrandLogo";
 
 const brandColors: Record<string, string> = {
   "Visa":             "hsl(217, 91%, 60%)",
@@ -371,12 +372,7 @@ export default function CreditCards() {
                 {/* Header */}
                 <div className="px-4 py-3 bg-muted/30 border-b border-border/40 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div
-                      className="w-7 h-7 rounded-md flex items-center justify-center text-[10px] font-bold text-white"
-                      style={{ backgroundColor: brandColor }}
-                    >
-                      {card.brand.slice(0, 2).toUpperCase()}
-                    </div>
+                    <CardBrandLogo brand={card.brand} color={brandColor} className="w-9 h-7" />
                     <span className="text-sm font-medium text-foreground">{card.brand}</span>
                   </div>
                   <DropdownMenu>
