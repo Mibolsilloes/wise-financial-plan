@@ -775,29 +775,41 @@ export default function BankAccounts() {
             </DialogTrigger>
             <DialogContent className="bg-card border-border">
               <DialogHeader>
-                <DialogTitle>Crear nueva cuenta bancaria</DialogTitle>
+                <DialogTitle>{isWallet ? "Crear billetera (efectivo)" : "Crear nueva cuenta bancaria"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
+                <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <div className="flex items-center gap-2">
+                    <Wallet className="w-4 h-4 text-warning" />
+                    <div>
+                      <Label className="text-sm font-medium">Billetera (efectivo)</Label>
+                      <p className="text-[11px] text-muted-foreground">Dinero en efectivo, sin banco asociado</p>
+                    </div>
+                  </div>
+                  <Switch checked={isWallet} onCheckedChange={setIsWallet} />
+                </div>
                 <div>
-                  <Label htmlFor="acc-name">Nombre de la cuenta</Label>
+                  <Label htmlFor="acc-name">{isWallet ? "Nombre de la billetera" : "Nombre de la cuenta"}</Label>
                   <Input
                     id="acc-name"
-                    placeholder="Ej: Cuenta nómina"
+                    placeholder={isWallet ? "Ej: Efectivo" : "Ej: Cuenta nómina"}
                     className="mt-1.5"
                     value={newAccountName}
                     onChange={(e) => setNewAccountName(e.target.value)}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="acc-bank">Banco</Label>
-                  <Input
-                    id="acc-bank"
-                    placeholder="Ej: Santander, BBVA, CaixaBank..."
-                    className="mt-1.5"
-                    value={newAccountBank}
-                    onChange={(e) => setNewAccountBank(e.target.value)}
-                  />
-                </div>
+                {!isWallet && (
+                  <div>
+                    <Label htmlFor="acc-bank">Banco</Label>
+                    <Input
+                      id="acc-bank"
+                      placeholder="Ej: Santander, BBVA, CaixaBank..."
+                      className="mt-1.5"
+                      value={newAccountBank}
+                      onChange={(e) => setNewAccountBank(e.target.value)}
+                    />
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="acc-balance">Saldo inicial (€)</Label>
                   <Input
