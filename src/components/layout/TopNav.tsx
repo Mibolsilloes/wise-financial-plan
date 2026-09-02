@@ -20,6 +20,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import logoIcon from "@/assets/logo-icon.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlan } from "@/hooks/usePlan";
@@ -70,24 +76,30 @@ export function TopNav() {
 
           {/* Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                    isActive
-                      ? "bg-white/20 text-white"
-                      : "text-white/70 hover:text-white hover:bg-white/10"
-                  )}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+            <TooltipProvider delayDuration={100}>
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Tooltip key={item.path}>
+                    <TooltipTrigger asChild>
+                      <Link
+                        to={item.path}
+                        aria-label={item.label}
+                        className={cn(
+                          "flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200",
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : "text-white/70 hover:text-white hover:bg-white/10"
+                        )}
+                      >
+                        <item.icon className="w-5 h-5" />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">{item.label}</TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </TooltipProvider>
           </nav>
 
           {/* User Menu */}
