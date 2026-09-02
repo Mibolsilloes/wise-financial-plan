@@ -98,6 +98,7 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
     if (updates.bank !== undefined) dbUpdates.bank = updates.bank;
     if (updates.balance !== undefined) dbUpdates.balance = updates.balance;
     if (updates.color !== undefined) dbUpdates.color = updates.color;
+    if (updates.type !== undefined) dbUpdates.type = updates.type;
 
     const { error } = await supabase
       .from("bank_accounts")
