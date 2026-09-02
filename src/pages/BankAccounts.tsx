@@ -823,7 +823,7 @@ export default function BankAccounts() {
                   />
                 </div>
                 <Button className="w-full" onClick={handleCreateAccount} disabled={!newAccountName.trim()}>
-                  Crear cuenta
+                  {isWallet ? "Crear billetera" : "Crear cuenta"}
                 </Button>
               </div>
             </DialogContent>
@@ -858,7 +858,13 @@ export default function BankAccounts() {
               >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
-                  <BankLogo bank={account.bank || account.name} color={color} className="w-11 h-11" />
+                  {account.type === "billetera" ? (
+                    <div className="w-11 h-11 rounded-xl bg-warning/15 flex items-center justify-center">
+                      <Wallet className="w-5 h-5 text-warning" />
+                    </div>
+                  ) : (
+                    <BankLogo bank={account.bank || account.name} color={color} className="w-11 h-11" />
+                  )}
                   <div className="flex items-center gap-2">
                     {account.isDefault && (
                       <Star className="w-4 h-4 text-warning fill-warning" />
@@ -917,9 +923,13 @@ export default function BankAccounts() {
 
                 {/* Name & Badge */}
                 <h3 className="font-semibold mb-0.5">{account.name}</h3>
-                {account.bank && (
+                {account.type === "billetera" ? (
+                  <Badge variant="secondary" className="text-[10px] bg-warning/10 text-warning border-warning/20 mb-1">
+                    Billetera · Efectivo
+                  </Badge>
+                ) : account.bank ? (
                   <p className="text-xs text-muted-foreground mb-1">{account.bank}</p>
-                )}
+                ) : null}
                 {account.isDefault && (
                   <Badge 
                     variant="secondary" 
