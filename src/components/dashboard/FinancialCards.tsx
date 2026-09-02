@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { usePeriod } from "@/contexts/PeriodContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
+import { useAccounts } from "@/contexts/AccountsContext";
 import { format, subMonths, isWithinInterval } from "date-fns";
 import { es } from "date-fns/locale";
 import { calculateTotals } from "@/data/mockData";
@@ -144,6 +145,16 @@ function FinancialCard({
 export function FinancialCards() {
   const { effectiveDateRange, monthName, selectedPeriod } = usePeriod();
   const { transactions } = useTransactions();
+  const { accounts } = useAccounts();
+
+  const totalCuentas = useMemo(
+    () => accounts.filter((a) => a.type !== "billetera").reduce((sum, a) => sum + a.balance, 0),
+    [accounts]
+  );
+  const totalBilletera = useMemo(
+    () => accounts.filter((a) => a.type === "billetera").reduce((sum, a) => sum + a.balance, 0),
+    [accounts]
+  );
   
   // Filter transactions by effective date range
   const filteredTransactions = useMemo(() => {
@@ -218,13 +229,14 @@ export function FinancialCards() {
         variant="danger"
       />
       <FinancialCard
-        title="Saldo previsto"
-        mainValue={totals.saldoPrevisto}
-        subtitle={`Previsión para ${periodLabel}`}
-        formula="Ingresos - Gastos"
+        title="Saldo actual"
+        mainValue={totals.totalIngresos + totalCuentas + totalBilletera}
+        subtitle={`Ingresos de ${periodLabel} + cuentas + efectivo`}
+        formula="Ingresos + Cuentas bancarias + Billetera"
         details={[
-          { label: "Disponible", value: totals.saldoDisponible, variant: "success" },
-          { label: "Previsto", value: totals.ingresosPorCobrar - totals.gastosPendientes, variant: "neutral" },
+          { label: "Cuentas", value: totalCuentas, variant: "neutral" },
+          { label: "Billetera", value: totalBilletera, variant: "warning" },
+          { label: "Ingresos", value: totals.totalIngresos, variant: "success" },
         ]}
         icon={PiggyBank}
         variant="info"

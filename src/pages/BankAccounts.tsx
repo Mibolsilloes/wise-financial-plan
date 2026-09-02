@@ -683,6 +683,7 @@ export default function BankAccounts() {
   const [newAccountName, setNewAccountName]       = useState("");
   const [newAccountBank, setNewAccountBank]       = useState("");
   const [newAccountBalance, setNewAccountBalance] = useState("0");
+  const [isWallet, setIsWallet]                   = useState(false);
 
   const handleCreateAccount = async () => {
     if (!newAccountName.trim()) {
@@ -691,10 +692,10 @@ export default function BankAccounts() {
     }
     const { error } = await addAccount({
       name:    newAccountName.trim(),
-      bank:    newAccountBank.trim() || newAccountName.trim(),
-      type:    "corriente",
+      bank:    isWallet ? "Efectivo" : (newAccountBank.trim() || newAccountName.trim()),
+      type:    isWallet ? "billetera" : "corriente",
       balance: parseFloat(newAccountBalance.replace(",", ".")) || 0,
-      color:   "hsl(157, 54%, 33%)",
+      color:   isWallet ? "hsl(38, 92%, 50%)" : "hsl(157, 54%, 33%)",
     });
     if (error) {
       const { parsePlanLimitError } = await import("@/hooks/usePlan");
@@ -706,10 +707,11 @@ export default function BankAccounts() {
       }
       return;
     }
-    toast.success("Cuenta creada correctamente");
+    toast.success(isWallet ? "Billetera creada correctamente" : "Cuenta creada correctamente");
     setNewAccountName("");
     setNewAccountBank("");
     setNewAccountBalance("0");
+    setIsWallet(false);
     setIsDialogOpen(false);
   };
 
@@ -773,29 +775,41 @@ export default function BankAccounts() {
             </DialogTrigger>
             <DialogContent className="bg-card border-border">
               <DialogHeader>
-                <DialogTitle>Crear nueva cuenta bancaria</DialogTitle>
+                <DialogTitle>{isWallet ? "Crear billetera (efectivo)" : "Crear nueva cuenta bancaria"}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
+                <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <div className="flex items-center gap-2">
+                    <Wallet className="w-4 h-4 text-warning" />
+                    <div>
+                      <Label className="text-sm font-medium">Billetera (efectivo)</Label>
+                      <p className="text-[11px] text-muted-foreground">Dinero en efectivo, sin banco asociado</p>
+                    </div>
+                  </div>
+                  <Switch checked={isWallet} onCheckedChange={setIsWallet} />
+                </div>
                 <div>
-                  <Label htmlFor="acc-name">Nombre de la cuenta</Label>
+                  <Label htmlFor="acc-name">{isWallet ? "Nombre de la billetera" : "Nombre de la cuenta"}</Label>
                   <Input
                     id="acc-name"
-                    placeholder="Ej: Cuenta nómina"
+                    placeholder={isWallet ? "Ej: Efectivo" : "Ej: Cuenta nómina"}
                     className="mt-1.5"
                     value={newAccountName}
                     onChange={(e) => setNewAccountName(e.target.value)}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="acc-bank">Banco</Label>
-                  <Input
-                    id="acc-bank"
-                    placeholder="Ej: Santander, BBVA, CaixaBank..."
-                    className="mt-1.5"
-                    value={newAccountBank}
-                    onChange={(e) => setNewAccountBank(e.target.value)}
-                  />
-                </div>
+                {!isWallet && (
+                  <div>
+                    <Label htmlFor="acc-bank">Banco</Label>
+                    <Input
+                      id="acc-bank"
+                      placeholder="Ej: Santander, BBVA, CaixaBank..."
+                      className="mt-1.5"
+                      value={newAccountBank}
+                      onChange={(e) => setNewAccountBank(e.target.value)}
+                    />
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="acc-balance">Saldo inicial (€)</Label>
                   <Input
@@ -809,7 +823,7 @@ export default function BankAccounts() {
                   />
                 </div>
                 <Button className="w-full" onClick={handleCreateAccount} disabled={!newAccountName.trim()}>
-                  Crear cuenta
+                  {isWallet ? "Crear billetera" : "Crear cuenta"}
                 </Button>
               </div>
             </DialogContent>
@@ -844,7 +858,13 @@ export default function BankAccounts() {
               >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
-                  <BankLogo bank={account.bank || account.name} color={color} className="w-11 h-11" />
+                  {account.type === "billetera" ? (
+                    <div className="w-11 h-11 rounded-xl bg-warning/15 flex items-center justify-center">
+                      <Wallet className="w-5 h-5 text-warning" />
+                    </div>
+                  ) : (
+                    <BankLogo bank={account.bank || account.name} color={color} className="w-11 h-11" />
+                  )}
                   <div className="flex items-center gap-2">
                     {account.isDefault && (
                       <Star className="w-4 h-4 text-warning fill-warning" />
@@ -903,9 +923,13 @@ export default function BankAccounts() {
 
                 {/* Name & Badge */}
                 <h3 className="font-semibold mb-0.5">{account.name}</h3>
-                {account.bank && (
+                {account.type === "billetera" ? (
+                  <Badge variant="secondary" className="text-[10px] bg-warning/10 text-warning border-warning/20 mb-1">
+                    Billetera · Efectivo
+                  </Badge>
+                ) : account.bank ? (
                   <p className="text-xs text-muted-foreground mb-1">{account.bank}</p>
-                )}
+                ) : null}
                 {account.isDefault && (
                   <Badge 
                     variant="secondary" 

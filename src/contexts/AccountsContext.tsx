@@ -42,7 +42,7 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
         id: a.id,
         name: a.name,
         bank: a.bank,
-        type: "corriente" as const,
+        type: ((a as { type?: string }).type as BankAccount["type"]) ?? "corriente",
         balance: Number(a.balance),
         color: a.color,
         lastUpdate: a.created_at,
@@ -70,6 +70,7 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
         bank: account.bank,
         balance: account.balance,
         color: account.color,
+        type: account.type ?? "corriente",
       })
       .select()
       .single();
@@ -83,7 +84,7 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
       id: data.id,
       name: data.name,
       bank: data.bank,
-      type: "corriente" as const,
+      type: ((data as { type?: string }).type as BankAccount["type"]) ?? "corriente",
       balance: Number(data.balance),
       color: data.color,
     }]);
@@ -97,6 +98,7 @@ export function AccountsProvider({ children }: { children: ReactNode }) {
     if (updates.bank !== undefined) dbUpdates.bank = updates.bank;
     if (updates.balance !== undefined) dbUpdates.balance = updates.balance;
     if (updates.color !== undefined) dbUpdates.color = updates.color;
+    if (updates.type !== undefined) dbUpdates.type = updates.type;
 
     const { error } = await supabase
       .from("bank_accounts")
