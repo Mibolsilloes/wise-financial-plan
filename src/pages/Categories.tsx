@@ -42,16 +42,9 @@ import { SortableCategoryItem } from "@/components/categories/SortableCategoryIt
 import { EditCategoryDialog } from "@/components/categories/EditCategoryDialog";
 import { toast } from "sonner";
 
-const PALETTE = [
-  "hsl(340, 82%, 52%)",
-  "hsl(25, 95%, 53%)",
-  "hsl(45, 93%, 47%)",
-  "hsl(160, 84%, 39%)",
-  "hsl(217, 91%, 60%)",
-  "hsl(280, 65%, 60%)",
-  "hsl(157, 54%, 33%)",
-  "hsl(0, 72%, 51%)",
-];
+import { CATEGORY_COLORS } from "@/lib/categoryColors";
+
+const PALETTE = CATEGORY_COLORS;
 
 export default function Categories() {
   const { categories: contextCategories, deleteCategory, updateCategory, addCategory } = useCategories();

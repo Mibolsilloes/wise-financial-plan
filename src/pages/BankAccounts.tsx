@@ -63,6 +63,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { BankAccount } from "@/data/mockData";
+import { BankLogo } from "@/components/brand/BankLogo";
 
 const bankIcons: Record<string, React.ElementType> = {
   "Santander": Landmark,
@@ -843,12 +844,7 @@ export default function BankAccounts() {
               >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
-                  <div 
-                    className="p-3 rounded-xl"
-                    style={{ backgroundColor: `${color}20` }}
-                  >
-                    <Icon className="w-5 h-5" style={{ color }} />
-                  </div>
+                  <BankLogo bank={account.bank || account.name} color={color} className="w-11 h-11" />
                   <div className="flex items-center gap-2">
                     {account.isDefault && (
                       <Star className="w-4 h-4 text-warning fill-warning" />
@@ -906,7 +902,10 @@ export default function BankAccounts() {
                 </div>
 
                 {/* Name & Badge */}
-                <h3 className="font-semibold mb-1">{account.name}</h3>
+                <h3 className="font-semibold mb-0.5">{account.name}</h3>
+                {account.bank && (
+                  <p className="text-xs text-muted-foreground mb-1">{account.bank}</p>
+                )}
                 {account.isDefault && (
                   <Badge 
                     variant="secondary" 
