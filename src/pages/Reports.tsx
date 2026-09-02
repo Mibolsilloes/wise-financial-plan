@@ -848,9 +848,9 @@ export default function Reports() {
                       { key: "income", label: "Tarta - ingresos" },
                       { key: "frequency", label: "Frecuencia ingresos x gastos" },
                       { key: "expensesPaid", label: "Tarta - gastos pagados" },
-                      { key: "expensesUnpaid", label: "Tarta - gastos no pagados" },
+                      { key: "expensesUnpaid", label: "Tarta - gastos previstos" },
                       { key: "incomePaid", label: "Tarta - ingresos cobrados" },
-                      { key: "incomeUnpaid", label: "Tarta - ingresos no cobrados" },
+                      { key: "incomeUnpaid", label: "Tarta - ingresos previstos" },
                     ].map((chart) => (
                       <div key={chart.key} className="flex items-center space-x-2">
                         <Switch
@@ -1090,7 +1090,7 @@ export default function Reports() {
               {/* Expenses Unpaid Pie */}
               {charts.expensesUnpaid && (
                 <div className="glass rounded-xl p-5 animate-scale-in">
-                  <h3 className="text-lg font-semibold mb-2">Gastos no pagados</h3>
+                  <h3 className="text-lg font-semibold mb-2">Gastos previstos</h3>
                   <p className="text-xs text-muted-foreground mb-4">{periodLabel}</p>
                   <div className="h-[200px] relative">
                     {expenseDataUnpaid.length > 0 ? (
@@ -1194,7 +1194,7 @@ export default function Reports() {
               {/* Income Unpaid Pie */}
               {charts.incomeUnpaid && (
                 <div className="glass rounded-xl p-5 animate-scale-in">
-                  <h3 className="text-lg font-semibold mb-2">Ingresos no cobrados</h3>
+                  <h3 className="text-lg font-semibold mb-2">Ingresos previstos</h3>
                   <p className="text-xs text-muted-foreground mb-4">{periodLabel}</p>
                   <div className="h-[200px] relative">
                     {incomeDataUnpaid.length > 0 ? (
