@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { CATEGORY_COLORS } from "@/lib/categoryColors";
 import { HexColorPicker } from "react-colorful";
 
 // Helper functions for color conversion
@@ -81,20 +82,7 @@ const hexToHsl = (hex: string): string => {
   return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
 };
 
-const colorPalette = [
-  "hsl(0, 84%, 60%)",
-  "hsl(25, 95%, 53%)",
-  "hsl(45, 93%, 47%)",
-  "hsl(120, 60%, 50%)",
-  "hsl(160, 84%, 39%)",
-  "hsl(172, 66%, 50%)",
-  "hsl(199, 89%, 48%)",
-  "hsl(217, 91%, 60%)",
-  "hsl(250, 70%, 60%)",
-  "hsl(280, 65%, 60%)",
-  "hsl(310, 70%, 55%)",
-  "hsl(340, 82%, 52%)",
-];
+const colorPalette = CATEGORY_COLORS;
 
 interface CategoryItem {
   id: string;
@@ -224,7 +212,7 @@ export function EditCategoryDialog({
           {/* Color Picker */}
           <div className="space-y-3">
             <Label className="text-sm text-muted-foreground">Color de la Categoría</Label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pr-1">
               {colorPalette.map((color) => (
                 <button
                   key={color}
