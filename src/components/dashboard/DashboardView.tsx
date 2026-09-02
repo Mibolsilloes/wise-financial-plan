@@ -43,14 +43,14 @@ import { calculateTotals, Transaction } from "@/data/mockData";
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "EUR",
+    currency: "EUR", useGrouping: "always" as any,
     maximumFractionDigits: 0,
   }).format(value);
 
 const formatCurrencyFull = (value: number) =>
   new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "EUR",
+    currency: "EUR", useGrouping: "always" as any,
   }).format(value);
 
 interface KpiCardProps {

@@ -77,7 +77,7 @@ const sortLabels: Record<SortOption, string> = {
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "EUR",
+    currency: "EUR", useGrouping: "always" as any,
   }).format(value);
 };
 

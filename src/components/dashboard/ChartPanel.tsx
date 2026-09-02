@@ -10,9 +10,9 @@ const chartTabs = [
   { id: "all", label: "Todas" },
   { id: "ingresos", label: "Ingresos" },
   { id: "gastos", label: "Gastos" },
-  { id: "gastos-no-pagados", label: "Gastos No Pagados" },
+  { id: "gastos-no-pagados", label: "Gastos Previstos" },
   { id: "gastos-pagados", label: "Gastos Pagados" },
-  { id: "ingresos-no-cobrados", label: "Ingresos No Cobrados" },
+  { id: "ingresos-no-cobrados", label: "Ingresos Previstos" },
   { id: "ingresos-cobrados", label: "Ingresos Cobrados" },
 ];
 
@@ -27,7 +27,7 @@ const CustomTooltip = ({ active, payload }: any) => {
         <p className="text-sm" style={{ color: data.payload.color }}>
           {new Intl.NumberFormat("es-ES", {
             style: "currency",
-            currency: "EUR",
+            currency: "EUR", useGrouping: "always" as any,
           }).format(data.value)}
         </p>
         <p className="text-xs text-muted-foreground">{percentage}%</p>
@@ -69,8 +69,8 @@ export function ChartPanel() {
         filteredTransactions = filteredTransactions.filter(t => t.type === "ingreso" && t.status === "cobrado");
         break;
       default:
-        // all - show expenses by default for pie chart
-        filteredTransactions = filteredTransactions.filter(t => t.type === "gasto");
+        // all - ingresos y gastos juntos en el mismo gráfico
+        break;
     }
 
     // Group by category
@@ -95,7 +95,7 @@ export function ChartPanel() {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("es-ES", {
       style: "currency",
-      currency: "EUR",
+      currency: "EUR", useGrouping: "always" as any,
     }).format(value);
   };
 

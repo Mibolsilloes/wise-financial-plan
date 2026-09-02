@@ -187,7 +187,7 @@ const chartTypes = [
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
-    currency: "EUR",
+    currency: "EUR", useGrouping: "always" as any,
   }).format(value);
 };
 
@@ -450,7 +450,7 @@ export default function Reports() {
   const totalIncomePaid = incomeDataPaid.reduce((acc, item) => acc + item.value, 0);
   const totalIncomeUnpaid = incomeDataUnpaid.reduce((acc, item) => acc + item.value, 0);
 
-  // Pending transactions for the movimientos pendientes tab
+  // Pending transactions for the movimientos previstos tab
   const pendingIncomeTransactions = useMemo(() => {
     return filteredTransactions.filter(t => t.type === "ingreso" && t.status === "por_cobrar");
   }, [filteredTransactions]);
@@ -662,7 +662,7 @@ export default function Reports() {
                         <FileText className="w-8 h-8 text-muted-foreground" />
                       </div>
                       <p className="text-muted-foreground font-medium">
-                        No se encontraron movimientos pendientes
+                        No se encontraron movimientos previstos
                       </p>
                       <p className="text-sm text-muted-foreground/70 mt-1">
                         {type === "ingresos" ? "No hay ingresos por cobrar" : "No hay gastos por pagar"}
@@ -723,7 +723,7 @@ export default function Reports() {
               value="lancamentos" 
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-0 pb-3 text-sm font-medium"
             >
-              Movimientos pendientes
+              Movimientos previstos
             </TabsTrigger>
             <TabsTrigger 
               value="fluxo" 
@@ -848,9 +848,9 @@ export default function Reports() {
                       { key: "income", label: "Tarta - ingresos" },
                       { key: "frequency", label: "Frecuencia ingresos x gastos" },
                       { key: "expensesPaid", label: "Tarta - gastos pagados" },
-                      { key: "expensesUnpaid", label: "Tarta - gastos no pagados" },
+                      { key: "expensesUnpaid", label: "Tarta - gastos previstos" },
                       { key: "incomePaid", label: "Tarta - ingresos cobrados" },
-                      { key: "incomeUnpaid", label: "Tarta - ingresos no cobrados" },
+                      { key: "incomeUnpaid", label: "Tarta - ingresos previstos" },
                     ].map((chart) => (
                       <div key={chart.key} className="flex items-center space-x-2">
                         <Switch
@@ -1090,7 +1090,7 @@ export default function Reports() {
               {/* Expenses Unpaid Pie */}
               {charts.expensesUnpaid && (
                 <div className="glass rounded-xl p-5 animate-scale-in">
-                  <h3 className="text-lg font-semibold mb-2">Gastos no pagados</h3>
+                  <h3 className="text-lg font-semibold mb-2">Gastos previstos</h3>
                   <p className="text-xs text-muted-foreground mb-4">{periodLabel}</p>
                   <div className="h-[200px] relative">
                     {expenseDataUnpaid.length > 0 ? (
@@ -1194,7 +1194,7 @@ export default function Reports() {
               {/* Income Unpaid Pie */}
               {charts.incomeUnpaid && (
                 <div className="glass rounded-xl p-5 animate-scale-in">
-                  <h3 className="text-lg font-semibold mb-2">Ingresos no cobrados</h3>
+                  <h3 className="text-lg font-semibold mb-2">Ingresos previstos</h3>
                   <p className="text-xs text-muted-foreground mb-4">{periodLabel}</p>
                   <div className="h-[200px] relative">
                     {incomeDataUnpaid.length > 0 ? (
@@ -1245,7 +1245,7 @@ export default function Reports() {
             </div>
           </TabsContent>
 
-          {/* Movimientos Pendientes Tab */}
+          {/* Movimientos Previstos Tab */}
           <TabsContent value="lancamentos" className="mt-6 space-y-5">
             {/* Header with Month Navigation and Summary Cards - Dashboard style */}
             <div className="glass rounded-xl p-5 animate-slide-up">

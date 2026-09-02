@@ -158,7 +158,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
 
     toast({
       title: "Gasto añadido",
-      description: `Se ha registrado "${descricao}" por ${amount.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}`,
+      description: `Se ha registrado "${descricao}" por ${amount.toLocaleString("es-ES", { style: "currency", currency: "EUR", useGrouping: "always" as any })}`,
     });
 
     resetForm();
