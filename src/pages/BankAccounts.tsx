@@ -683,6 +683,7 @@ export default function BankAccounts() {
   const [newAccountName, setNewAccountName]       = useState("");
   const [newAccountBank, setNewAccountBank]       = useState("");
   const [newAccountBalance, setNewAccountBalance] = useState("0");
+  const [isWallet, setIsWallet]                   = useState(false);
 
   const handleCreateAccount = async () => {
     if (!newAccountName.trim()) {
@@ -691,10 +692,10 @@ export default function BankAccounts() {
     }
     const { error } = await addAccount({
       name:    newAccountName.trim(),
-      bank:    newAccountBank.trim() || newAccountName.trim(),
-      type:    "corriente",
+      bank:    isWallet ? "Efectivo" : (newAccountBank.trim() || newAccountName.trim()),
+      type:    isWallet ? "billetera" : "corriente",
       balance: parseFloat(newAccountBalance.replace(",", ".")) || 0,
-      color:   "hsl(157, 54%, 33%)",
+      color:   isWallet ? "hsl(38, 92%, 50%)" : "hsl(157, 54%, 33%)",
     });
     if (error) {
       const { parsePlanLimitError } = await import("@/hooks/usePlan");
@@ -706,10 +707,11 @@ export default function BankAccounts() {
       }
       return;
     }
-    toast.success("Cuenta creada correctamente");
+    toast.success(isWallet ? "Billetera creada correctamente" : "Cuenta creada correctamente");
     setNewAccountName("");
     setNewAccountBank("");
     setNewAccountBalance("0");
+    setIsWallet(false);
     setIsDialogOpen(false);
   };
 
