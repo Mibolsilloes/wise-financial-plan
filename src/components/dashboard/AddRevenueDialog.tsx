@@ -149,7 +149,7 @@ export function AddRevenueDialog({ open, onOpenChange }: AddRevenueDialogProps) 
 
     toast({
       title: "Ingreso añadido",
-      description: `Se ha registrado "${descricao}" por ${amount.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}`,
+      description: `Se ha registrado "${descricao}" por ${amount.toLocaleString("es-ES", { style: "currency", currency: "EUR", useGrouping: "always" as any })}`,
     });
 
     resetForm();

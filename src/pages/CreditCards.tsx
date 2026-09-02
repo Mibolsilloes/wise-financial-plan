@@ -55,7 +55,7 @@ const brandColors: Record<string, string> = {
 };
 
 const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(value);
+  new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", useGrouping: "always" as any }).format(value);
 
 // ─── tipos locais ────────────────────────────────────────────
 interface CardForEdit {

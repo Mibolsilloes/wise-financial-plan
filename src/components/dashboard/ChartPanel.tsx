@@ -27,7 +27,7 @@ const CustomTooltip = ({ active, payload }: any) => {
         <p className="text-sm" style={{ color: data.payload.color }}>
           {new Intl.NumberFormat("es-ES", {
             style: "currency",
-            currency: "EUR",
+            currency: "EUR", useGrouping: "always" as any,
           }).format(data.value)}
         </p>
         <p className="text-xs text-muted-foreground">{percentage}%</p>
@@ -95,7 +95,7 @@ export function ChartPanel() {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("es-ES", {
       style: "currency",
-      currency: "EUR",
+      currency: "EUR", useGrouping: "always" as any,
     }).format(value);
   };
 
