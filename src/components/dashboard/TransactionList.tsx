@@ -57,7 +57,7 @@ const tableColumns = [
   "Importe",
   "Categoría",
   "Cuenta",
-  "Vencimiento",
+  "Fecha",
   "Estado",
   "Tipo",
   "Acciones",
