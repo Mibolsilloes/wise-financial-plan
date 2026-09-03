@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { usePlan } from "@/hooks/usePlan";
@@ -45,6 +45,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useCreditCards } from "@/contexts/CreditCardsContext";
 import { useAccounts } from "@/contexts/AccountsContext";
+import { useTransactions } from "@/contexts/TransactionsContext";
 import { toast } from "sonner";
 import { CardBrandLogo } from "@/components/brand/CardBrandLogo";
 
@@ -78,6 +79,7 @@ const BRANDS = ["Visa", "Mastercard", "American Express", "Elo"];
 export default function CreditCards() {
   const navigate                            = useNavigate();
   const { creditCards, addCreditCard, updateCreditCard, deleteCreditCard } = useCreditCards();
+  const { transactions } = useTransactions();
   const { accounts }                        = useAccounts();
   const { canAddCreditCard, isPremium, usage, limits } = usePlan();
 
@@ -162,13 +164,28 @@ export default function CreditCards() {
   };
 
   // ── mapear cards para exibição ──
+  // Uso real por tarjeta, calculado en vivo desde las transacciones (sin duplicar registros)
+  const usedByCard = useMemo(() => {
+    const map: Record<string, number> = {};
+    transactions.forEach((t) => {
+      if (t.type !== "gasto") return;
+      if (t.status === "pagado") return;
+      const cardId =
+        t.creditCardId ||
+        (t.creditCard ? creditCards.find((c) => c.name === t.creditCard)?.id : undefined);
+      if (!cardId) return;
+      map[cardId] = (map[cardId] || 0) + Number(t.amount);
+    });
+    return map;
+  }, [transactions, creditCards]);
+
   const cards: CardForEdit[] = creditCards.map((card) => ({
     id:         card.id,
     name:       card.name,
     brand:      card.brand || card.bank,
     lastDigits: card.lastDigits || "",
     limit:      card.limit,
-    used:       card.used,
+    used:       usedByCard[card.id] ?? card.used,
     closingDay: card.closingDay,
     dueDay:     card.dueDay,
     account:    card.account || "Sin cuenta",
