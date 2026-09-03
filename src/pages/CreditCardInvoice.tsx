@@ -69,6 +69,7 @@ import { EditTransactionDialog } from "@/components/dashboard/EditTransactionDia
 import { DeleteTransactionDialog } from "@/components/dashboard/DeleteTransactionDialog";
 import { useFilters } from "@/contexts/FilterContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
+import { useCreditCards } from "@/contexts/CreditCardsContext";
 import { Transaction } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { 
@@ -584,8 +585,23 @@ export default function CreditCardInvoice() {
   if (!card) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-6">
-          <p>Tarjeta no encontrada</p>
+        <div className="container mx-auto px-4 py-10">
+          <div className="glass rounded-xl border border-border/50 p-8 flex flex-col items-center text-center gap-3">
+            <CreditCard className="w-8 h-8 text-muted-foreground" />
+            <p className="font-medium">
+              {cardsLoading ? "Cargando factura..." : "No encontramos esta tarjeta"}
+            </p>
+            {!cardsLoading && (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Puede que haya sido eliminada o que pertenezca a otra cuenta.
+                </p>
+                <Button variant="outline" onClick={() => navigate("/cartoes")}>
+                  Volver a mis tarjetas
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </Layout>
     );
@@ -611,32 +627,35 @@ export default function CreditCardInvoice() {
     }
   };
 
-  // Mock invoice data
+  const invoiceTotal = filteredTransactions.reduce((sum, t) => sum + Math.abs(t.valor), 0);
+  const allPaid = filteredTransactions.length > 0 && filteredTransactions.every((t) => t.status === "pagado");
+
   const invoiceData = {
-    status: "Abierta",
+    status: allPaid ? "Pagada" : "Abierta",
     statusColor: "warning",
-    total: 2450.75,
+    total: invoiceTotal,
     closingDate: card.closingDay,
     dueDate: card.dueDay,
   };
   // Convert local transaction to global Transaction format for dialogs
-  const convertToGlobalTransaction = (t: LocalTransaction): Transaction => ({
-    id: t.id,
-    type: "gasto",
-    description: t.descripcion,
-    amount: Math.abs(t.valor),
-    category: t.categoria,
-    subcategory: t.categoria,
-    account: card.account,
-    creditCard: card.name,
-    responsible: t.responsable,
-    dueDate: parseISO(t.dataCompra),
-    paymentDate: undefined,
-    competenceDate: parseISO(t.dataCompra),
-    status: t.status === "pagado" ? "pagado" : "pendiente",
-    isFixed: t.fixoVariavel === "Fijo",
-    color: "hsl(340, 82%, 52%)",
-  });
+  const convertToGlobalTransaction = (t: LocalTransaction): Transaction =>
+    transactionsById[t.id] ?? {
+      id: t.id,
+      type: "gasto",
+      description: t.descripcion,
+      amount: Math.abs(t.valor),
+      category: t.categoria,
+      creditCard: card.name,
+      creditCardId: card.id,
+      account: "",
+      responsible: t.responsable,
+      dueDate: parseISO(t.dataCompra),
+      paymentDate: undefined,
+      competenceDate: parseISO(t.dataCompra),
+      status: t.status === "pagado" ? "pagado" : "pendiente",
+      isFixed: t.fixoVariavel === "Fijo",
+      color: "hsl(340, 82%, 52%)",
+    };
 
   const handleEdit = (transaction: LocalTransaction) => {
     setSelectedTransaction(convertToGlobalTransaction(transaction));
@@ -1054,7 +1073,7 @@ export default function CreditCardInvoice() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Cuenta</span>
-                  <span className="font-medium">{card.account}</span>
+                  <span className="font-medium">{card.bank}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Límite</span>
