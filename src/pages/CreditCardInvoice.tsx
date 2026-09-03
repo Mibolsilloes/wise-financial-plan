@@ -487,16 +487,56 @@ export default function CreditCardInvoice() {
     setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
   };
   
-  const card = id ? cardsData[id] : null;
+  const { creditCards, loading: cardsLoading } = useCreditCards();
+  const { transactions: allTransactions } = useTransactions();
 
-  // Mock transactions with UUID IDs - must be before early return for hooks rules
-  const transactions: LocalTransaction[] = useMemo(() => [
-    { id: "cc-txn-001", descripcion: "Netflix", responsable: "Carlos", valor: -55.90, categoria: "Streaming", parcela: "1/1", dataCompra: "2026-01-05", fixoVariavel: "Fijo", status: "pendiente" },
-    { id: "cc-txn-002", descripcion: "Supermercado Mercadona", responsable: "María", valor: -320.00, categoria: "Supermercado", parcela: "1/1", dataCompra: "2026-01-10", fixoVariavel: "Variable", status: "pendiente" },
-    { id: "cc-txn-003", descripcion: "iPhone 15 Pro", responsable: "Carlos", valor: -899.90, categoria: "Electrónica", parcela: "3/12", dataCompra: "2025-11-15", fixoVariavel: "Variable", status: "pendiente" },
-    { id: "cc-txn-004", descripcion: "Spotify Family", responsable: "María", valor: -34.90, categoria: "Streaming", parcela: "1/1", dataCompra: "2026-01-08", fixoVariavel: "Fijo", status: "pendiente" },
-    { id: "cc-txn-005", descripcion: "Restaurante Lateral", responsable: "Carlos", valor: -189.00, categoria: "Alimentación", parcela: "1/1", dataCompra: "2026-01-12", fixoVariavel: "Variable", status: "pendiente" },
-  ], []);
+  const card = useMemo(() => creditCards.find((c) => c.id === id) ?? null, [creditCards, id]);
+
+  // Período de facturación: del día de cierre del mes actual al día anterior al cierre del mes siguiente
+  const periodStart = useMemo(
+    () => new Date(currentYear, currentMonth, card?.closingDay ?? 1, 0, 0, 0),
+    [currentYear, currentMonth, card?.closingDay]
+  );
+  const periodEnd = useMemo(
+    () => new Date(currentYear, currentMonth + 1, (card?.closingDay ?? 1) - 1, 23, 59, 59),
+    [currentYear, currentMonth, card?.closingDay]
+  );
+
+  // Gastos reales vinculados a esta tarjeta dentro del período
+  const cardTransactions = useMemo(
+    () =>
+      allTransactions.filter(
+        (t) =>
+          t.creditCardId === id &&
+          t.type === "gasto" &&
+          t.dueDate >= periodStart &&
+          t.dueDate <= periodEnd
+      ),
+    [allTransactions, id, periodStart, periodEnd]
+  );
+
+  const transactionsById = useMemo(() => {
+    const map: Record<string, Transaction> = {};
+    cardTransactions.forEach((t) => { map[t.id] = t; });
+    return map;
+  }, [cardTransactions]);
+
+  const transactions: LocalTransaction[] = useMemo(
+    () =>
+      cardTransactions.map((t) => ({
+        id: t.id,
+        descripcion: t.description,
+        responsable: t.responsible || "—",
+        valor: -Math.abs(t.amount),
+        categoria: t.category || "Sin categoría",
+        parcela: "1/1",
+        dataCompra: format(t.dueDate, "yyyy-MM-dd"),
+        fixoVariavel: t.isFixed ? "Fijo" : "Variable",
+        status: t.status === "pagado" ? "pagado" : "pendiente",
+      })),
+    [cardTransactions]
+  );
+
 
   // Filtered transactions based on filters and search - must be before early return
   const filteredTransactions = useMemo(() => {
