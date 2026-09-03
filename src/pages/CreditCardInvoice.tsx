@@ -69,6 +69,7 @@ import { EditTransactionDialog } from "@/components/dashboard/EditTransactionDia
 import { DeleteTransactionDialog } from "@/components/dashboard/DeleteTransactionDialog";
 import { useFilters } from "@/contexts/FilterContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
+import { useCreditCards } from "@/contexts/CreditCardsContext";
 import { Transaction } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import { 
@@ -113,19 +114,6 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-// Mock card data
-const cardsData: Record<string, { 
-  name: string; 
-  brand: string; 
-  limit: number; 
-  closingDay: number; 
-  dueDay: number;
-  account: string;
-}> = {
-  "1": { name: "Santander Platinum", brand: "Mastercard", limit: 15000, closingDay: 3, dueDay: 10, account: "Santander" },
-  "2": { name: "BBVA Aqua", brand: "Visa", limit: 8000, closingDay: 15, dueDay: 22, account: "BBVA" },
-  "3": { name: "CaixaBank Visa", brand: "Visa", limit: 5000, closingDay: 20, dueDay: 27, account: "CaixaBank" },
-};
 
 const brandColors: Record<string, string> = {
   "Mastercard": "hsl(25, 95%, 53%)",
@@ -500,16 +488,56 @@ export default function CreditCardInvoice() {
     setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
   };
   
-  const card = id ? cardsData[id] : null;
+  const { creditCards, loading: cardsLoading } = useCreditCards();
+  const { transactions: allTransactions } = useTransactions();
 
-  // Mock transactions with UUID IDs - must be before early return for hooks rules
-  const transactions: LocalTransaction[] = useMemo(() => [
-    { id: "cc-txn-001", descripcion: "Netflix", responsable: "Carlos", valor: -55.90, categoria: "Streaming", parcela: "1/1", dataCompra: "2026-01-05", fixoVariavel: "Fijo", status: "pendiente" },
-    { id: "cc-txn-002", descripcion: "Supermercado Mercadona", responsable: "María", valor: -320.00, categoria: "Supermercado", parcela: "1/1", dataCompra: "2026-01-10", fixoVariavel: "Variable", status: "pendiente" },
-    { id: "cc-txn-003", descripcion: "iPhone 15 Pro", responsable: "Carlos", valor: -899.90, categoria: "Electrónica", parcela: "3/12", dataCompra: "2025-11-15", fixoVariavel: "Variable", status: "pendiente" },
-    { id: "cc-txn-004", descripcion: "Spotify Family", responsable: "María", valor: -34.90, categoria: "Streaming", parcela: "1/1", dataCompra: "2026-01-08", fixoVariavel: "Fijo", status: "pendiente" },
-    { id: "cc-txn-005", descripcion: "Restaurante Lateral", responsable: "Carlos", valor: -189.00, categoria: "Alimentación", parcela: "1/1", dataCompra: "2026-01-12", fixoVariavel: "Variable", status: "pendiente" },
-  ], []);
+  const card = useMemo(() => creditCards.find((c) => c.id === id) ?? null, [creditCards, id]);
+
+  // Período de facturación: del día de cierre del mes actual al día anterior al cierre del mes siguiente
+  const periodStart = useMemo(
+    () => new Date(currentYear, currentMonth, card?.closingDay ?? 1, 0, 0, 0),
+    [currentYear, currentMonth, card?.closingDay]
+  );
+  const periodEnd = useMemo(
+    () => new Date(currentYear, currentMonth + 1, (card?.closingDay ?? 1) - 1, 23, 59, 59),
+    [currentYear, currentMonth, card?.closingDay]
+  );
+
+  // Gastos reales vinculados a esta tarjeta dentro del período
+  const cardTransactions = useMemo(
+    () =>
+      allTransactions.filter(
+        (t) =>
+          t.creditCardId === id &&
+          t.type === "gasto" &&
+          t.dueDate >= periodStart &&
+          t.dueDate <= periodEnd
+      ),
+    [allTransactions, id, periodStart, periodEnd]
+  );
+
+  const transactionsById = useMemo(() => {
+    const map: Record<string, Transaction> = {};
+    cardTransactions.forEach((t) => { map[t.id] = t; });
+    return map;
+  }, [cardTransactions]);
+
+  const transactions: LocalTransaction[] = useMemo(
+    () =>
+      cardTransactions.map((t) => ({
+        id: t.id,
+        descripcion: t.description,
+        responsable: t.responsible || "—",
+        valor: -Math.abs(t.amount),
+        categoria: t.category || "Sin categoría",
+        parcela: "1/1",
+        dataCompra: format(t.dueDate, "yyyy-MM-dd"),
+        fixoVariavel: t.isFixed ? "Fijo" : "Variable",
+        status: t.status === "pagado" ? "pagado" : "pendiente",
+      })),
+    [cardTransactions]
+  );
+
 
   // Filtered transactions based on filters and search - must be before early return
   const filteredTransactions = useMemo(() => {
@@ -557,8 +585,23 @@ export default function CreditCardInvoice() {
   if (!card) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-6">
-          <p>Tarjeta no encontrada</p>
+        <div className="container mx-auto px-4 py-10">
+          <div className="glass rounded-xl border border-border/50 p-8 flex flex-col items-center text-center gap-3">
+            <CreditCard className="w-8 h-8 text-muted-foreground" />
+            <p className="font-medium">
+              {cardsLoading ? "Cargando factura..." : "No encontramos esta tarjeta"}
+            </p>
+            {!cardsLoading && (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  Puede que haya sido eliminada o que pertenezca a otra cuenta.
+                </p>
+                <Button variant="outline" onClick={() => navigate("/cartoes")}>
+                  Volver a mis tarjetas
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </Layout>
     );
@@ -584,32 +627,35 @@ export default function CreditCardInvoice() {
     }
   };
 
-  // Mock invoice data
+  const invoiceTotal = filteredTransactions.reduce((sum, t) => sum + Math.abs(t.valor), 0);
+  const allPaid = filteredTransactions.length > 0 && filteredTransactions.every((t) => t.status === "pagado");
+
   const invoiceData = {
-    status: "Abierta",
+    status: allPaid ? "Pagada" : "Abierta",
     statusColor: "warning",
-    total: 2450.75,
+    total: invoiceTotal,
     closingDate: card.closingDay,
     dueDate: card.dueDay,
   };
   // Convert local transaction to global Transaction format for dialogs
-  const convertToGlobalTransaction = (t: LocalTransaction): Transaction => ({
-    id: t.id,
-    type: "gasto",
-    description: t.descripcion,
-    amount: Math.abs(t.valor),
-    category: t.categoria,
-    subcategory: t.categoria,
-    account: card.account,
-    creditCard: card.name,
-    responsible: t.responsable,
-    dueDate: parseISO(t.dataCompra),
-    paymentDate: undefined,
-    competenceDate: parseISO(t.dataCompra),
-    status: t.status === "pagado" ? "pagado" : "pendiente",
-    isFixed: t.fixoVariavel === "Fijo",
-    color: "hsl(340, 82%, 52%)",
-  });
+  const convertToGlobalTransaction = (t: LocalTransaction): Transaction =>
+    transactionsById[t.id] ?? {
+      id: t.id,
+      type: "gasto",
+      description: t.descripcion,
+      amount: Math.abs(t.valor),
+      category: t.categoria,
+      creditCard: card.name,
+      creditCardId: card.id,
+      account: "",
+      responsible: t.responsable,
+      dueDate: parseISO(t.dataCompra),
+      paymentDate: undefined,
+      competenceDate: parseISO(t.dataCompra),
+      status: t.status === "pagado" ? "pagado" : "pendiente",
+      isFixed: t.fixoVariavel === "Fijo",
+      color: "hsl(340, 82%, 52%)",
+    };
 
   const handleEdit = (transaction: LocalTransaction) => {
     setSelectedTransaction(convertToGlobalTransaction(transaction));
@@ -1027,7 +1073,7 @@ export default function CreditCardInvoice() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Cuenta</span>
-                  <span className="font-medium">{card.account}</span>
+                  <span className="font-medium">{card.bank}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Límite</span>
