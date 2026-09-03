@@ -113,19 +113,6 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-// Mock card data
-const cardsData: Record<string, { 
-  name: string; 
-  brand: string; 
-  limit: number; 
-  closingDay: number; 
-  dueDay: number;
-  account: string;
-}> = {
-  "1": { name: "Santander Platinum", brand: "Mastercard", limit: 15000, closingDay: 3, dueDay: 10, account: "Santander" },
-  "2": { name: "BBVA Aqua", brand: "Visa", limit: 8000, closingDay: 15, dueDay: 22, account: "BBVA" },
-  "3": { name: "CaixaBank Visa", brand: "Visa", limit: 5000, closingDay: 20, dueDay: 27, account: "CaixaBank" },
-};
 
 const brandColors: Record<string, string> = {
   "Mastercard": "hsl(25, 95%, 53%)",
