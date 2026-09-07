@@ -813,7 +813,7 @@ export default function CreditCardInvoice() {
               <div>
                 <h2 className="text-lg font-semibold">Factura {months[currentMonth]}</h2>
                 <p className="text-xs text-muted-foreground">
-                  {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: es })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: es })}
+                  {format(periodStart, "dd 'de' MMMM", { locale: es })} - {format(periodEnd, "dd 'de' MMMM", { locale: es })}
                 </p>
               </div>
               <Button className="gap-2 bg-destructive hover:bg-destructive/90">
@@ -1052,7 +1052,7 @@ export default function CreditCardInvoice() {
                   <div className="text-center">
                     <p className="text-sm font-medium mb-1">Gastos por Categoría</p>
                     <p className="text-xs text-muted-foreground mb-4">
-                      {format(new Date(currentYear, currentMonth, card.closingDay), "dd 'de' MMMM", { locale: es })} - {format(new Date(currentYear, currentMonth + 1, card.closingDay - 1), "dd 'de' MMMM", { locale: es })}
+                      {format(periodStart, "dd 'de' MMMM", { locale: es })} - {format(periodEnd, "dd 'de' MMMM", { locale: es })}
                     </p>
                     <ExpensesPieChart transactions={filteredTransactions} />
                   </div>
