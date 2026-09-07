@@ -4,12 +4,14 @@ import {
   BarChart3, 
   Tags, 
   Building2, 
-  CreditCard
+  CreditCard,
+  Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { path: "/", label: "Inicio", icon: Home },
+  { path: "/plano-mensal", label: "Plan", icon: Target },
   { path: "/relatorios", label: "Informes", icon: BarChart3 },
   { path: "/categorias", label: "Categorías", icon: Tags },
   { path: "/contas", label: "Cuentas", icon: Building2 },
