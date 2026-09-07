@@ -20,6 +20,9 @@ import {
   Plus,
   Trash2,
   Target,
+  Calendar,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { useCategories } from "@/contexts/CategoriesContext";
 import { useTransactions } from "@/contexts/TransactionsContext";
@@ -76,7 +79,6 @@ export default function MonthlyPlan() {
   const pending = available - distributed;
   const distributedPct = available > 0 ? Math.min(100, (distributed / available) * 100) : 0;
 
-  // Gasto real por categoría en el mes del plan
   const spentByCategory = useMemo(() => {
     const map: Record<string, number> = {};
     transactions.forEach((t) => {
@@ -198,35 +200,51 @@ export default function MonthlyPlan() {
             icon={<TrendingUp className="w-5 h-5" />}
             label="Ingresos previstos"
             value={formatCurrency(income)}
+            variant="income"
           />
           <SummaryCard
             icon={<PiggyBank className="w-5 h-5" />}
             label={`Ahorro (${savingsPercent}%)`}
             value={formatCurrency(savingsAmount)}
+            variant="savings"
           />
           <SummaryCard
             icon={<Wallet className="w-5 h-5" />}
             label="Disponible para gastar"
             value={formatCurrency(available)}
-            highlight
+            variant="available"
           />
           <SummaryCard
-            icon={<Target className="w-5 h-5" />}
+            icon={<Calendar className="w-5 h-5" />}
             label="Pendiente de distribuir"
             value={formatCurrency(pending)}
-            tone={pending < 0 ? "danger" : pending === 0 ? "ok" : "default"}
+            variant="pending"
           />
         </div>
 
         {/* Progreso de distribución */}
-        <div className="glass rounded-xl p-5 space-y-3">
-          <div className="flex items-center justify-between text-sm">
+        <div className="glass rounded-xl p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm">
             <span className="text-muted-foreground">Distribuido</span>
             <span className="font-semibold">
               {formatCurrency(distributed)} de {formatCurrency(available)}
             </span>
           </div>
-          <Progress value={distributedPct} className="h-3" />
+          <div className="relative">
+            <Progress value={distributedPct} className="h-3" />
+            {distributedPct >= 100 && (
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs font-medium text-success">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Completo
+              </div>
+            )}
+          </div>
+          {pending < 0 && (
+            <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 rounded-lg px-3 py-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              Has distribuido más de lo disponible. Revisa las categorías.
+            </div>
+          )}
         </div>
 
         {/* Distribución por categorías */}
@@ -271,18 +289,26 @@ export default function MonthlyPlan() {
                 const spent = spentByCategory[item.categoryId] ?? 0;
                 const rest = item.amount - spent;
                 const pct = item.amount > 0 ? Math.min(100, (spent / item.amount) * 100) : 0;
+                const overBudget = rest < 0;
+
                 return (
-                  <div key={item.categoryId} className="rounded-lg border border-border p-4 space-y-3">
+                  <div
+                    key={item.categoryId}
+                    className={cn(
+                      "rounded-xl border border-border p-4 space-y-3 transition-shadow hover:shadow-card",
+                      overBudget && "border-destructive/40 bg-destructive/5"
+                    )}
+                  >
                     <div className="flex items-center gap-3">
                       <span
-                        className="w-3 h-3 rounded-full shrink-0"
+                        className="w-3 h-3 rounded-full shrink-0 ring-2 ring-background"
                         style={{ backgroundColor: category?.color || "hsl(var(--primary))" }}
                       />
-                      <span className="font-medium flex-1 truncate">
+                      <span className="font-semibold flex-1 truncate">
                         {category?.name ?? "Categoría eliminada"}
                       </span>
                       <Input
-                        className="w-32 text-right"
+                        className="w-32 text-right font-semibold"
                         inputMode="decimal"
                         value={amountDrafts[item.categoryId] ?? "0"}
                         onChange={(e) =>
@@ -293,19 +319,49 @@ export default function MonthlyPlan() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-destructive"
+                        className="text-destructive hover:bg-destructive/10"
                         onClick={() => handleRemove(item.categoryId)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                    <Progress value={pct} className="h-2" />
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                      <span>Planificado: {formatCurrency(item.amount)}</span>
-                      <span>Gastado: {formatCurrency(spent)}</span>
-                      <span className={cn(rest < 0 && "text-destructive font-medium")}>
-                        Disponible: {formatCurrency(rest)}
-                      </span>
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">
+                          {Math.round(pct)}% usado
+                        </span>
+                        <span
+                          className={cn(
+                            "font-medium",
+                            overBudget ? "text-destructive" : "text-success"
+                          )}
+                        >
+                          {overBudget ? "Sobrepasado" : "Dentro del plan"}
+                        </span>
+                      </div>
+                      <Progress
+                        value={pct}
+                        className={cn("h-2", overBudget && "[&>div]:bg-destructive")}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 pt-1">
+                      <MetricBadge
+                        label="Planificado"
+                        value={formatCurrency(item.amount)}
+                        tone="default"
+                      />
+                      <MetricBadge
+                        label="Gastado"
+                        value={formatCurrency(spent)}
+                        tone="danger"
+                      />
+                      <MetricBadge
+                        label="Disponible"
+                        value={formatCurrency(rest)}
+                        tone={overBudget ? "danger" : "success"}
+                      />
                     </div>
                   </div>
                 );
@@ -322,31 +378,74 @@ function SummaryCard({
   icon,
   label,
   value,
-  highlight,
-  tone = "default",
+  variant = "default",
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
-  highlight?: boolean;
-  tone?: "default" | "ok" | "danger";
+  variant?: "default" | "income" | "savings" | "available" | "pending";
+}) {
+  const variantStyles = {
+    default: "",
+    income: "bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20",
+    savings: "bg-gradient-to-br from-warning/15 to-warning/5 border-warning/30",
+    available: "bg-gradient-to-br from-success/15 to-success/5 border-success/30 ring-1 ring-success/20",
+    pending: "bg-gradient-to-br from-info/15 to-info/5 border-info/30",
+  };
+
+  const iconStyles = {
+    default: "text-primary bg-primary/10",
+    income: "text-primary bg-primary/15",
+    savings: "text-warning bg-warning/20",
+    available: "text-success bg-success/20",
+    pending: "text-info bg-info/20",
+  };
+
+  return (
+    <div className={cn("glass rounded-xl p-4 space-y-3 border", variantStyles[variant])}>
+      <div className="flex items-center gap-3">
+        <span className={cn("p-2 rounded-lg", iconStyles[variant])}>{icon}</span>
+        <span className="text-sm text-muted-foreground font-medium leading-tight">{label}</span>
+      </div>
+      <p className="text-2xl font-bold tracking-tight">{value}</p>
+    </div>
+  );
+}
+
+function MetricBadge({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "success" | "danger";
 }) {
   return (
     <div
       className={cn(
-        "glass rounded-xl p-4 space-y-2",
-        highlight && "ring-1 ring-primary/40"
+        "rounded-lg px-3 py-2 text-center",
+        tone === "default" && "bg-muted/60",
+        tone === "success" && "bg-success/10",
+        tone === "danger" && "bg-destructive/10"
       )}
     >
-      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-        <span className="text-primary">{icon}</span>
-        {label}
-      </div>
       <p
         className={cn(
-          "text-xl font-bold",
-          tone === "danger" && "text-destructive",
-          tone === "ok" && "text-primary"
+          "text-xs font-bold uppercase tracking-wide mb-0.5",
+          tone === "default" && "text-muted-foreground",
+          tone === "success" && "text-success",
+          tone === "danger" && "text-destructive"
+        )}
+      >
+        {label}
+      </p>
+      <p
+        className={cn(
+          "text-sm font-bold",
+          tone === "default" && "text-foreground",
+          tone === "success" && "text-success",
+          tone === "danger" && "text-destructive"
         )}
       >
         {value}
