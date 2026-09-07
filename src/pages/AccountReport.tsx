@@ -91,7 +91,6 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-// Mock account data - would come from context/API
 const accountsData: Record<string, { name: string; color: string; balance: number; icon: string }> = {
   "1": { name: "Santander", color: "hsl(0, 84%, 50%)", balance: 5420.50, icon: "landmark" },
   "2": { name: "BBVA", color: "hsl(210, 100%, 40%)", balance: 12350.00, icon: "landmark" },
