@@ -89,7 +89,7 @@ export function EditTransactionDialog({
     setIsFixed(transaction.isFixed);
   }, [transaction, categories, accounts, creditCards]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!transaction) return;
 
     if (!description.trim()) {
@@ -110,9 +110,10 @@ export function EditTransactionDialog({
 
     const selectedCategory = categories.find((c) => c.id === categoryId);
     const selectedAccount  = accounts.find((a) => a.id === accountId);
-    const selectedCard     = creditCards.find((c) => c.id === creditCardId);
+    const normalizedCardId = creditCardId && creditCardId !== "none" ? creditCardId : undefined;
+    const selectedCard     = creditCards.find((c) => c.id === normalizedCardId);
 
-    updateTransaction(transaction.id, {
+    const { error } = await updateTransaction(transaction.id, {
       description:   description.trim(),
       amount:        parsedAmount,
       category:      selectedCategory?.name || transaction.category,
@@ -120,7 +121,7 @@ export function EditTransactionDialog({
       account:       selectedAccount?.name  || "",
       accountId:     accountId    || undefined,
       creditCard:    selectedCard?.name,
-      creditCardId:  creditCardId || undefined,
+      creditCardId:  normalizedCardId,
       responsible,
       dueDate,
       competenceDate: dueDate,
@@ -129,6 +130,11 @@ export function EditTransactionDialog({
       isFixed,
       color:         selectedCategory?.color || transaction.color,
     });
+
+    if (error) {
+      toast({ title: "Error", description: `No se pudo actualizar la transacción: ${error.message}`, variant: "destructive" });
+      return;
+    }
 
     toast({ title: "Transacción actualizada", description: `"${description}" ha sido actualizada correctamente.` });
     onOpenChange(false);

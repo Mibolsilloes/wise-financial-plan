@@ -121,8 +121,10 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
       return;
     }
 
-    const selectedAcc  = accounts.find((a) => a.id === conta);
-    const selectedCard = creditCards.find((c) => c.id === cartao);
+    const normalizedAccountId = conta && conta !== "none" ? conta : undefined;
+    const normalizedCardId = cartao && cartao !== "none" ? cartao : undefined;
+    const selectedAcc  = accounts.find((a) => a.id === normalizedAccountId);
+    const selectedCard = creditCards.find((c) => c.id === normalizedCardId);
     const responsibleName = responsibles.find((r) => r.id === responsavel)?.name || "";
 
     const { error } = await addTransaction({
@@ -133,9 +135,9 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
       categoryId:    selectedCategory?.id,
       subcategory:   subcategoria || undefined,
       account:       selectedAcc?.name || "",
-      accountId:     conta     || undefined,
+      accountId:     normalizedAccountId,
       creditCard:    selectedCard?.name,
-      creditCardId:  cartao    || undefined,
+      creditCardId:  normalizedCardId,
       responsible:   responsibleName,
       dueDate:       dataVencimento,
       paymentDate:   foiPaga ? dataPagamento : undefined,
@@ -382,6 +384,7 @@ export function AddExpenseDialog({ open, onOpenChange }: AddExpenseDialogProps) 
                   <SelectValue placeholder="Selecciona una tarjeta" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">Sin tarjeta</SelectItem>
                   {creditCards.map((card) => (
                     <SelectItem key={card.id} value={card.id}>
                       {card.name} - {card.bank}
