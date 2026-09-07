@@ -32,6 +32,7 @@ import { EditTransactionDialog } from "@/components/dashboard/EditTransactionDia
 import { DeleteTransactionDialog } from "@/components/dashboard/DeleteTransactionDialog";
 import { Transaction } from "@/data/mockData";
 import { useTransactions } from "@/contexts/TransactionsContext";
+import { useAccounts } from "@/contexts/AccountsContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -90,13 +91,6 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-// Mock account data - would come from context/API
-const accountsData: Record<string, { name: string; color: string; balance: number; icon: string }> = {
-  "1": { name: "Santander", color: "hsl(0, 84%, 50%)", balance: 5420.50, icon: "landmark" },
-  "2": { name: "BBVA", color: "hsl(210, 100%, 40%)", balance: 12350.00, icon: "landmark" },
-  "3": { name: "CaixaBank", color: "hsl(200, 70%, 45%)", balance: 890.25, icon: "building" },
-  "4": { name: "Efectivo", color: "hsl(160, 84%, 39%)", balance: 150.00, icon: "wallet" },
-};
 
 const getAccountIcon = (iconType: string) => {
   switch (iconType) {
@@ -249,15 +243,29 @@ export default function AccountReport() {
   };
   
   // Get real transactions from context
-  const { transactions: contextTransactions, getTransactionsByAccount } = useTransactions();
-  
-  const account = id ? accountsData[id] : null;
+  const { transactions: contextTransactions } = useTransactions();
+  const { accounts, loading: accountsLoading } = useAccounts();
+
+  const realAccount = useMemo(() => accounts.find((a) => a.id === id), [accounts, id]);
+
+  const account = realAccount
+    ? {
+        name: realAccount.name,
+        color: realAccount.color,
+        balance: realAccount.balance,
+        icon: realAccount.type === "billetera" ? "wallet" : "landmark",
+      }
+    : null;
   const accountName = account?.name || "";
-  
+
   // Get transactions for this account from the real context
   const accountTransactions = useMemo(() => {
-    return getTransactionsByAccount(accountName);
-  }, [getTransactionsByAccount, accountName]);
+    if (!realAccount) return [];
+    return contextTransactions.filter(
+      (t) => t.accountId === realAccount.id || (!t.accountId && t.account === realAccount.name)
+    );
+  }, [contextTransactions, realAccount]);
+
 
   // Transform transactions to display format
   const allTransactions = useMemo(() => {
@@ -428,12 +436,21 @@ export default function AccountReport() {
   if (!account) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-6">
-          <p>Cuenta no encontrada</p>
+        <div className="container mx-auto px-4 py-12 text-center space-y-4">
+          <p className="text-muted-foreground">
+            {accountsLoading ? "Cargando extracto..." : "No encontramos esta cuenta"}
+          </p>
+          {!accountsLoading && (
+            <Button variant="outline" onClick={() => navigate("/contas")}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver a cuentas
+            </Button>
+          )}
         </div>
       </Layout>
     );
   }
+
 
   const AccountIcon = getAccountIcon(account.icon);
 
