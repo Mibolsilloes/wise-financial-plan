@@ -122,6 +122,81 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_plan_items: {
+        Row: {
+          amount: number
+          category_id: string
+          created_at: string
+          id: string
+          plan_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category_id: string
+          created_at?: string
+          id?: string
+          plan_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string
+          created_at?: string
+          id?: string
+          plan_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_plan_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_plan_items_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "monthly_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_plans: {
+        Row: {
+          created_at: string
+          id: string
+          income: number
+          month: number
+          savings_percent: number
+          updated_at: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          income?: number
+          month: number
+          savings_percent?: number
+          updated_at?: string
+          user_id: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          income?: number
+          month?: number
+          savings_percent?: number
+          updated_at?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
