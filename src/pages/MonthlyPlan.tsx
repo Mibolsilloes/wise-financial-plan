@@ -402,12 +402,12 @@ function SummaryCard({
   };
 
   return (
-    <div className={cn("glass rounded-xl p-4 space-y-3 border", variantStyles[variant])}>
-      <div className="flex items-center gap-3">
-        <span className={cn("p-2 rounded-lg", iconStyles[variant])}>{icon}</span>
-        <span className="text-sm text-muted-foreground font-medium leading-tight">{label}</span>
+    <div className={cn("glass rounded-xl p-3 space-y-2 border", variantStyles[variant])}>
+      <div className="flex items-center gap-2">
+        <span className={cn("p-1.5 rounded-lg", iconStyles[variant])}>{icon}</span>
+        <span className="text-xs text-muted-foreground font-semibold leading-tight">{label}</span>
       </div>
-      <p className="text-2xl font-bold tracking-tight">{value}</p>
+      <p className="text-xl font-bold tracking-tight">{value}</p>
     </div>
   );
 }
@@ -424,16 +424,16 @@ function MetricBadge({
   return (
     <div
       className={cn(
-        "rounded-lg px-3 py-2 text-center",
-        tone === "default" && "bg-muted/60",
-        tone === "success" && "bg-success/10",
-        tone === "danger" && "bg-destructive/10"
+        "rounded-2xl px-3 py-2 text-center flex flex-col justify-center gap-0.5",
+        tone === "default" && "bg-muted/80",
+        tone === "success" && "bg-success/15",
+        tone === "danger" && "bg-destructive/15"
       )}
     >
       <p
         className={cn(
-          "text-xs font-bold uppercase tracking-wide mb-0.5",
-          tone === "default" && "text-muted-foreground",
+          "text-[11px] font-bold uppercase tracking-wide leading-tight",
+          tone === "default" && "text-foreground/80",
           tone === "success" && "text-success",
           tone === "danger" && "text-destructive"
         )}
@@ -442,7 +442,7 @@ function MetricBadge({
       </p>
       <p
         className={cn(
-          "text-sm font-bold",
+          "text-sm font-extrabold tracking-tight leading-tight",
           tone === "default" && "text-foreground",
           tone === "success" && "text-success",
           tone === "danger" && "text-destructive"
