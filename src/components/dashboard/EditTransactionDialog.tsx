@@ -121,7 +121,7 @@ export function EditTransactionDialog({
       account:       selectedAccount?.name  || "",
       accountId:     accountId    || undefined,
       creditCard:    selectedCard?.name,
-      creditCardId:  normalizedCardId,
+      creditCardId:  normalizedCardId || "",
       responsible,
       dueDate,
       competenceDate: dueDate,

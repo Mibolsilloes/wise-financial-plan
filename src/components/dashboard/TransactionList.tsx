@@ -165,7 +165,7 @@ export function TransactionList() {
     result.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
 
     return result;
-  }, [filter, searchQuery, effectiveDateRange, filters]);
+  }, [transactions, filter, searchQuery, effectiveDateRange, filters]);
 
   const totalItems = filteredTransactions.length;
   const totalPages = Math.ceil(totalItems / parseInt(itemsPerPage));
