@@ -38,7 +38,6 @@ export function CreditCardsProvider({ children }: { children: ReactNode }) {
         .select("credit_card_id, amount")
         .eq("user_id", user.id)
         .eq("type", "expense")
-        .eq("status", "pending")
         .not("credit_card_id", "is", null),
     ]);
 

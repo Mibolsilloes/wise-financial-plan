@@ -26,7 +26,7 @@ interface TransactionsContextType {
   transactions: Transaction[];
   loading: boolean;
   addTransaction: (transaction: Omit<Transaction, "id">) => Promise<{ error: Error | null }>;
-  updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>;
+  updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<{ error: Error | null }>;
   deleteTransaction: (id: string) => Promise<void>;
   getTransactionsByCategory: (categoryName: string) => Transaction[];
   getTransactionsByAccount: (accountName: string) => Transaction[];
@@ -136,7 +136,13 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
       }
 
       if (data) {
-        const newTransaction: Transaction = { ...transaction, id: data.id };
+        const newTransaction: Transaction = {
+          ...transaction,
+          id: data.id,
+          creditCardId: data.credit_card_id || undefined,
+          accountId: data.account_id || undefined,
+          categoryId: data.category_id || undefined,
+        };
         setTransactions((prev) => [newTransaction, ...prev]);
       }
 
@@ -148,7 +154,7 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const updateTransaction = useCallback(async (id: string, updates: Partial<Transaction>) => {
-    if (!user) return;
+    if (!user) return { error: new Error("Usuario no autenticado") };
 
     const dbUpdates: Record<string, unknown> = {};
 
@@ -178,17 +184,33 @@ export function TransactionsProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("transactions")
       .update(dbUpdates)
       .eq("id", id)
-      .eq("user_id", user.id); // segurança extra além do RLS
+      .eq("user_id", user.id)
+      .select("credit_card_id, account_id, category_id")
+      .single();
 
-    if (!error) {
-      setTransactions((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-      );
+    if (error || !data) {
+      console.error("updateTransaction error:", error);
+      return { error: (error as Error) ?? new Error("No se pudo actualizar la transacción") };
     }
+
+    setTransactions((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              ...updates,
+              creditCardId: data.credit_card_id || undefined,
+              accountId: data.account_id || undefined,
+              categoryId: data.category_id || undefined,
+            }
+          : t
+      )
+    );
+    return { error: null };
   }, [user]);
 
   const deleteTransaction = useCallback(async (id: string) => {

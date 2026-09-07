@@ -169,15 +169,12 @@ export default function CreditCards() {
     const map: Record<string, number> = {};
     transactions.forEach((t) => {
       if (t.type !== "gasto") return;
-      if (t.status === "pagado") return;
-      const cardId =
-        t.creditCardId ||
-        (t.creditCard ? creditCards.find((c) => c.name === t.creditCard)?.id : undefined);
+      const cardId = t.creditCardId;
       if (!cardId) return;
       map[cardId] = (map[cardId] || 0) + Number(t.amount);
     });
     return map;
-  }, [transactions, creditCards]);
+  }, [transactions]);
 
   const cards: CardForEdit[] = creditCards.map((card) => ({
     id:         card.id,
