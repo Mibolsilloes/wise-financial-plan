@@ -32,6 +32,7 @@ import { EditTransactionDialog } from "@/components/dashboard/EditTransactionDia
 import { DeleteTransactionDialog } from "@/components/dashboard/DeleteTransactionDialog";
 import { Transaction } from "@/data/mockData";
 import { useTransactions } from "@/contexts/TransactionsContext";
+import { useAccounts } from "@/contexts/AccountsContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
