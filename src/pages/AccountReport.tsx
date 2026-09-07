@@ -249,15 +249,29 @@ export default function AccountReport() {
   };
   
   // Get real transactions from context
-  const { transactions: contextTransactions, getTransactionsByAccount } = useTransactions();
-  
-  const account = id ? accountsData[id] : null;
+  const { transactions: contextTransactions } = useTransactions();
+  const { accounts, loading: accountsLoading } = useAccounts();
+
+  const realAccount = useMemo(() => accounts.find((a) => a.id === id), [accounts, id]);
+
+  const account = realAccount
+    ? {
+        name: realAccount.name,
+        color: realAccount.color,
+        balance: realAccount.balance,
+        icon: realAccount.type === "billetera" ? "wallet" : "landmark",
+      }
+    : null;
   const accountName = account?.name || "";
-  
+
   // Get transactions for this account from the real context
   const accountTransactions = useMemo(() => {
-    return getTransactionsByAccount(accountName);
-  }, [getTransactionsByAccount, accountName]);
+    if (!realAccount) return [];
+    return contextTransactions.filter(
+      (t) => t.accountId === realAccount.id || (!t.accountId && t.account === realAccount.name)
+    );
+  }, [contextTransactions, realAccount]);
+
 
   // Transform transactions to display format
   const allTransactions = useMemo(() => {
