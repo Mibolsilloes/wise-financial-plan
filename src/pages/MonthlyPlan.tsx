@@ -402,12 +402,12 @@ function SummaryCard({
   };
 
   return (
-    <div className={cn("glass rounded-xl p-4 space-y-3 border", variantStyles[variant])}>
-      <div className="flex items-center gap-3">
-        <span className={cn("p-2 rounded-lg", iconStyles[variant])}>{icon}</span>
-        <span className="text-sm text-muted-foreground font-medium leading-tight">{label}</span>
+    <div className={cn("glass rounded-xl p-3 space-y-2 border", variantStyles[variant])}>
+      <div className="flex items-center gap-2">
+        <span className={cn("p-1.5 rounded-lg", iconStyles[variant])}>{icon}</span>
+        <span className="text-xs text-muted-foreground font-semibold leading-tight">{label}</span>
       </div>
-      <p className="text-2xl font-bold tracking-tight">{value}</p>
+      <p className="text-xl font-bold tracking-tight">{value}</p>
     </div>
   );
 }
