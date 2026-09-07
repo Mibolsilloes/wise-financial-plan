@@ -443,12 +443,21 @@ export default function AccountReport() {
   if (!account) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-6">
-          <p>Cuenta no encontrada</p>
+        <div className="container mx-auto px-4 py-12 text-center space-y-4">
+          <p className="text-muted-foreground">
+            {accountsLoading ? "Cargando extracto..." : "No encontramos esta cuenta"}
+          </p>
+          {!accountsLoading && (
+            <Button variant="outline" onClick={() => navigate("/contas")}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver a cuentas
+            </Button>
+          )}
         </div>
       </Layout>
     );
   }
+
 
   const AccountIcon = getAccountIcon(account.icon);
 
