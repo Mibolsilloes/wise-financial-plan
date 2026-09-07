@@ -91,12 +91,6 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-const accountsData: Record<string, { name: string; color: string; balance: number; icon: string }> = {
-  "1": { name: "Santander", color: "hsl(0, 84%, 50%)", balance: 5420.50, icon: "landmark" },
-  "2": { name: "BBVA", color: "hsl(210, 100%, 40%)", balance: 12350.00, icon: "landmark" },
-  "3": { name: "CaixaBank", color: "hsl(200, 70%, 45%)", balance: 890.25, icon: "building" },
-  "4": { name: "Efectivo", color: "hsl(160, 84%, 39%)", balance: 150.00, icon: "wallet" },
-};
 
 const getAccountIcon = (iconType: string) => {
   switch (iconType) {
