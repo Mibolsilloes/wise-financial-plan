@@ -17,6 +17,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Reports from "./pages/Reports";
 import MonthlyPlan from "./pages/MonthlyPlan";
+import SavingsGoals from "./pages/SavingsGoals";
+import SavingsGoalDetail from "./pages/SavingsGoalDetail";
 import Categories from "./pages/Categories";
 import CategoryReport from "./pages/CategoryReport";
 import BankAccounts from "./pages/BankAccounts";
@@ -51,6 +53,8 @@ const App = () => (
                           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                           <Route path="/relatorios" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
                           <Route path="/plano-mensal" element={<ProtectedRoute><MonthlyPlan /></ProtectedRoute>} />
+                          <Route path="/metas" element={<ProtectedRoute><SavingsGoals /></ProtectedRoute>} />
+                          <Route path="/metas/:id" element={<ProtectedRoute><SavingsGoalDetail /></ProtectedRoute>} />
                           <Route path="/categorias" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
                           <Route path="/categorias/:id/relatorio" element={<ProtectedRoute><CategoryReport /></ProtectedRoute>} />
                           <Route path="/contas" element={<ProtectedRoute><BankAccounts /></ProtectedRoute>} />
