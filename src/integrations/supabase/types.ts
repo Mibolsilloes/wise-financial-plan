@@ -260,6 +260,86 @@ export type Database = {
         }
         Relationships: []
       }
+      savings_goal_movements: {
+        Row: {
+          amount: number
+          created_at: string
+          goal_id: string
+          id: string
+          movement_date: string
+          note: string | null
+          type: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          goal_id: string
+          id?: string
+          movement_date?: string
+          note?: string | null
+          type?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          goal_id?: string
+          id?: string
+          movement_date?: string
+          note?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "savings_goal_movements_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "savings_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      savings_goals: {
+        Row: {
+          color: string
+          created_at: string
+          goal_type: string
+          icon: string
+          id: string
+          initial_amount: number
+          name: string
+          target_amount: number
+          target_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          goal_type?: string
+          icon?: string
+          id?: string
+          initial_amount?: number
+          name: string
+          target_amount?: number
+          target_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          goal_type?: string
+          icon?: string
+          id?: string
+          initial_amount?: number
+          name?: string
+          target_amount?: number
+          target_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subcategories: {
         Row: {
           category_id: string
