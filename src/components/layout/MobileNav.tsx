@@ -6,7 +6,8 @@ import {
   Building2, 
   CreditCard,
   Target,
-  PiggyBank
+  PiggyBank,
+  Receipt
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ const navItems = [
   { path: "/", label: "Inicio", icon: Home },
   { path: "/plano-mensal", label: "Plan", icon: Target },
   { path: "/metas", label: "Metas", icon: PiggyBank },
+  { path: "/dividas", label: "Deudas", icon: Receipt },
   { path: "/relatorios", label: "Informes", icon: BarChart3 },
   { path: "/categorias", label: "Categorías", icon: Tags },
   { path: "/contas", label: "Cuentas", icon: Building2 },

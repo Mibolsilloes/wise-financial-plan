@@ -122,6 +122,107 @@ export type Database = {
         }
         Relationships: []
       }
+      debt_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          debt_id: string
+          id: string
+          installment_number: number | null
+          interest_part: number
+          note: string | null
+          payment_date: string
+          principal_part: number
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          debt_id: string
+          id?: string
+          installment_number?: number | null
+          interest_part?: number
+          note?: string | null
+          payment_date?: string
+          principal_part?: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          debt_id?: string
+          id?: string
+          installment_number?: number | null
+          interest_part?: number
+          note?: string | null
+          payment_date?: string
+          principal_part?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debt_payments_debt_id_fkey"
+            columns: ["debt_id"]
+            isOneToOne: false
+            referencedRelation: "debts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      debts: {
+        Row: {
+          annual_rate: number
+          color: string
+          created_at: string
+          debt_type: string
+          end_date: string | null
+          icon: string
+          id: string
+          initial_paid: number
+          installment_amount: number
+          installments: number
+          name: string
+          note: string | null
+          principal: number
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          annual_rate?: number
+          color?: string
+          created_at?: string
+          debt_type?: string
+          end_date?: string | null
+          icon?: string
+          id?: string
+          initial_paid?: number
+          installment_amount?: number
+          installments?: number
+          name: string
+          note?: string | null
+          principal?: number
+          start_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          annual_rate?: number
+          color?: string
+          created_at?: string
+          debt_type?: string
+          end_date?: string | null
+          icon?: string
+          id?: string
+          initial_paid?: number
+          installment_amount?: number
+          installments?: number
+          name?: string
+          note?: string | null
+          principal?: number
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       monthly_plan_items: {
         Row: {
           amount: number
