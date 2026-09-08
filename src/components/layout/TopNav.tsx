@@ -12,6 +12,7 @@ import {
   LogOut,
   Target,
   PiggyBank,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -38,6 +39,7 @@ const navItems = [
   { path: "/relatorios",   label: "Informes",             icon: BarChart3 },
   { path: "/plano-mensal", label: "Plan mensual",         icon: Target },
   { path: "/metas",        label: "Metas de ahorro",      icon: PiggyBank },
+  { path: "/dividas",      label: "Deudas",               icon: Receipt },
   { path: "/categorias",   label: "Categorías",           icon: Tags },
   { path: "/contas",       label: "Cuentas bancarias",    icon: Building2 },
   { path: "/cartoes",      label: "Tarjetas de crédito",  icon: CreditCard },
